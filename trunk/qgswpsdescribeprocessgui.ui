@@ -1,0 +1,21 @@
+<ui version="4.0" >
+ <class>QgsWpsDescribeProcessGUI</class>
+ <widget class="QDialog" name="QgsWpsDescribeProcessGUI" >
+  <property name="windowModality" >
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>476</width>
+    <height>607</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Dialog</string>
+  </property>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/plugins/wps">
+    <file>images/wps-add.png</file>
+  </qresource>
+</RCC>  
