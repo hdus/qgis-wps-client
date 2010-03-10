@@ -329,11 +329,11 @@ class QgsWps:
     self.resultHandler(wpsRequestResult)
     
   def resultHandler(self, resultXML, resultType="store"):
-#    QMessageBox.information(None, '', resultXML)
+    QMessageBox.information(None, '', resultXML)
     self.doc.setContent(resultXML,  True)
     resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")   
     layerName = self.tools.uniqueLayerName("WPSResult")   
-    
+
     for i in range(resultNodeList.size()):
       f_element = resultNodeList.at(i).toElement()
       
@@ -348,11 +348,14 @@ class QgsWps:
           resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
           resultFile = resultFileConnector[0]
           if mimeType=='text/xml':
+            QMessageBox.information(None, '', resultFile)          
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 #          elif mimeType == 'image/tiff':
           else:
             newResultFile = self.tools.decodeBase64(resultFile)
+#            newResultFile = resultFile
+            QMessageBox.information(None, '', newResultFile)         
             rLayer = QgsRasterLayer(newResultFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
       elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
