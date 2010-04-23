@@ -53,7 +53,7 @@ class QgsWps:
                                                                      
   # Create action that will start plugin configuration
     self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
-    QObject.connect(self.action, SIGNAL("activated()"), self.run)
+    QObject.connect(self.action, SIGNAL("triggered()"), self.run)
 
     
     # Add toolbar button and menu item
