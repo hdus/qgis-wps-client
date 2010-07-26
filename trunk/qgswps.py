@@ -73,7 +73,7 @@ class QgsWps:
        
     flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
  
-    self.dlg = QgsWpsGui(self.iface.mainWindow(), flags)    
+    self.dlg = QgsWpsGui(self.iface.mainWindow(),  flags)    
     QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
     QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
     QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
@@ -176,9 +176,9 @@ class QgsWps:
 
       if literalData.size() > 0:
         allowedValuesElement = literalData.at(0).toElement()
-        allowedValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
-        if allowedValues.size() > 0:
-          valList = self.tools.getValueList(allowedValues)         
+        aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
+        if aValues.size() > 0:
+          valList = self.tools.allowedValues(aValues)         
           if len(valList) > 0:
             if len(valList[0]) > 0:
               self.valueComboBoxList.append(self.addValueComboBox(title, self.processDataIdentifier, wVdist, wHdist, valList, i))

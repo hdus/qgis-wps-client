@@ -207,8 +207,6 @@ class QgsWpsTools:
     
     featureList = vLayer.selectedFeatures()
     
-#    QMessageBox.information(None, '', str(featureList))    
-    
     if processSelection and vLayer.selectedFeatureCount() > 0:
       for feat in featureList:
         writer.addFeature(feat)
@@ -230,7 +228,6 @@ class QgsWpsTools:
     gmlString += myGML.readAll()
     myFile.close()
     myQTempFile.close()
-#    gmlString = gmlString.replace('xsi:schemaLocation="http://ogr.maptools.org/ qt_temp.xsd"', 'xsi:schemaLocation="http://ogr.maptools.org/qt_temp.xsd"')
     return gmlString.simplified()
          
   def getVLayer(self,name):
@@ -293,13 +290,26 @@ class QgsWpsTools:
          
       return layerSourceList
 
-  def getValueList(self, allowedValues):
-     value_element = allowedValues.at(0).toElement()
-     v_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Value")
+  def allowedValues(self, aValues):
      valList = []
-     for n in range(v_element.size()):
-       mv_element = v_element.at(n).toElement() 
-       valList.append(unicode(mv_element.text(),'latin1').strip())
+
+# Manage a value list defined by a range
+     value_element = aValues.at(0).toElement()
+     v_range_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Range")
+     
+     if v_range_element.size() > 0:
+       min_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MinimumValue").at(0).toElement().text()
+       max_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MaximumValue").at(0).toElement().text()
+       
+       for n in range(int(min_val),int(max_val)+1):
+         valList.append(unicode(str(n), 'latin1').strip())
+
+# Manage a value list defined by single values
+     v_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Value")
+     if v_element.size() > 0:
+       for n in range(v_element.size()):
+         mv_element = v_element.at(n).toElement() 
+         valList.append(unicode(mv_element.text(),'latin1').strip())
      return valList        
 
   def errorHandler(self, resultXML):
