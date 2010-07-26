@@ -300,9 +300,11 @@ class QgsWpsTools:
      if v_range_element.size() > 0:
        min_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MinimumValue").at(0).toElement().text()
        max_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MaximumValue").at(0).toElement().text()
-       
+#       QMessageBox.information(None, '', min_val+' - '+max_val)
        for n in range(int(min_val),int(max_val)+1):
-         valList.append(unicode(str(n), 'latin1').strip())
+           myVal = QString()
+           myVal.append(str(n))
+           valList.append(myVal)
 
 # Manage a value list defined by single values
      v_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Value")
