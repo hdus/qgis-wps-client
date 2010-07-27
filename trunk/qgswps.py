@@ -348,7 +348,7 @@ class QgsWps:
           resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
           resultFile = resultFileConnector[0]
           if mimeType=='text/xml':
-            QMessageBox.information(None, '', resultFile)          
+#            QMessageBox.information(None, '', resultFile)          
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
 #          elif mimeType == 'image/tiff':
