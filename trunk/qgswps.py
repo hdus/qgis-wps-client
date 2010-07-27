@@ -329,7 +329,7 @@ class QgsWps:
     self.resultHandler(wpsRequestResult)
     
   def resultHandler(self, resultXML, resultType="store"):
-    QMessageBox.information(None, '', resultXML)
+#    QMessageBox.information(None, '', resultXML)
     self.doc.setContent(resultXML,  True)
     resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")   
     layerName = self.tools.uniqueLayerName("WPSResult")   
@@ -355,7 +355,7 @@ class QgsWps:
           else:
             newResultFile = self.tools.decodeBase64(resultFile)
 #            newResultFile = resultFile
-            QMessageBox.information(None, '', newResultFile)         
+#            QMessageBox.information(None, '', newResultFile)         
             rLayer = QgsRasterLayer(newResultFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
       elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
