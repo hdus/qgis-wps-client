@@ -4,7 +4,7 @@
 #  -------------------------------------------------------------------
 # Date                 : 09 November 2009
 # Copyright            : (C) 2009 by Dr. Horst Duester
-# email                : horst dot duester at bd dot so dot ch
+# email                : horst dot duester at kappasys dot ch
 #  ***************************************************************************
 #  *                                                                         *
 #  *   This program is free software; you can redistribute it and/or modify  *
@@ -329,7 +329,7 @@ class QgsWps:
     self.resultHandler(wpsRequestResult)
     
   def resultHandler(self, resultXML, resultType="store"):
-#    QMessageBox.information(None, '', resultXML)
+    QMessageBox.information(None, '', resultXML)
     self.doc.setContent(resultXML,  True)
     resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")   
     layerName = self.tools.uniqueLayerName("WPSResult")   

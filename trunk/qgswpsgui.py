@@ -4,7 +4,7 @@
 #  -------------------------------------------------------------------
 # Date                 : 09 November 2009
 # Copyright            : (C) 2009 by Dr. Horst Duester
-# email                : horst dot duester at bd dot so dot ch
+# email                : horst dot duester at kappasys dot ch
 #  ***************************************************************************
 #  *                                                                         *
 #  *   This program is free software; you can redistribute it and/or modify  *
