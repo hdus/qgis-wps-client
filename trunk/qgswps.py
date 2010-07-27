@@ -208,7 +208,7 @@ class QgsWps:
         wVdist = int(wVdist) + int(50)   
         
     
-    self.addCheckBox("Only process selected objects", "Selected" ,  wVdist,  wHdist)
+    self.addCheckBox("Process selected objects only", "Selected" ,  wVdist,  wHdist+50)
 
 # Formulieren der GUI Objekte fuer das OUTPUT-Handling
     for i in range(DataOutputs.size()):
