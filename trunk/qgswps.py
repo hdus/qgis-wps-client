@@ -230,7 +230,7 @@ class QgsWps:
     
     btnAbbrechen = QPushButton(self.dlgProcess)
     btnAbbrechen.setGeometry(QRect(125,wVdist+50,100,27))
-    btnAbbrechen.setText("abbrechen")
+    btnAbbrechen.setText("cancel")
 
     QObject.connect(btnOk,SIGNAL("clicked()"),self.startProcess)
     QObject.connect(btnAbbrechen,SIGNAL("clicked()"),self.dlgProcess.close)        

@@ -315,42 +315,42 @@ class QgsWpsTools:
      return valList        
 
   def errorHandler(self, resultXML):
-     QMessageBox.information(None, 'Error', resultXML)
-#     errorDoc = QtXml.QDomDocument()
-#     myResult = errorDoc.setContent(resultXML.strip(), True)
-#     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionReport")
-#     exceptionText = ''
-#     if not resultExceptionNodeList.isEmpty():
-#       for i in range(resultExceptionNodeList.size()):
-#         resultElement = resultExceptionNodeList.at(i).toElement()
-#         exceptionText += resultElement.text()
-#
-#     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
-#     if not resultExceptionNodeList.isEmpty():
-#       for i in range(resultExceptionNodeList.size()):
-#         resultElement = resultExceptionNodeList.at(i).toElement()
-#         exceptionText += resultElement.text()
-#  
-#     resultExceptionNodeList = errorDoc.elementsByTagName("ExceptionText")
-#     if not resultExceptionNodeList.isEmpty():
-#       for i in range(resultExceptionNodeList.size()):
-#         resultElement = resultExceptionNodeList.at(i).toElement()
-#         exceptionText += resultElement.text()
-#
-#     resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
-#     if not resultExceptionNodeList.isEmpty():
-#       resultElement = resultExceptionNodeList.at(0).toElement()
-#       exceptionText += resultElement.attribute("exceptionCode")
-#
-#     #       QMessageBox.warning(None,'WPS Error',exceptionText)
-#     if len(exceptionText) > 0:
-#         flags = Qt.Dialog|Qt.MSWindowsFixedSizeDialogHint
-#         msgBox = QMessageBox(None)
-#         msgBox.setMinimumSize(400, 400)
-#         msgBox.setText("WPS Error")
-#         msgBox.setInformativeText(exceptionText)
-#         msgBox.setDetailedText(resultXML)
-#         ret = msgBox.exec_()
+#     QMessageBox.information(None, 'Error', resultXML)
+     errorDoc = QtXml.QDomDocument()
+     myResult = errorDoc.setContent(resultXML.strip(), True)
+     resultExceptionNodeList = errorDoc.elementsByTagName("ExceptionReport")
+     exceptionText = ''
+     if not resultExceptionNodeList.isEmpty():
+       for i in range(resultExceptionNodeList.size()):
+         resultElement = resultExceptionNodeList.at(i).toElement()
+         exceptionText += resultElement.text()
+
+     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
+     if not resultExceptionNodeList.isEmpty():
+       for i in range(resultExceptionNodeList.size()):
+         resultElement = resultExceptionNodeList.at(i).toElement()
+         exceptionText += resultElement.text()
+  
+     resultExceptionNodeList = errorDoc.elementsByTagName("ExceptionText")
+     if not resultExceptionNodeList.isEmpty():
+       for i in range(resultExceptionNodeList.size()):
+         resultElement = resultExceptionNodeList.at(i).toElement()
+         exceptionText += resultElement.text()
+
+     resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
+     if not resultExceptionNodeList.isEmpty():
+       resultElement = resultExceptionNodeList.at(0).toElement()
+       exceptionText += resultElement.attribute("exceptionCode")
+
+     #       QMessageBox.warning(None,'WPS Error',exceptionText)
+     if len(exceptionText) > 0:
+         flags = Qt.Dialog|Qt.MSWindowsFixedSizeDialogHint
+         msgBox = QMessageBox(None)
+         msgBox.setMinimumSize(400, 400)
+         msgBox.setText("WPS Error")
+         msgBox.setInformativeText(exceptionText)
+         msgBox.setDetailedText(resultXML)
+         ret = msgBox.exec_()
     
 #Creates a QgsVectorFileWriter for GML
 #Return: QgsVectorFileWriter
