@@ -1,7 +1,7 @@
 # -*- coding: latin1 -*-
 from qgswps import QgsWps
 def name():
-  return "WPS"
+  return "WPS-Client"
 def description():
   return "Client for Web Processing Services"
 def version():
