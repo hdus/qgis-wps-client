@@ -315,10 +315,10 @@ class QgsWpsTools:
      return valList        
 
   def errorHandler(self, resultXML):
-     QMessageBox.information(None, 'Error', resultXML)
+#     QMessageBox.information(None, 'Error', resultXML)
      errorDoc = QtXml.QDomDocument()
      myResult = errorDoc.setContent(resultXML.strip(), True)
-     resultExceptionNodeList = errorDoc.elementsByTagName("ExceptionReport")
+     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
      exceptionText = ''
      if not resultExceptionNodeList.isEmpty():
        for i in range(resultExceptionNodeList.size()):
@@ -331,7 +331,7 @@ class QgsWpsTools:
          resultElement = resultExceptionNodeList.at(i).toElement()
          exceptionText += resultElement.text()
   
-     resultExceptionNodeList = errorDoc.elementsByTagName("ExceptionText")
+     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionText")
      if not resultExceptionNodeList.isEmpty():
        for i in range(resultExceptionNodeList.size()):
          resultElement = resultExceptionNodeList.at(i).toElement()
