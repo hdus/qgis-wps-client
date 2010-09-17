@@ -271,7 +271,8 @@ class QgsWps:
        postString += "<wps:Data>\n"
        if self.dataTypeList[i] == "text/xml":
          postString += "<wps:ComplexData>\n"
-         postString += self.tools.createTmpGML(self.complexComboBoxList[i].currentText(), useSelected).replace('"','\"').replace("\n","")
+#         postString += self.tools.createTmpGML(self.complexComboBoxList[i].currentText(), useSelected).replace('"','\"').replace("\n","").replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
+         postString += self.tools.createTmpGML(self.complexComboBoxList[i].currentText(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
        else:
          postString += "<wps:ComplexData>"
          postString += self.tools.createTmpBase64(self.complexComboBoxList[i].currentText()).replace('"','\"').replace("\n","")
@@ -317,7 +318,9 @@ class QgsWps:
 
 #    f = urllib.urlopen( str(protocol)+"://"+str(server)+""+str(path), unicode(postString, "latin1").replace('"','\"').replace("\n",""))
     f = urllib.urlopen( str(protocol)+"://"+str(server)+""+str(path), unicode(postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>'))
-#    print postString
+#    outFile = open('/tmp/test_neu.xml', 'w')
+#    outFile.write(postString)
+#    outFile.close()
 
     # Read the results back.
     wpsRequestResult = f.read()
@@ -334,35 +337,38 @@ class QgsWps:
     resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")   
     layerName = self.tools.uniqueLayerName("WPSResult")   
 
-    for i in range(resultNodeList.size()):
-      f_element = resultNodeList.at(i).toElement()
-      
-      if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
-        identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
-        reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
-      
-        fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
-        mimeType = reference.attribute("mimeType", "0")
-      
-        if fileLink <> '0':
-          resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
-          resultFile = resultFileConnector[0]
-          if mimeType=='text/xml':
-#            QMessageBox.information(None, '', resultFile)          
-            vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-#          elif mimeType == 'image/tiff':
-          else:
-            newResultFile = self.tools.decodeBase64(resultFile)
-#            newResultFile = resultFile
-#            QMessageBox.information(None, '', newResultFile)         
-            rLayer = QgsRasterLayer(newResultFile, layerName)
-            QgsMapLayerRegistry.instance().addMapLayer(rLayer)
-      elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
-        QApplication.restoreOverrideCursor()
-        literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
-        QMessageBox.information(None,'Result',literalText)
-      else:
+    if resultNodeList.size() > 0:
+    
+        for i in range(resultNodeList.size()):
+          f_element = resultNodeList.at(i).toElement()
+          
+          if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
+            identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+            reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
+          
+            fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
+            mimeType = reference.attribute("mimeType", "0")
+          
+            if fileLink <> '0':
+              resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
+              resultFile = resultFileConnector[0]
+              if mimeType=='text/xml':
+    #            QMessageBox.information(None, '', resultFile)          
+                vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
+                QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+    #          elif mimeType == 'image/tiff':
+              else:
+                newResultFile = self.tools.decodeBase64(resultFile)
+    #            newResultFile = resultFile
+    #            QMessageBox.information(None, '', newResultFile)         
+                rLayer = QgsRasterLayer(newResultFile, layerName)
+                QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+          elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
+            QApplication.restoreOverrideCursor()
+            literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
+            QMessageBox.information(None,'Result',literalText)
+        QMessageBox.information(None, 'Process result', 'The process finished successful')
+    else:
         self.tools.errorHandler(resultXML)
 
   def addComplexComboBox(self, title, name, mimeType,  wVdist, wHdist,  namesList, i):
