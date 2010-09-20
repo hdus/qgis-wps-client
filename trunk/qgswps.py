@@ -300,7 +300,7 @@ class QgsWps:
     
     postString += "</wps:DataInputs>\n"
     postString += "<wps:ResponseForm>\n"
-    postString += "<wps:ResponseDocument wps:lineage=\"true\" wps:storeExecuteResponse=\"true\" wps:status=\"true\">\n"
+    postString += "<wps:ResponseDocument lineage=\"true\" storeExecuteResponse=\"true\" status=\"false\">\n"
     for i in range(dataOutputs.size()):
       f_element = dataOutputs.at(i).toElement()
       outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().simplified()
