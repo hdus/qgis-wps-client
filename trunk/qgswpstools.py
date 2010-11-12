@@ -23,6 +23,7 @@ from qgis.core import *
 from httplib import *
 from urlparse import urlparse
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
+from qgswpserrormsggui import QgsWpsErrorMsgGui
 import os, sys, string, tempfile,  base64
 
 # initialize Qt resources from file resources.py
@@ -451,3 +452,9 @@ class QgsWpsTools:
     db.close()
 
     return encoding
+    
+  def myMessageBox(self,  text):
+      self.myMessage = QgsWpsErrorMsgGui()
+      self.myMessage.textEdit.clear()
+      self.myMessage.textEdit.setText(text)
+      self.myMessage.show()
