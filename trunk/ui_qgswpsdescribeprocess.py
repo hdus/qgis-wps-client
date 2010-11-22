@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'qgswpsdescribeprocessgui.ui'
 #
-# Created: Wed Oct 21 16:48:14 2009
-#      by: PyQt4 UI code generator 4.5.4
+# Created: Mon Nov 22 01:22:23 2010
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,7 +13,7 @@ class Ui_QgsWpsDescribeProcessGUI(object):
     def setupUi(self, QgsWpsDescribeProcessGUI):
         QgsWpsDescribeProcessGUI.setObjectName("QgsWpsDescribeProcessGUI")
         QgsWpsDescribeProcessGUI.setWindowModality(QtCore.Qt.NonModal)
-        QgsWpsDescribeProcessGUI.resize(476, 607)
+        QgsWpsDescribeProcessGUI.resize(800, 600)
 
         self.retranslateUi(QgsWpsDescribeProcessGUI)
         QtCore.QMetaObject.connectSlotsByName(QgsWpsDescribeProcessGUI)

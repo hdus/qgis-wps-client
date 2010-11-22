@@ -23,7 +23,6 @@ from qgis.core import *
 from httplib import *
 from urlparse import urlparse
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
-from qgswpserrormsggui import QgsWpsErrorMsgGui
 import os, sys, string, tempfile,  base64
 
 # initialize Qt resources from file resources.py
@@ -347,7 +346,7 @@ class QgsWpsTools:
      if len(exceptionText) > 0:
          flags = Qt.Dialog|Qt.MSWindowsFixedSizeDialogHint
          msgBox = QMessageBox(None)
-         msgBox.setMinimumSize(400, 400)
+         msgBox.setMinimumSize(800, 600)
          msgBox.setText("WPS Error")
          msgBox.setInformativeText(exceptionText)
          msgBox.setDetailedText(resultXML)
@@ -425,7 +424,7 @@ class QgsWpsTools:
       nLayers=mc.layerCount()
       
       for l in range(nLayers):
-        # Nur die Layer des gewünschten Datentypes auswählen 0=Vectorlayer 1=Rasterlayer
+        # Nur die Layer des gewï¿½nschten Datentypes auswï¿½hlen 0=Vectorlayer 1=Rasterlayer
         if mc.layer(l).type() == dataType:
           myLayerList.append(mc.layer(l).name())
     
@@ -452,9 +451,3 @@ class QgsWpsTools:
     db.close()
 
     return encoding
-    
-  def myMessageBox(self,  text):
-      self.myMessage = QgsWpsErrorMsgGui()
-      self.myMessage.textEdit.clear()
-      self.myMessage.textEdit.setText(text)
-      self.myMessage.show()
