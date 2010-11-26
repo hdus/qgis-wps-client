@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgsnewhttpconnectionbase.ui'
 #
-# Created: Thu Nov 11 16:18:03 2010
+# Created: Fri Nov 26 19:49:41 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_QgsNewHttpConnectionBase(object):
     def setupUi(self, QgsNewHttpConnectionBase):
         QgsNewHttpConnectionBase.setObjectName("QgsNewHttpConnectionBase")
-        QgsNewHttpConnectionBase.resize(618, 247)
+        QgsNewHttpConnectionBase.resize(850, 458)
         QgsNewHttpConnectionBase.setSizeGripEnabled(True)
         QgsNewHttpConnectionBase.setModal(True)
         self.gridlayout = QtGui.QGridLayout(QgsNewHttpConnectionBase)
