@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgsnewhttpconnectionbase.ui'
 #
-# Created: Fri Nov 26 19:49:41 2010
+# Created: Fri Nov 26 20:00:31 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_QgsNewHttpConnectionBase(object):
     def setupUi(self, QgsNewHttpConnectionBase):
         QgsNewHttpConnectionBase.setObjectName("QgsNewHttpConnectionBase")
-        QgsNewHttpConnectionBase.resize(850, 458)
+        QgsNewHttpConnectionBase.resize(569, 147)
         QgsNewHttpConnectionBase.setSizeGripEnabled(True)
         QgsNewHttpConnectionBase.setModal(True)
         self.gridlayout = QtGui.QGridLayout(QgsNewHttpConnectionBase)
@@ -39,7 +39,7 @@ class Ui_QgsNewHttpConnectionBase(object):
         self.gridlayout1.addWidget(self.txtUrl, 1, 1, 1, 2)
         self.gridlayout.addWidget(self.GroupBox1, 0, 0, 1, 1)
         self.buttonBox = QtGui.QDialogButtonBox(QgsNewHttpConnectionBase)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Help|QtGui.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.gridlayout.addWidget(self.buttonBox, 1, 0, 1, 1)
         self.TextLabel1_2.setBuddy(self.txtName)
