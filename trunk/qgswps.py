@@ -324,7 +324,7 @@ class QgsWps:
     postString += "</wps:ResponseDocument>\n"
     postString  += "</wps:ResponseForm>\n"
     postString += "</wps:Execute>\n"
-
+    
 #    f = urllib.urlopen( str(protocol)+"://"+str(server)+""+str(path), unicode(postString, "latin1").replace('"','\"').replace("\n",""))
     f = urllib.urlopen( str(protocol)+"://"+str(server)+""+str(path), unicode(postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>'))
     outFile = open('/tmp/test_neu.xml', 'w')
@@ -341,7 +341,6 @@ class QgsWps:
     self.resultHandler(wpsRequestResult)
     
   def resultHandler(self, resultXML, resultType="store"):
-#    QMessageBox.information(None, '', resultXML)
     self.doc.setContent(resultXML,  True)
     resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")   
     layerName = self.tools.uniqueLayerName("WPSResult")   
@@ -357,6 +356,8 @@ class QgsWps:
           
             fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
             mimeType = reference.attribute("mimeType", "0")
+           
+#            QMessageBox.information(None, '', fileLink)          
           
             if fileLink <> '0':
               resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))

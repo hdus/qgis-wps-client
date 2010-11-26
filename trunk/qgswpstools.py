@@ -315,7 +315,7 @@ class QgsWpsTools:
      return valList        
 
   def errorHandler(self, resultXML):
-#     QMessageBox.information(None, 'Error', resultXML)
+#     self.myMessageBox(resultXML)
      errorDoc = QtXml.QDomDocument()
      myResult = errorDoc.setContent(resultXML.strip(), True)
      resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
