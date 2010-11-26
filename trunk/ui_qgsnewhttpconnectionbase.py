@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'qgsnewhttpconnectionbase.ui'
 #
-# Created: Fri Jan 22 13:51:42 2010
-#      by: PyQt4 UI code generator 4.5.4
+# Created: Fri Nov 26 19:46:57 2010
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_QgsNewHttpConnectionBase(object):
     def setupUi(self, QgsNewHttpConnectionBase):
         QgsNewHttpConnectionBase.setObjectName("QgsNewHttpConnectionBase")
-        QgsNewHttpConnectionBase.resize(618, 247)
+        QgsNewHttpConnectionBase.resize(567, 147)
         QgsNewHttpConnectionBase.setSizeGripEnabled(True)
         QgsNewHttpConnectionBase.setModal(True)
         self.gridlayout = QtGui.QGridLayout(QgsNewHttpConnectionBase)
