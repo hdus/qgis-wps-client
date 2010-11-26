@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Thu Nov 11 16:18:02 2010
+# Created: Fri Nov 26 20:49:12 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!

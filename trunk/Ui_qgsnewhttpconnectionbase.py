@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgsnewhttpconnectionbase.ui'
 #
-# Created: Fri Nov 26 20:00:31 2010
+# Created: Fri Nov 26 20:49:13 2010
 #      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
