@@ -234,7 +234,7 @@ class QgsWps:
 
     self.dlgProcessTabFrameLayout.addWidget(self.dlgProcessScrollArea)
 
-    self.addOkCanceButtons()
+    self.addOkCancelButtons()
 
     self.dlgProcessTabFrame.setLayout(self.dlgProcessTabFrameLayout)
     self.dlgProcessTab.addTab(self.dlgProcessTabFrame, "Process")
@@ -551,7 +551,7 @@ class QgsWps:
 
     self.dlgProcessTab.addTab(textBox, "Documentation")
 
-  def addOkCanceButtons(self):
+  def addOkCancelButtons(self):
 
     groupbox = QFrame()
     layout = QHBoxLayout()
