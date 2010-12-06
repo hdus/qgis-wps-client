@@ -28,12 +28,14 @@ import os, sys, string, tempfile,  base64
 # initialize Qt resources from file resources.py
 import resources
 
-# Our main class for the plugin
+# Our help class for the plugin
 class QgsWpsTools:
     
   def __init__(self, iface):
     self.iface = iface
     self.doc = QtXml.QDomDocument()
+
+  ##############################################################################
 
   def webConnectionExists(self, connection):
     try:
@@ -44,42 +46,47 @@ class QgsWpsTools:
       return False
 
 
-# Gets Server and Connection Info from Stored Server Connections in QGIS Settings
-# Param: String ConnectionName
-# Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)            
+  ##############################################################################
+
+  # Gets Server and Connection Info from Stored Server Connections in QGIS Settings
+  # Param: String ConnectionName
+  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
   def getServer(self,name):
     settings = QSettings()
     mySettings = "/WPS/"+name
-    scheme = settings.value(mySettings+"/scheme").toString()
-    server = settings.value(mySettings+"/server").toString()
-    path = settings.value(mySettings+"/path").toString()
-    method = settings.value(mySettings+"/method").toString()
-    version = settings.value(mySettings+"/version").toString()
-    result = [scheme, server, path, method, version]
+    result = {}
+    result["scheme"] = settings.value(mySettings+"/scheme").toString()
+    result["server"] = settings.value(mySettings+"/server").toString()
+    result["path"] = settings.value(mySettings+"/path").toString()
+    result["method"] = settings.value(mySettings+"/method").toString()
+    result["version"] = settings.value(mySettings+"/version").toString()
     return result    
-    
-# Gets Server and Connection Info from Stored Server Connections
-# Param: String ConnectionName
-# Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)              
-  def getServiceXML(self, name, request, identifier=''):    
+
+  ##############################################################################
+  
+  # Gets Server and Connection Info from Stored Server Connections
+  # Param: String ConnectionName
+  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
+  def getServiceXML(self, name, request, identifier=''):
     result = self.getServer(name)
-    path = result[2]
-    server = result[1]
-    method = result[3]
-    version = result[4]
+    path = result["path"]
+    server = result["server"]
+    method = result["method"]
+    version = result["version"]
     if identifier <> '':
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
     else:
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
     
-    result = self.getServer(name)
     myPath = path+myRequest
     self.verbindung = HTTPConnection(str(server))
     self.verbindung.request(str(method),str(myPath))
     result = self.verbindung.getresponse()
     return result.read()
 
-    
+
+  ##############################################################################
+
   def getCapabilities(self, connection):
     
     xmlString = self.getServiceXML(connection,"GetCapabilities")
@@ -112,75 +119,85 @@ class QgsWpsTools:
     return itemListAll
     
 
+  ##############################################################################
+
   def getServiceVersion(self):
     root = self.doc.documentElement()  
     version = root.attribute("version")
     return version
 
+  ##############################################################################
+
   def getFileReference(self):
     pass
 
-  def getMimeType(self,  inElement,  elementNode="Default"):
-    mimeType = ''
-    if elementNode == "Default":
-      myElement = inElement.elementsByTagName(elementNode).at(0).toElement()
-      mimeType = myElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MimeType").at(0).toElement().text().simplified()
-      if len(mimeType) == 0:
-        mimeType = myElement.elementsByTagName("MimeType").at(0).toElement().text().simplified()
-    else:
-        myElements = inElement.elementsByTagName(elementNode).at(0).toElement()
-        myFormats = myElements.elementsByTagName('Format')
-        for i in range(myFormats.size()):
-          myFormat = myFormats.at(i).toElement()
-          myMimeType = myFormat.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MimeType").at(0).toElement().text().simplified()
-          if len(myMimeType) == 0:
-            mimeType += myFormat.elementsByTagName("MimeType").at(0).toElement().text().simplified()+', '
-          else:
-            mimeType += myFormat.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MimeType").at(0).toElement().text().simplified()
-    print mimeType
-    return mimeType.toLower()
-    
+  ##############################################################################
+
+  def getDefaultMimeType(self,  inElement):
+    mimeType = ""
+    myElement = inElement.elementsByTagName("Default").at(0).toElement()
+    mimeType = myElement.elementsByTagName("MimeType").at(0).toElement().text().simplified()
+    return mimeType
+
+  ##############################################################################
+
+  def getSupportedMimeTypes(self,  inElement):
+    mimeType = []
+    myElements = inElement.elementsByTagName("Supported").at(0).toElement()
+    myFormats = myElements.elementsByTagName('Format')
+    for i in range(myFormats.size()):
+      myFormat = myFormats.at(i).toElement()
+      mimeType.append(myFormat.elementsByTagName("MimeType").at(0).toElement().text().simplified())
+    return mimeType
+
+  ##############################################################################
+
+  def getIdentifierTitleAbstractFromElement(self, element):
+
+      inputIdentifier = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+      title      = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()
+      abstract   = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract").at(0).toElement().text().simplified()
+
+      return inputIdentifier, title, abstract
+
+  ##############################################################################
+
   def createTmpBase64(self,  layer):
-    myQTempFile = QTemporaryFile()
-    myQTempFile.open()
-    tmpFile = unicode(myQTempFile.fileName(),'latin1')
-
-    rLayer = self.getVLayer(layer)    
-
-    infile = open(rLayer.source())
-    outfile = open(tmpFile+".base64","w")
-    base64.encode(infile,outfile)
-    myQTempFile.close()
-    
-    myFile = QFile(tmpFile+".base64")
-    if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
-      pass    
-
-    line = myFile.readLine()
-    base64String = line
-
-    while not line.isNull():
-      line = myFile.readLine()
-      base64String += line
-
-    myFile.close()
-    myFile.remove()
-
+    try:
+        filename = tempfile.mktemp(prefix="base64")         
+        rLayer = self.getVLayer(layer)
+        infile = open(rLayer.source())
+        outfile = open(filename, 'w')
+        base64.encode(infile,outfile)
+        outfile.close()
+        outfile =  open(filename, 'r')
+        base64String = outfile.read()
+        os.remove(filename)
+    except:
+        QMessageBox.error(None, '', "Unable to create temporal file: " + filename + " for base64 encoding")  
     return base64String
-    
+
+  ##############################################################################
 
   def decodeBase64(self, infileName,  mimeType="image/tiff"):
-    myQTempFile = QTemporaryFile()
-    myQTempFile.open()
-    tmpFile = unicode(myQTempFile.fileName(),'latin1')
-    tmpFileName = tmpFile+".tif"
-    infile = open(infileName)
-    outfile = open(tmpFileName, "w")    
-    base64.decode(infile, outfile)
-    infile.close()
-    outfile.close()
-    
-    return tmpFileName
+
+#   This is till untested
+#   TODO: test it
+    try:
+        # User project dir
+        #filename = QFileDialog.getSaveFileName(None, "Chose filename for output file", "/home/soeren");
+        filename = tempfile.mktemp(prefix="base64") 
+        infile = open(infileName)
+        outfile = open(filename, 'w')
+        base64.decode(infile,outfile)
+        infile.close()
+        outfile.close()
+    except:
+        raise
+ 
+    return filename
+
+  ##############################################################################
 
   def createTmpGML(self, layer, processSelection="False"):
     myQTempFile = QTemporaryFile()
@@ -229,7 +246,9 @@ class QgsWpsTools:
     myFile.close()
     myQTempFile.close()
     return gmlString.simplified()
-         
+
+  ##############################################################################
+  
   def getVLayer(self,name):
   #   Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
         # get the map canvas
@@ -242,7 +261,9 @@ class QgsWpsTools:
       layer = mc.layer(l)
       if layer.name() == name:
         return layer  
-    
+
+  ##############################################################################
+
   def getProviderName(self, name):
     mc=self.iface.mapCanvas()
         
@@ -257,9 +278,11 @@ class QgsWpsTools:
     
     return providerName
 
+  ##############################################################################
+
   def getTableName(self, name):
-  #   Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
-        # get the map canvas
+    #  Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
+    # get the map canvas
     mc=self.iface.mapCanvas()
         
      # how many layers are there?
@@ -273,27 +296,31 @@ class QgsWpsTools:
         theTableName.replace('"','')
         return theTableName 
 
+  ##############################################################################
+
   def getLayerSourceList(self):
-           # get the map canvas
-      mc=self.iface.mapCanvas()
-        
-      # how many layers are there?
-      nLayers=mc.layerCount()
-        
-      # loopage:
-      layerSourceList = []
-        
-      for l in range(nLayers):
-         layer = mc.layer(l)
-         layerSource = unicode(layer.publicSource(),'latin1').lower()
-         layerSourceList.append(layerSource)      
-         
-      return layerSourceList
+    # get the map canvas
+    mc=self.iface.mapCanvas()
+
+    # how many layers are there?
+    nLayers=mc.layerCount()
+
+    # loopage:
+    layerSourceList = []
+
+    for l in range(nLayers):
+       layer = mc.layer(l)
+       layerSource = unicode(layer.publicSource(),'latin1').lower()
+       layerSourceList.append(layerSource)
+
+    return layerSourceList
+
+  ##############################################################################
 
   def allowedValues(self, aValues):
      valList = []
 
-# Manage a value list defined by a range
+     # Manage a value list defined by a range
      value_element = aValues.at(0).toElement()
      v_range_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Range")
      
@@ -306,7 +333,7 @@ class QgsWpsTools:
            myVal.append(str(n))
            valList.append(myVal)
 
-# Manage a value list defined by single values
+     # Manage a value list defined by single values
      v_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Value")
      if v_element.size() > 0:
        for n in range(v_element.size()):
@@ -314,8 +341,9 @@ class QgsWpsTools:
          valList.append(unicode(mv_element.text(),'latin1').strip())
      return valList        
 
+  ##############################################################################
+
   def errorHandler(self, resultXML):
-#     self.myMessageBox(resultXML)
      errorDoc = QtXml.QDomDocument()
      myResult = errorDoc.setContent(resultXML.strip(), True)
      resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
@@ -342,18 +370,13 @@ class QgsWpsTools:
        resultElement = resultExceptionNodeList.at(0).toElement()
        exceptionText += resultElement.attribute("exceptionCode")
 
-     #       QMessageBox.warning(None,'WPS Error',exceptionText)
      if len(exceptionText) > 0:
-         flags = Qt.Dialog|Qt.MSWindowsFixedSizeDialogHint
-         msgBox = QMessageBox(None)
-         msgBox.setMinimumSize(800, 600)
-         msgBox.setText("WPS Error")
-         msgBox.setInformativeText(exceptionText)
-         msgBox.setDetailedText(resultXML)
-         ret = msgBox.exec_()
-    
-#Creates a QgsVectorFileWriter for GML
-#Return: QgsVectorFileWriter
+         self.popUpMessageBox("WPS Error", resultXML)
+
+  ##############################################################################
+
+  # Creates a QgsVectorFileWriter for GML
+  # Return: QgsVectorFileWriter
   def createGMLFileWriter(self, myTempFile, fields, geometryType, encoding):
     
     writer = QgsVectorFileWriter(myTempFile, encoding, fields, geometryType, None, "GML")
@@ -363,24 +386,28 @@ class QgsWpsTools:
       return 0
     return writer
 
-#Get the List of Fields
-#Return: QGsFieldMap
+  ##############################################################################
+
+  # Get the List of Fields
+  # Return: QGsFieldMap
   def getFieldList(self, vlayer):
     fProvider = vlayer.dataProvider()
     feat = QgsFeature()
     allAttrs = fProvider.attributeIndexes()
 
 
-# start data retrieval: all attributes for each feature
+    # start data retrieval: all attributes for each feature
     fProvider.select(allAttrs, QgsRectangle(), False)
 
-# retrieve every feature with its attributes
+    # retrieve every feature with its attributes
     myFields = fProvider.fields()
       
     return myFields
 
-#Get the Features of a vector Layer
-#Return: QgsFieldMap       
+  ##############################################################################
+
+  # Get the Features of a vector Layer
+  # Return: QgsFieldMap
   def getFeatureList(self, vlayer):
     provider = vlayer.dataProvider()
 
@@ -388,11 +415,12 @@ class QgsWpsTools:
     allAttrs = provider.allAttributesList()
     provider.select(allAttrs)
 
-# retrieve every feature with its attributes
+    # retrieve every feature with its attributes
     myFields = provider.fields()
       
     return myFields
 
+  ##############################################################################
 
   def uniqueLayerName(self, name):
     
@@ -409,8 +437,9 @@ class QgsWpsTools:
         i += 1
     
     newName = name+unicode(str(i),'latin1')
-##    print newName
     return newName
+
+  ##############################################################################
 
   def getLayerNameList(self, dataType=0, all=False):
     myLayerList = []    
@@ -430,6 +459,7 @@ class QgsWpsTools:
     
     return myLayerList
 
+  ##############################################################################
 
   def getDBEncoding(self, layerProvider):
     dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())
@@ -451,3 +481,59 @@ class QgsWpsTools:
     db.close()
 
     return encoding
+
+  ##############################################################################
+
+  def popUpMessageBox(self, title, detailedText):
+    """A message box used for debugging"""
+    mbox = WPSMessageBox()
+    mbox.setText(title)
+    mbox.setDetailedText(detailedText)
+    mbox.exec_()
+
+  ##############################################################################
+
+  def xmlExecuteRequestInputStart(self, identifier):
+    string = ""
+    string += "<wps:Input>\n"
+    string += "<ows:Identifier>"+identifier+"</ows:Identifier>\n"
+    string += "<ows:Title>"+identifier+"</ows:Title>\n"
+    string += "<wps:Data>\n"
+    return string
+
+  ##############################################################################
+
+  def xmlExecuteRequestInputEnd(self):
+    string = ""
+    string += "</wps:Data>\n"
+    string += "</wps:Input>\n"
+    return string
+
+################################################################################
+################################################################################
+################################################################################
+
+class WPSMessageBox(QMessageBox):
+    """A resizable message box to show debug info"""
+    def __init__(self):
+        QMessageBox.__init__(self)
+        self.setSizeGripEnabled(True)
+
+    def event(self, e):
+        result = QMessageBox.event(self, e)
+
+        self.setMinimumHeight(600)
+        self.setMaximumHeight(16777215)
+        self.setMinimumWidth(800)
+        self.setMaximumWidth(16777215)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        textEdit = self.findChild(QTextEdit)
+        if textEdit != None :
+            textEdit.setMinimumHeight(300)
+            textEdit.setMaximumHeight(16777215)
+            textEdit.setMinimumWidth(300)
+            textEdit.setMaximumWidth(16777215)
+            textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        return result
