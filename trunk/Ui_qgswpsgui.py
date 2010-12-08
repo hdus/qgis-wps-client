@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Wed Dec  8 10:15:06 2010
+# Created: Wed Dec  8 10:42:16 2010
 #      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!

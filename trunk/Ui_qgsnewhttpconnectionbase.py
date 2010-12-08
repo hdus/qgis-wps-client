@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgsnewhttpconnectionbase.ui'
+# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgsnewhttpconnectionbase.ui'
 #
-# Created: Fri Nov 26 20:49:13 2010
-#      by: PyQt4 UI code generator 4.7
+# Created: Wed Dec  8 10:42:15 2010
+#      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!
 
