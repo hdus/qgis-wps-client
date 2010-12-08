@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="de_DE">
+<!DOCTYPE TS>
+<TS version="2.0" language="de_DE">
 <context>
     <name>Dialog</name>
     <message>
@@ -97,6 +98,51 @@
         <location filename="Ui_qgswpsgui.py" line="80"/>
         <source>Abstract</source>
         <translation>Abstract</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="69"/>
+        <source>Quantum GIS revision detected: </source>
+        <translation>Festgestellte Quantum GIS version:</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="70"/>
+        <source>WPS-Client plugin requires Revision at least </source>
+        <translation>das WPS-Client Plugin erwartet mindestens die Version </translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="71"/>
+        <source>Plugin not loaded.</source>
+        <translation>Das Plugin wurde nicht geladen.</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="159"/>
+        <source>Please select a Process</source>
+        <translation>Bitte wählen Sie einen Prozess aus</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="325"/>
+        <source>Process selected objects only</source>
+        <translation>Nur die selektierten Objekte werden prozessiert</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="325"/>
+        <source>Selected</source>
+        <translation>selektiert</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="918"/>
+        <source>Process result</source>
+        <translation>Prozess-Ergebnis</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="917"/>
+        <source>Result</source>
+        <translation>Ergebnis</translation>
+    </message>
+    <message>
+        <location filename="qgswps.py" line="918"/>
+        <source>The process finished successful</source>
+        <translation>Der Prozess wurde erfolgreich abgeschlossen</translation>
     </message>
 </context>
 <context>
