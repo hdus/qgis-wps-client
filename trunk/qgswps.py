@@ -67,9 +67,9 @@ class QgsWps:
     
     qgsRevision = QGis.QGIS_SVN_VERSION[0:5]
     
-    versionMessage = unicode("Quantum GIS revision detected: "+str(qgsRevision)+"\n"
-                    +"WPS-Client plugin requires Revision at least "+str(self.minimumRevision)+"!\n"
-                    +"Plugin not loaded.",'latin1')       
+    versionMessage = unicode(QCoreApplication.translate("QgsWps","Quantum GIS revision detected: ")+str(qgsRevision)+"\n"
+                    +QCoreApplication.translate("QgsWps","WPS-Client plugin requires Revision at least ")+str(self.minimumRevision)+"!\n"
+                    +QCoreApplication.translate("QgsWps","Plugin not loaded."),'latin1')       
                                                                     
 #    if int(qgsRevision) < int(self.minimumRevision):
 #        QMessageBox.warning(None, "Version", versionMessage)
@@ -157,7 +157,7 @@ class QgsWps:
     try:
       self.processIdentifier = item.text(0)
     except:
-      QMessageBox.warning(None,'','Please select a Process')
+      QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
       return 0
 
     # Lists which store the inputs and meta information (format, occurs, ...)
@@ -323,7 +323,7 @@ class QgsWps:
         self.literalInputComboBoxList.append(self.addLiteralComboBox("Supported CRS", inputIdentifier,crsListe, minOccurs))
 
 
-    self.addCheckBox("Process selected objects only", "Selected")
+    self.addCheckBox(QCoreApplication.translate("QgsWps","Process selected objects only"), QCoreApplication.translate("QgsWps","Selected"))
     
   ##############################################################################
 
@@ -907,7 +907,7 @@ class QgsWps:
                 QApplication.restoreOverrideCursor()
                 text = open(resultFile, 'r').read()
                 # TODO: This should be a text dialog with safe option
-                self.tools.popUpMessageBox('Process result',text)
+                self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result'),text)
               else:
                 # We can directly attach the new layer, it should be a raster tif
                 rLayer = QgsRasterLayer(resultFile, layerName)
@@ -915,8 +915,8 @@ class QgsWps:
           elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
             QApplication.restoreOverrideCursor()
             literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
-            self.tools.popUpMessageBox('Result',literalText)
-        QMessageBox.information(None, 'Process result', 'The process finished successful')
+            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
+        QMessageBox.information(None, QCoreApplication.translate("QgsWps",'Process result'), QCoreApplication.translate("QgsWps",'The process finished successful'))
     else:
         self.tools.errorHandler(resultXML)
         
