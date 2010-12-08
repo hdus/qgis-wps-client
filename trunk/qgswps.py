@@ -40,6 +40,26 @@ class QgsWps:
     # Save reference to the QGIS interface
     self.iface = iface  
     self.minimumRevision = 12026
+    
+    #Initialise the translation environment    
+    userPluginPath = QFileInfo(QgsApplication.qgisUserDbFilePath()).path()+"/python/plugins/wps"  
+    systemPluginPath = QgsApplication.prefixPath()+"/share/qgis/python/plugins/wps"
+    myLocaleName = QLocale.system().name()
+    myLocale = myLocaleName[0:2]
+    if QFileInfo(userPluginPath).exists():
+      self.pluginPath = userPluginPath
+      self.localePath = userPluginPath+"/i18n/wps_"+myLocale+".qm"
+    elif QFileInfo(systemPluginPath).exists():
+      self.pluginPath = systemPluginPath
+      self.localePath = systemPluginPath+"/i18n/wps_"+myLocale+".qm"
+
+    if QFileInfo(self.localePath).exists():
+      self.translator = QTranslator()
+      self.translator.load(self.localePath)
+      
+      if qVersion() > '4.3.3':        
+        QCoreApplication.installTranslator(self.translator)  
+        
 
   ##############################################################################
 
