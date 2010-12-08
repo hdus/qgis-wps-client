@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<!DOCTYPE TS><TS version="1.1" language="de_DE">
 <context>
     <name>Dialog</name>
     <message>
@@ -57,7 +56,7 @@
     <message>
         <location filename="Ui_qgswpsgui.py" line="71"/>
         <source>Server Connections</source>
-        <translation>Server.Verbindungen</translation>
+        <translation>Server-Verbindungen</translation>
     </message>
     <message>
         <location filename="Ui_qgswpsgui.py" line="72"/>
