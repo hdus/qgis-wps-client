@@ -16,7 +16,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from ui_qgswps import Ui_QgsWps
+from Ui_qgswpsgui import Ui_QgsWps
 import os, sys, string
 
 class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
@@ -90,4 +90,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       itemList.append(item)
     
     self.treeWidget.addTopLevelItems(itemList)
+    
+  @pyqtSignature("on_btnAbout_clicked()")       
+  def on_btnAbout_clicked(self):
+    pass
       

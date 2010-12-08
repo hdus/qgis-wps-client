@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Fri Nov 26 20:49:12 2010
-#      by: PyQt4 UI code generator 4.7
+# Created: Wed Dec  8 10:15:06 2010
+#      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -48,6 +48,9 @@ class Ui_QgsWps(object):
         self.hboxlayout.setSpacing(6)
         self.hboxlayout.setMargin(0)
         self.hboxlayout.setObjectName("hboxlayout")
+        self.btnAbout = QtGui.QPushButton(QgsWps)
+        self.btnAbout.setObjectName("btnAbout")
+        self.hboxlayout.addWidget(self.btnAbout)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.hboxlayout.addItem(spacerItem1)
         self.buttonBox = QtGui.QDialogButtonBox(QgsWps)
@@ -71,6 +74,7 @@ class Ui_QgsWps(object):
         self.btnEdit.setText(QtGui.QApplication.translate("QgsWps", "Edit", None, QtGui.QApplication.UnicodeUTF8))
         self.btnConnect.setText(QtGui.QApplication.translate("QgsWps", "C&onnect", None, QtGui.QApplication.UnicodeUTF8))
         self.btnDelete.setText(QtGui.QApplication.translate("QgsWps", "Delete", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnAbout.setText(QtGui.QApplication.translate("QgsWps", "about", None, QtGui.QApplication.UnicodeUTF8))
         self.treeWidget.setSortingEnabled(True)
         self.treeWidget.headerItem().setText(0, QtGui.QApplication.translate("QgsWps", "Identifier", None, QtGui.QApplication.UnicodeUTF8))
         self.treeWidget.headerItem().setText(1, QtGui.QApplication.translate("QgsWps", "Title", None, QtGui.QApplication.UnicodeUTF8))
