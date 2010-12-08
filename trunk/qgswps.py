@@ -899,3 +899,4 @@ class QgsWps:
         QMessageBox.information(None, 'Process result', 'The process finished successful')
     else:
         self.tools.errorHandler(resultXML)
+        

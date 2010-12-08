@@ -537,3 +537,4 @@ class WPSMessageBox(QMessageBox):
             textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return result
+        
