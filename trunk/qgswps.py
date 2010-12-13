@@ -757,7 +757,7 @@ class QgsWps:
       # TODO: Check for more types
       if self.inputDataTypeList[comboBox.objectName()] == "text/xml":
         postString += "<wps:ComplexData>"
-        postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
+        postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
       else:
         postString += "<wps:ComplexData encoding=\"base64\">\n"
         postString += self.tools.createTmpBase64(comboBox.currentText())
