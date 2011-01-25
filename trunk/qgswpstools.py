@@ -28,25 +28,6 @@ import os, sys, string, tempfile,  base64
 # initialize Qt resources from file resources.py
 import resources
 
-
-# All supported import raster formats
-RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
-                           {"MIMETYPE":"IMAGE/PNG", "GDALID":"PNG"}, \
-                           {"MIMETYPE":"IMAGE/GIF", "GDALID":"GIF"}, \
-                           {"MIMETYPE":"IMAGE/JPEG", "GDALID":"JPEG"}, \
-                           {"MIMETYPE":"IMAGE/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-ERDAS-HFA", "GDALID":"HFA"}, \
-                           {"MIMETYPE":"APPLICATION/NETCDF", "GDALID":"netCDF"}, \
-                           {"MIMETYPE":"APPLICATION/X-NETCDF", "GDALID":"netCDF"}, \
-                           {"MIMETYPE":"APPLICATION/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}]
-# All supported input vector formats [mime type, schema]
-VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
-                           {"MIMETYPE":"TEXT/XML", "SCHEMA":"KML", "GDALID":"KML"}, \
-                           {"MIMETYPE":"APPLICATION/DGN", "SCHEMA":"", "GDALID":"DGN"}, \
-                           #{"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
-                           {"MIMETYPE":"APPLICATION/SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}]
-
 # Our help class for the plugin
 class QgsWpsTools:
     
@@ -153,34 +134,21 @@ class QgsWpsTools:
   ##############################################################################
 
   def getDefaultMimeType(self,  inElement):
+    mimeType = ""
     myElement = inElement.elementsByTagName("Default").at(0).toElement()
-    return self._getMimeTypeSchemaEncoding(myElement)
+    mimeType = myElement.elementsByTagName("MimeType").at(0).toElement().text().simplified()
+    return mimeType
 
   ##############################################################################
 
   def getSupportedMimeTypes(self,  inElement):
-    mimeTypes = []
+    mimeType = []
     myElements = inElement.elementsByTagName("Supported").at(0).toElement()
     myFormats = myElements.elementsByTagName('Format')
     for i in range(myFormats.size()):
-      myElement = myFormats.at(i).toElement()
-      mimeTypes.append(self._getMimeTypeSchemaEncoding(myElement))
-    return mimeTypes
-
-  ##############################################################################
-
-  def _getMimeTypeSchemaEncoding(self,  Element):
-    mimeType = ""
-    schema = ""
-    encoding = ""
-    try:
-        mimeType = str(Element.elementsByTagName("MimeType").at(0).toElement().text().simplified().toLower())
-        schema = str(Element.elementsByTagName("Schema").at(0).toElement().text().simplified().toLower())
-        encoding = str(Element.elementsByTagName("Encoding").at(0).toElement().text().simplified().toLower())
-    except:
-        pass
-    
-    return {"MimeType":mimeType,"Schema":schema,"Encoding":encoding}
+      myFormat = myFormats.at(i).toElement()
+      mimeType.append(myFormat.elementsByTagName("MimeType").at(0).toElement().text().simplified())
+    return mimeType
 
   ##############################################################################
 
@@ -371,8 +339,6 @@ class QgsWpsTools:
        for n in range(v_element.size()):
          mv_element = v_element.at(n).toElement() 
          valList.append(unicode(mv_element.text(),'latin1').strip())
-         
-     print str(valList)
      return valList        
 
   ##############################################################################
@@ -542,35 +508,6 @@ class QgsWpsTools:
     string += "</wps:Data>\n"
     string += "</wps:Input>\n"
     return string
-
-  ############################################################################
-  
-  def isMimeTypeRaster(self, mimeType):
-    """Check for raster input"""
-    for rasterType in RASTER_MIMETYPES:
-        if mimeType.upper() == rasterType["MIMETYPE"]:
-          return rasterType["GDALID"]
-    return None
-
-  ############################################################################
-  
-  def isMimeTypeVector(self, mimeType):
-    """Check for vector input. Zipped shapefiles must be extracted"""
-    for vectorType in VECTOR_MIMETYPES:
-        if mimeType.upper() == vectorType["MIMETYPE"]:
-          return vectorType["GDALID"]
-    return None
-
-  ############################################################################
-  
-  def isMimeTypeText(self, mimeType):
-    """Check for text file input"""
-    if mimeType.upper() == "TEXT/PLAIN":
-       return "TXT"
-    else:
-       return None
-      
-
 
 ################################################################################
 ################################################################################
