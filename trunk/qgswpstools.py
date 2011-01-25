@@ -371,6 +371,8 @@ class QgsWpsTools:
        for n in range(v_element.size()):
          mv_element = v_element.at(n).toElement() 
          valList.append(unicode(mv_element.text(),'latin1').strip())
+         
+     print str(valList)
      return valList        
 
   ##############################################################################

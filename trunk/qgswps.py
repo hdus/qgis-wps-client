@@ -233,7 +233,7 @@ class QgsWps:
 
   ##############################################################################
 
-  def generateProcessInputs(self, DataInputs):
+  def generateProcessInputsGUI(self, DataInputs):
     """Generate the GUI for all Inputs defined in the process description XML file"""
 
     # Create the complex inputs at first
@@ -292,15 +292,17 @@ class QgsWps:
       if literalData.size() > 0:
         allowedValuesElement = literalData.at(0).toElement()
         aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
+        dValue = str(allowedValuesElement.elementsByTagName("DefaultValue").at(0).toElement().text())
+        print "Checking allowed values " + str(aValues.size())
         if aValues.size() > 0:
           valList = self.tools.allowedValues(aValues)
           if len(valList) > 0:
             if len(valList[0]) > 0:
               self.literalInputComboBoxList.append(self.addLiteralComboBox(title, inputIdentifier, valList, minOccurs))
             else:
-              self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier))
+              self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier, minOccurs, str(valList)))
         else:
-          self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier, minOccurs))
+          self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier, minOccurs, dValue))
 
     # At last, create the bounding box inputs
     for i in range(DataInputs.size()):
@@ -332,7 +334,7 @@ class QgsWps:
     
   ##############################################################################
 
-  def generateProcessOutputs(self, DataOutputs):
+  def generateProcessOutputsGUI(self, DataOutputs):
     """Generate the GUI for all complex ouputs defined in the process description XML file"""
 
     if DataOutputs.size() < 1:
@@ -582,7 +584,7 @@ class QgsWps:
 
   ##############################################################################
 
-  def addLiteralLineEdit(self, title, name, minOccurs):
+  def addLiteralLineEdit(self, title, name, minOccurs, defaultValue=""):
 
       groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
