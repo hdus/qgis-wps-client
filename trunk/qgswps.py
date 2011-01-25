@@ -5,6 +5,9 @@
 # Date                 : 09 November 2009
 # Copyright            : (C) 2009 by Dr. Horst Duester
 # email                : horst dot duester at kappasys dot ch
+#
+# Authors              : Horst Duester, Soeren Gebbert
+#
 #  ***************************************************************************
 #  *                                                                         *
 #  *   This program is free software; you can redistribute it and/or modify  *
@@ -31,7 +34,7 @@ import os, sys, string, tempfile, urllib2, urllib,  mimetypes
 # initialize Qt resources from file resources.py
 import resources
 
-DEBUG = True
+DEBUG = False
 
 # Our main class for the plugin
 class QgsWps:
@@ -40,6 +43,7 @@ class QgsWps:
     # Save reference to the QGIS interface
     self.iface = iface  
     self.minimumRevision = 12026
+    self.localePath = ""
     
     #Initialise the translation environment    
     userPluginPath = QFileInfo(QgsApplication.qgisUserDbFilePath()).path()+"/python/plugins/wps"  
@@ -178,7 +182,6 @@ class QgsWps:
     # Recive the XML process description
     self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier), True)     
     DataInputs = self.doc.elementsByTagName("Input")
-    # TODO: add selectable outputs and custom name definitions
     DataOutputs = self.doc.elementsByTagName("Output")
 
     # Create the layouts and the scroll area
@@ -206,7 +209,7 @@ class QgsWps:
   
     # Generate the input GUI buttons and widgets
     self.generateProcessInputs(DataInputs)
-
+    # Generate the editable outpt widgets, you can set the output to none if it is not requested
     self.generateProcessOutputs(DataOutputs)
     
     self.dlgProcessScrollAreaWidgetLayout.setSpacing(10)
@@ -255,24 +258,26 @@ class QgsWps:
         self.inputDataTypeList[inputIdentifier] = complexDataFormat
 
         # Attach the selected vector or raster maps
-        if complexDataFormat.toLower() == "text/xml":
+        if self.tools.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
           # Vector inputs
           layerNamesList = self.tools.getLayerNameList(0)
           if maxOccurs == 1:
-            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, complexDataFormat, layerNamesList, minOccurs))
+            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
           else:
-            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, complexDataFormat, layerNamesList, minOccurs))
-        elif complexDataFormat.toLower() == "text/plain":
+            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
+        elif self.tools.isMimeTypeText(complexDataFormat["MimeType"]) != None:
           # Text inputs
           self.complexInputTextBoxList.append(self.addComplexInputTextBox(title, inputIdentifier, minOccurs))
-        else:
+        elif self.tools.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
           # Raster inputs
           layerNamesList = self.tools.getLayerNameList(1)
           if maxOccurs == 1:
-            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, complexDataFormat, layerNamesList, minOccurs))
+            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
           else:
-            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, complexDataFormat, layerNamesList, minOccurs))
-            
+            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
+        else:
+          # We assume text inputs in case of an unknown mime type
+          self.complexInputTextBoxList.append(self.addComplexInputTextBox(title, inputIdentifier, minOccurs))            
 
     # Create the literal inputs as second
     for i in range(DataInputs.size()):
@@ -355,7 +360,7 @@ class QgsWps:
         self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
         self.outputDataTypeList[outputIdentifier] = complexOutputFormat
         
-        widget, comboBox = self.addComplexOutputComboBox(groupbox, outputIdentifier, title, complexOutputFormat)
+        widget, comboBox = self.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat))
         self.complexOutputComboBoxList.append(comboBox)
         layout.addWidget(widget)
     
@@ -389,10 +394,10 @@ class QgsWps:
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
-        string = "(" + name + ") <br>" + title + " (" + mimeType + ")"
-        myLabel.setText("<font color='Red'>" + string + "</font>")
+        string = "[" + name + "] <br>" + title
+        myLabel.setText("<font color='Red'>" + string + "</font>" + " <br>(" + mimeType + ")")
       else:
-        string = "(" + name + ")\n" + title + " (" + mimeType + ")"
+        string = "[" + name + "]\n" + title + " <br>(" + mimeType + ")"
         myLabel.setText(string)
 
       myLabel.setWordWrap(True)
@@ -435,8 +440,8 @@ class QgsWps:
       myLabel = QLabel(widget)
       myLabel.setObjectName("qLabel"+name)
 
-      string = "(" + name + ") <br>" + title + " (" + mimeType + ")"
-      myLabel.setText("<font color='Green'>" + string + "</font>")
+      string = "[" + name + "] <br>" + title
+      myLabel.setText("<font color='Green'>" + string + "</font>" + " <br>(" + mimeType + ")")
 
       myLabel.setWordWrap(True)
       myLabel.setMinimumWidth(400)
@@ -453,7 +458,7 @@ class QgsWps:
   ##############################################################################
 
   def addComplexInputListWidget(self, title, name, mimeType, namesList, minOccurs):
-      """Adds a widget for multiple raster or vector selections as inputs  to the process tab"""
+      """Adds a widget for multiple raster or vector selections as inputs to the process tab"""
       groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
@@ -476,10 +481,10 @@ class QgsWps:
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
-        string = "(" + name + ") <br>" + title + " (" + mimeType + ")"
-        myLabel.setText("<font color='Red'>" + string + "</font>")
+        string = "[" + name + "] <br>" + title
+        myLabel.setText("<font color='Red'>" + string + "</font>" + " <br>(" + mimeType + ")")
       else:
-        string = "(" + name + ")\n" + title + " (" + mimeType + ")"
+        string = "[" + name + "]\n" + title + " <br>(" + mimeType + ")"
         myLabel.setText(string)
 
       myLabel.setWordWrap(True)
@@ -515,10 +520,10 @@ class QgsWps:
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
-        string = "(" + name + ") <br>" + title
+        string = "[" + name + "] <br>" + title
         myLabel.setText("<font color='Red'>" + string + "</font>")
       else:
-        string = "(" + name + ")\n" + title
+        string = "[" + name + "]\n" + title
         myLabel.setText(string)
 
       myLabel.setWordWrap(True)
@@ -555,10 +560,10 @@ class QgsWps:
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
-        string = "(" + name + ") <br>" + title
+        string = "[" + name + "] <br>" + title
         myLabel.setText("<font color='Red'>" + string + "</font>")
       else:
-        string = "(" + name + ")\n" + title
+        string = "[" + name + "]\n" + title
         myLabel.setText(string)
         
       myLabel.setWordWrap(True)
@@ -594,10 +599,10 @@ class QgsWps:
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
-        string = "(" + name + ") <br>" + title
+        string = "[" + name + "] <br>" + title
         myLabel.setText("<font color='Red'>" + string + "</font>")
       else:
-        string = "(" + name + ")\n" + title
+        string = "[" + name + "]\n" + title
         myLabel.setText(string)
         
       myLabel.setWordWrap(True)
@@ -755,12 +760,16 @@ class QgsWps:
       postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
 
       # TODO: Check for more types
-      if self.inputDataTypeList[comboBox.objectName()] == "text/xml":
-        postString += "<wps:ComplexData>"
+      mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
+      schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
+      encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
+      
+      if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
+        postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
         postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
         postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
-      else:
-        postString += "<wps:ComplexData encoding=\"base64\">\n"
+      elif self.tools.isMimeTypeVector(mimeType) != None and self.tools.isMimeTypeRaster(mimeType) != None:
+        postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
         postString += self.tools.createTmpBase64(comboBox.currentText())
 
       postString += "</wps:ComplexData>\n"
@@ -771,7 +780,11 @@ class QgsWps:
       # Do not add undefined inputs
       if listWidgets == None:
         continue
-
+        
+      mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
+      schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
+      encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
+      
       # Iterate over each seletced item
       for i in range(listWidgets.count()):
         listWidget = listWidgets.item(i)
@@ -781,11 +794,11 @@ class QgsWps:
         postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
 
         # TODO: Check for more types
-        if self.inputDataTypeList[listWidgets.objectName()] == "text/xml":
-          postString += "<wps:ComplexData>"
+        if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
+          postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
           postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
-        else:
-          postString += "<wps:ComplexData encoding=\"base64\">\n"
+        elif self.tools.isMimeTypeVector(mimeType) != None and self.tools.isMimeTypeRaster(mimeType) != None:
+          postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
           postString += self.tools.createTmpBase64(listWidget.text())
 
         postString += "</wps:ComplexData>\n"
@@ -815,7 +828,7 @@ class QgsWps:
     if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
       postString += "<wps:ResponseForm>\n"
       # The server should store the result. No lineage should be returned or status
-      postString += "<wps:ResponseDocument lineage=\"true\" storeExecuteResponse=\"true\" status=\"false\">\n"
+      postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"true\" status=\"false\">\n"
 
       # Attach ALL literal outputs #############################################
       for i in range(dataOutputs.size()):
@@ -834,8 +847,14 @@ class QgsWps:
         # Do not add undefined outputs
         if comboBox == None or str(comboBox.currentText()) == "<None>":
           continue
-        postString += "<wps:Output asReference=\"true\">\n"
-        postString += "<ows:Identifier>"+comboBox.objectName()+"</ows:Identifier>\n"
+        outputIdentifier = comboBox.objectName()
+        
+        mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
+        schema = self.outputDataTypeList[outputIdentifier]["Schema"]
+        encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
+        
+        postString += "<wps:Output asReference=\"true\" mimeType=\"" + mimeType + "\" schema=\"" + schema + "\">"
+        postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
         postString += "</wps:Output>\n"
 
       postString += "</wps:ResponseDocument>\n"
@@ -887,10 +906,20 @@ class QgsWps:
             identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
             reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
 
-            fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
-            mimeType = reference.attribute("mimeType", "0").toLower()
+            # Get the reference
+            fileLink = reference.attribute("href", "0")
 
-            if fileLink <> '0':                            
+            # Try with namespace if not successful
+            if fileLink == '0':
+              fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
+            if fileLink == '0':
+              QMessageBox.warning(None, '', str(QCoreApplication.translate("WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+              return
+
+            # Get the mime type of the result
+            mimeType = str(reference.attribute("mimeType", "0").toLower())
+
+            if fileLink != '0':                            
               # Set a valid layerName
               layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + identifier)
               # The layername is normally defined in the comboBox
@@ -900,19 +929,31 @@ class QgsWps:
 
               resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
               resultFile = resultFileConnector[0]
-              if mimeType == 'text/xml': # We assume GML output
+              # Vector data 
+              # TODO: Check for schema GML and KML
+              if self.tools.isMimeTypeVector(mimeType) != None:
                 vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
                 QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-              elif mimeType == 'text/plain':
+              # Raster data
+              elif self.tools.isMimeTypeRaster(mimeType) != None:
+                # We can directly attach the new layer
+                rLayer = QgsRasterLayer(resultFile, layerName)
+                QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+              # Text data
+              elif self.tools.isMimeTypeText(mimeType) != None:
                 #TODO: this should be handled in a separate dialog to save the text output as file'
                 QApplication.restoreOverrideCursor()
                 text = open(resultFile, 'r').read()
                 # TODO: This should be a text dialog with safe option
-                self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result'),text)
+                self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
+              # Everything else
               else:
-                # We can directly attach the new layer, it should be a raster tif
-                rLayer = QgsRasterLayer(resultFile, layerName)
-                QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+                # For unsupported mime types we assume text
+                QApplication.restoreOverrideCursor()
+                content = open(resultFile, 'r').read()
+                # TODO: This should have a safe option
+                self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
+                
           elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
             QApplication.restoreOverrideCursor()
             literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
