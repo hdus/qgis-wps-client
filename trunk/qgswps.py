@@ -34,7 +34,7 @@ import os, sys, string, tempfile, urllib2, urllib,  mimetypes
 # initialize Qt resources from file resources.py
 import resources
 
-DEBUG = True
+DEBUG = False
 
 # Our main class for the plugin
 class QgsWps:
