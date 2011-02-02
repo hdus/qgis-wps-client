@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsdescribeprocessgui.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsdescribeprocessgui.ui'
 #
-# Created: Wed Dec  8 10:42:15 2010
-#      by: PyQt4 UI code generator 4.5.4
+# Created: Wed Dec  8 12:32:05 2010
+#      by: PyQt4 UI code generator 4.7
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -19,7 +19,7 @@ class Ui_QgsWpsDescribeProcessGUI(object):
         QtCore.QMetaObject.connectSlotsByName(QgsWpsDescribeProcessGUI)
 
     def retranslateUi(self, QgsWpsDescribeProcessGUI):
-        QgsWpsDescribeProcessGUI.setWindowTitle(QtGui.QApplication.translate("QgsWpsDescribeProcessGUI", "Dialog", None, QtGui.QApplication.UnicodeUTF8))
+        QgsWpsDescribeProcessGUI.setWindowTitle(QtGui.QApplication.translate("QgsWpsDescribeProcessGUI", "Describe Process", None, QtGui.QApplication.UnicodeUTF8))
 
 
 if __name__ == "__main__":
