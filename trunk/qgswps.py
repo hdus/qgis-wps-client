@@ -68,10 +68,12 @@ class QgsWps:
   ##############################################################################
 
   def initGui(self):
+      
+
     
-    qgsRevision = QGis.QGIS_SVN_VERSION[0:5]
+     qgsRevision = QGis.QGIS_VERSION[0:5]
     
-    versionMessage = unicode(QCoreApplication.translate("QgsWps","Quantum GIS revision detected: ")+str(qgsRevision)+"\n"
+     versionMessage = unicode(QCoreApplication.translate("QgsWps","Quantum GIS revision detected: ")+str(qgsRevision)+"\n"
                     +QCoreApplication.translate("QgsWps","WPS-Client plugin requires Revision at least ")+str(self.minimumRevision)+"!\n"
                     +QCoreApplication.translate("QgsWps","Plugin not loaded."),'latin1')       
                                                                     
@@ -80,17 +82,17 @@ class QgsWps:
 #        return 1
                                                                      
     # Create action that will start plugin configuration
-    self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
-    QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+     self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
+     QObject.connect(self.action, SIGNAL("triggered()"), self.run)
     
     # Add toolbar button and menu item
-    self.iface.addToolBarIcon(self.action)
-    self.iface.addPluginToMenu("WPS", self.action)
+     self.iface.addToolBarIcon(self.action)
+     self.iface.addPluginToMenu("WPS", self.action)
     
-    self.doc = QtXml.QDomDocument()
-    self.tmpPath = QDir.tempPath()
+     self.doc = QtXml.QDomDocument()
+     self.tmpPath = QDir.tempPath()
     
-    self.tools = QgsWpsTools(self.iface)
+     self.tools = QgsWpsTools(self.iface)
 
   ##############################################################################
 
