@@ -68,19 +68,7 @@ class QgsWps:
   ##############################################################################
 
   def initGui(self):
-      
 
-    
-     qgsRevision = QGis.QGIS_VERSION[0:5]
-    
-     versionMessage = unicode(QCoreApplication.translate("QgsWps","Quantum GIS revision detected: ")+str(qgsRevision)+"\n"
-                    +QCoreApplication.translate("QgsWps","WPS-Client plugin requires Revision at least ")+str(self.minimumRevision)+"!\n"
-                    +QCoreApplication.translate("QgsWps","Plugin not loaded."),'latin1')       
-                                                                    
-#    if int(qgsRevision) < int(self.minimumRevision):
-#        QMessageBox.warning(None, "Version", versionMessage)
-#        return 1
-                                                                     
     # Create action that will start plugin configuration
      self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
      QObject.connect(self.action, SIGNAL("triggered()"), self.run)
