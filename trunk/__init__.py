@@ -19,7 +19,7 @@ def name():
 def description():
   return "Client for Web Processing Services"
 def version():
-  return "0.5.1"
+  return "0.5.2"
 def qgisMinimumVersion():
   return "1.4"  
 def classFactory(iface):
