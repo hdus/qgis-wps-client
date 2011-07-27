@@ -878,7 +878,7 @@ class QgsWps:
        map layers to the regestry or open an information window to show literal
        outputs."""
 
-    # This is for debug purpose only
+# This is for debug purpose only
     if DEBUG == True:
         self.tools.popUpMessageBox("Result XML", resultXML)
         # Write the response into a file
@@ -956,5 +956,7 @@ class QgsWps:
             
         QMessageBox.information(None, QCoreApplication.translate("QgsWps",'Process result'), QCoreApplication.translate("QgsWps",'The process finished successful'))
     else:
+        print "Error"
         self.tools.errorHandler(resultXML)
-        
+
+    pass

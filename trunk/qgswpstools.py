@@ -406,6 +406,7 @@ class QgsWpsTools:
 
      if len(exceptionText) > 0:
          self.popUpMessageBox("WPS Error", resultXML)
+         pass
 
   ##############################################################################
 
@@ -524,6 +525,7 @@ class QgsWpsTools:
     mbox.setText(title)
     mbox.setDetailedText(detailedText)
     mbox.exec_()
+    pass
 
   ##############################################################################
 
