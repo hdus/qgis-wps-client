@@ -246,7 +246,7 @@ class QgsWpsTools:
 
     writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(),encoding)
 
-##    print "TEMP-GML-File Name: "+tmpFile    
+    print "TEMP-GML-File Name: "+tmpFile    
     
     provider = vLayer.dataProvider()
 
@@ -264,19 +264,20 @@ class QgsWpsTools:
         writer.addFeature(feat)
 
     del writer        
-        
-    myFile = QFile(tmpFile)
+
+    myQTempFile.close()
+
+    myFile = QFile(tmpFile+'.gml')
     if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
+      QMessageBox.information(None, '', 'File open problrm')
       pass    
 
     myGML = QTextStream(myFile)
     gmlString = ""
-    
 # Overread the first Line of GML Result    
     dummy = myGML.readLine()
     gmlString += myGML.readAll()
     myFile.close()
-    myQTempFile.close()
     return gmlString.simplified()
 
   ##############################################################################
@@ -405,7 +406,9 @@ class QgsWpsTools:
        exceptionText += resultElement.attribute("exceptionCode")
 
      if len(exceptionText) > 0:
-         self.popUpMessageBox("WPS Error", resultXML)
+         print resultXML
+         QMessageBox.about(None, '', resultXML)
+#         self.popUpMessageBox("WPS Error", resultXML)
          pass
 
   ##############################################################################
