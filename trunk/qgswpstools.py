@@ -415,7 +415,7 @@ class QgsWpsTools:
 
   # Creates a QgsVectorFileWriter for GML
   # Return: QgsVectorFileWriter
-  def createGMLFileWriter(self, myTempFile, fields, geometryType, encoding,  crs):
+  def createGMLFileWriter(self, myTempFile, fields, geometryType, crs,  encoding):
     
     writer = QgsVectorFileWriter(myTempFile, encoding, fields, geometryType, crs, "GML")
     if writer.hasError() != QgsVectorFileWriter.NoError:
