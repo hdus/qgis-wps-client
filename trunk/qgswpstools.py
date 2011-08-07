@@ -244,7 +244,7 @@ class QgsWpsTools:
     else:
       encoding = vLayer.dataProvider().encoding()
 
-    writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(),encoding)
+    writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(), vLayer.dataProvider().crs(),  encoding)
 
     print "TEMP-GML-File Name: "+tmpFile    
     
@@ -415,9 +415,9 @@ class QgsWpsTools:
 
   # Creates a QgsVectorFileWriter for GML
   # Return: QgsVectorFileWriter
-  def createGMLFileWriter(self, myTempFile, fields, geometryType, encoding):
+  def createGMLFileWriter(self, myTempFile, fields, geometryType, encoding,  crs):
     
-    writer = QgsVectorFileWriter(myTempFile, encoding, fields, geometryType, None, "GML")
+    writer = QgsVectorFileWriter(myTempFile, encoding, fields, geometryType, crs, "GML")
     if writer.hasError() != QgsVectorFileWriter.NoError:
       message = self.writerErrorMessage(writer.hasError())
       QMessageBox.warning(None, '', message)
