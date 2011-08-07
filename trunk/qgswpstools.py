@@ -245,11 +245,8 @@ class QgsWpsTools:
       encoding = vLayer.dataProvider().encoding()
 
     writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(), vLayer.dataProvider().crs(),  encoding)
-
-    print "TEMP-GML-File Name: "+tmpFile    
     
     provider = vLayer.dataProvider()
-
     feat = QgsFeature()
     allAttrs = provider.attributeIndexes()
     provider.select(allAttrs)
@@ -265,11 +262,12 @@ class QgsWpsTools:
 
     del writer        
 
+    
     myQTempFile.close()
 
     myFile = QFile(tmpFile+'.gml')
     if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
-      QMessageBox.information(None, '', 'File open problrm')
+      QMessageBox.information(None, '', 'File open problem')
       pass    
 
     myGML = QTextStream(myFile)
@@ -373,7 +371,7 @@ class QgsWpsTools:
          mv_element = v_element.at(n).toElement() 
          valList.append(unicode(mv_element.text(),'latin1').strip())
          
-     print str(valList)
+#     print str(valList)
      return valList        
 
   ##############################################################################
@@ -416,7 +414,6 @@ class QgsWpsTools:
   # Creates a QgsVectorFileWriter for GML
   # Return: QgsVectorFileWriter
   def createGMLFileWriter(self, myTempFile, fields, geometryType, crs,  encoding):
-    
     writer = QgsVectorFileWriter(myTempFile, encoding, fields, geometryType, crs, "GML")
     if writer.hasError() != QgsVectorFileWriter.NoError:
       message = self.writerErrorMessage(writer.hasError())

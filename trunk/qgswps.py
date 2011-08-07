@@ -283,7 +283,7 @@ class QgsWps:
         allowedValuesElement = literalData.at(0).toElement()
         aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
         dValue = str(allowedValuesElement.elementsByTagName("DefaultValue").at(0).toElement().text())
-        print "Checking allowed values " + str(aValues.size())
+#        print "Checking allowed values " + str(aValues.size())
         if aValues.size() > 0:
           valList = self.tools.allowedValues(aValues)
           if len(valList) > 0:
