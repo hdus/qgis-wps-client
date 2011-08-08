@@ -94,4 +94,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnAbout_clicked()")       
   def on_btnAbout_clicked(self):
     pass
-      
+    
+  @pyqtSignature("QTreeWidgetItem*, int")
+  def on_treeWidget_itemDoubleClicked(self, item, column):
+      self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
+4
