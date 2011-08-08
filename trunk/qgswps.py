@@ -756,6 +756,7 @@ class QgsWps:
       mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
       schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
       encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
+      self.myLayer = self.tools.getVLayer(comboBox.currentText())
       
       if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
         postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
@@ -789,7 +790,8 @@ class QgsWps:
         # TODO: Check for more types
         if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
           postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-          postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
+#          postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
+          postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
         elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
           postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
           postString += self.tools.createTmpBase64(listWidget.text())
@@ -926,6 +928,7 @@ class QgsWps:
               # TODO: Check for schema GML and KML
               if self.tools.isMimeTypeVector(mimeType) != None:
                 vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
+                vlayer.setCrs(self.myLayer.dataProvider().crs())
                 QgsMapLayerRegistry.instance().addMapLayer(vlayer)
               # Raster data
               elif self.tools.isMimeTypeRaster(mimeType) != None:
