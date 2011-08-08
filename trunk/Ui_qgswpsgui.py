@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Wed Dec  8 10:42:16 2010
-#      by: PyQt4 UI code generator 4.5.4
+# Created: Mon Aug  8 22:06:52 2011
+#      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -55,7 +55,7 @@ class Ui_QgsWps(object):
         self.hboxlayout.addItem(spacerItem1)
         self.buttonBox = QtGui.QDialogButtonBox(QgsWps)
         self.buttonBox.setEnabled(True)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.hboxlayout.addWidget(self.buttonBox)
         self.gridLayout.addLayout(self.hboxlayout, 3, 0, 1, 1)
