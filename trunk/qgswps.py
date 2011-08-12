@@ -194,7 +194,7 @@ class QgsWps:
     
     # If no Input Data  are requested
     if DataInputs.size()==0:
-      self.startProcess()
+      self.defineProcess()
       return 0
   
     # Generate the input GUI buttons and widgets
@@ -699,12 +699,12 @@ class QgsWps:
     groupbox.setLayout(layout)
     self.dlgProcessTabFrameLayout.addWidget(groupbox)
 
-    QObject.connect(btnOk,SIGNAL("clicked()"),self.startProcess)
+    QObject.connect(btnOk,SIGNAL("clicked()"),self.defineProcess)
     QObject.connect(btnCancel,SIGNAL("clicked()"),self.dlgProcess.close)
 
   ##############################################################################
 
-  def startProcess(self):
+  def defineProcess(self):
     """Create the execute request"""
     self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier))
     dataInputs = self.doc.elementsByTagName("Input")
@@ -865,13 +865,12 @@ class QgsWps:
         outFile.write(postString)
         outFile.close()
 
-    f = urllib.urlopen( str(scheme)+"://"+str(server)+""+str(path), unicode(postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>'))
-
-    # Read the results back.
-    wpsRequestResult = f.read()
+    serviceThread = Worker()
+    self.connect(self.thread, SIGNAL("finished()"), self.resultHandler)
     QApplication.restoreOverrideCursor()
     QApplication .setOverrideCursor(Qt.ArrowCursor)
     self.resultHandler(wpsRequestResult)
+
 
   ##############################################################################
 
@@ -963,3 +962,28 @@ class QgsWps:
         self.tools.errorHandler(resultXML)
 
     pass
+    
+    
+    
+class startServerProcess(QThread):
+
+    def __init__(self, scheme,  server,  path,  postString,  parent = None):
+    
+        QThread.__init__(self, parent)
+        self.scheme = scheme
+        self.server = server
+        self.path = path
+        self.postString = postString
+        self.exiting = False
+
+
+    def run(self):
+      f = urllib.urlopen( str(self.scheme)+"://"+str(self.server)+""+str(self.path), unicode(self.postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>'))
+    # Read the results back.
+      wpsRequestResult = f.read()
+      self.emit(SIGNAL("output(QString)"), image)
+      
+    def __del__(self):
+    
+        self.exiting = True
+        self.wait()      
