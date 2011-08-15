@@ -27,6 +27,7 @@ from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
+from QgsWpsServerThreadDialog import QgsWpsServerThreadDialog
 from httplib import *
 from urlparse import urlparse
 import os, sys, string, tempfile, urllib2, urllib,  mimetypes
@@ -39,12 +40,14 @@ DEBUG = False
 # Our main class for the plugin
 class QgsWps:
   MSG_BOX_TITLE = "WPS Client"
+  
   def __init__(self, iface):
     # Save reference to the QGIS interface
     self.iface = iface  
     self.minimumRevision = 12026
     self.localePath = ""
-    
+  
+
     #Initialise the translation environment    
     userPluginPath = QFileInfo(QgsApplication.qgisUserDbFilePath()).path()+"/python/plugins/wps"  
     systemPluginPath = QgsApplication.prefixPath()+"/share/qgis/python/plugins/wps"
@@ -68,11 +71,11 @@ class QgsWps:
   ##############################################################################
 
   def initGui(self):
-
+ 
     # Create action that will start plugin configuration
      self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
      QObject.connect(self.action, SIGNAL("triggered()"), self.run)
-    
+         
     # Add toolbar button and menu item
      self.iface.addToolBarIcon(self.action)
      self.iface.addPluginToMenu("WPS", self.action)
@@ -88,12 +91,11 @@ class QgsWps:
     self.iface.removePluginMenu("WPS", self.action)
     self.iface.removeToolBarIcon(self.action)
 
-  ##############################################################################
+##############################################################################
 
   def run(self):  
        
     flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
- 
     self.dlg = QgsWpsGui(self.iface.mainWindow(),  flags)    
     QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
     QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
@@ -679,25 +681,32 @@ class QgsWps:
 
   def addOkCancelButtons(self):
 
-    groupbox = QFrame()
+    groupBox = QFrame()
     layout = QHBoxLayout()
 
-    btnOk = QPushButton(groupbox)
+    btnOk = QPushButton(groupBox)
     btnOk.setText(QString("Run"))
     btnOk.setMinimumWidth(100)
     btnOk.setMaximumWidth(100)
 
-    btnCancel = QPushButton(groupbox)
+    btnCancel = QPushButton(groupBox)
     btnCancel.setText("Back")
     btnCancel.setMinimumWidth(100)
     btnCancel.setMaximumWidth(100)
 
-    layout.addWidget(btnOk)
-    layout.addStretch(1)
-    layout.addWidget(btnCancel)
+    lblStatus = QLabel(groupBox)
+    lblStatus.setText('Prozess Status: ')
 
-    groupbox.setLayout(layout)
-    self.dlgProcessTabFrameLayout.addWidget(groupbox)
+    lneStatus = QLineEdit(groupBox)
+
+    layout.addWidget(lblStatus)
+    layout.addWidget(lneStatus)
+    layout.addStretch(10)
+    layout.addWidget(btnCancel)
+    layout.addWidget(btnOk)
+    
+    groupBox.setLayout(layout)
+    self.dlgProcessTabFrameLayout.addWidget(groupBox)
 
     QObject.connect(btnOk,SIGNAL("clicked()"),self.defineProcess)
     QObject.connect(btnCancel,SIGNAL("clicked()"),self.dlgProcess.close)
@@ -834,7 +843,7 @@ class QgsWps:
         # Complex data is always requested as reference
         if literalOutputType.size() != 0:
           postString += "<wps:Output>\n"
-          postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
+          postString += "<ows:Identifier>"+outpuqgswps.pytIdentifier+"</ows:Identifier>\n"
           postString += "</wps:Output>\n"
 
       # Attach selected complex outputs ########################################
@@ -859,26 +868,35 @@ class QgsWps:
 
     # This is for debug purpose only
     if DEBUG == True:
-        self.tools.popUpMessageBox("Execute request", postString)
+#        self.tools.popUpMessageBox("Execute request", postString)
         # Write the request into a file
         outFile = open('/tmp/qwps_execute_request.xml', 'w')
         outFile.write(postString)
         outFile.close()
 
-    serviceThread = Worker()
-    self.connect(self.thread, SIGNAL("finished()"), self.resultHandler)
     QApplication.restoreOverrideCursor()
     QApplication .setOverrideCursor(Qt.ArrowCursor)
-    self.resultHandler(wpsRequestResult)
+    
+    self.theThread = QgsWpsServerThread(scheme,  server,  path,  postString)
+#    QObject.connect(self.theThread, SIGNAL("started()"), self.setProcessStarted)          
+#    QObject.connect(self.theThread, SIGNAL("finished()"), self.setProcessFinished)          
+#    QObject.connect(self.theThread, SIGNAL("terminated()"), self.setProcessTerminated)        
+    QObject.connect(self.theThread, SIGNAL("serviceFinished(QString)"), self.resultHandler) 
 
+    self.theThread.start()          
+        
+#    self.serverThreadDlg = QgsWpsServerThreadDialog(self.processIdentifier,  scheme,  server,  path,  postString)
+#    QObject.connect(self.serverThreadDlg, SIGNAL("serviceFinished(QString)"), self.resultHandler) 
+#    self.serverThreadDlg.show()
+
+    
 
   ##############################################################################
 
-  def resultHandler(self, resultXML, resultType="store"):
+  def resultHandler(self, resultXML,  resultType="store"):
     """Handle the result of the WPS Execute request and add the outputs as new
        map layers to the regestry or open an information window to show literal
        outputs."""
-
 # This is for debug purpose only
     if DEBUG == True:
         self.tools.popUpMessageBox("Result XML", resultXML)
@@ -936,7 +954,7 @@ class QgsWps:
                 QgsMapLayerRegistry.instance().addMapLayer(rLayer)
               # Text data
               elif self.tools.isMimeTypeText(mimeType) != None:
-                #TODO: this should be handled in a separate dialog to save the text output as file'
+                #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
                 QApplication.restoreOverrideCursor()
                 text = open(resultFile, 'r').read()
                 # TODO: This should be a text dialog with safe option
@@ -964,26 +982,65 @@ class QgsWps:
     pass
     
     
-    
-class startServerProcess(QThread):
+  def setProcessStarted(self):
+      self.dlgProcess.lneStatus.setText("Process started and running ... ")
 
-    def __init__(self, scheme,  server,  path,  postString,  parent = None):
+
+  def setProcessFinished(self):
+      self.dlgProcess.lneStatus.setText("Process finished")
+      
+  def setProcessTerminated(self):
+      self.dlgProcess.lneStatus.setText("Process terminated")          
+
+  def closeDialog(self):
+      self.close()
+      
+        
+  def stopProcessing( self ):
+       if self.theThread != None:
+         self.theThread.stop()
+         self.theThread = None    
     
+
+class QgsWpsServerThread(QThread):
+
+    def __init__(self,  scheme,  server,  path,  postString,  parent = None):
         QThread.__init__(self, parent)
         self.scheme = scheme
         self.server = server
         self.path = path
-        self.postString = postString
-        self.exiting = False
-
+        self.postString = postString        
 
     def run(self):
-      f = urllib.urlopen( str(self.scheme)+"://"+str(self.server)+""+str(self.path), unicode(self.postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>'))
-    # Read the results back.
-      wpsRequestResult = f.read()
-      self.emit(SIGNAL("output(QString)"), image)
-      
-    def __del__(self):
-    
-        self.exiting = True
-        self.wait()      
+        url = str(self.scheme)+"://"+str(self.server)+""+str(self.path)
+        data = unicode(self.postString, "latin1").replace('<wps:ComplexData>\n','<wps:ComplexData>')
+        f = urllib.urlopen( url, data)
+        
+     # Read the results back.
+        wpsRequestResult = f.read()
+        self.emit(SIGNAL("serviceFinished(QString)"),  wpsRequestResult)
+        self.stop()
+
+
+    def stop( self ):
+        QThread.wait( self  )
+        
+        
+#a = QApplication(sys.argv)
+## supply path to where is your qgis installed
+#QgsApplication.setPrefixPath("/usr/local/qgis", True)
+## load providers
+#QgsApplication.initQgis()
+#os.environ["PYTHONPATH"] = "/usr/local/share/qgis/python"
+#
+#
+#scheme = 'http'
+#server = 'www.kappasys.ch'
+#path = '/pywps/pywps.cgi'
+#outFile = open('/home/hdus/temp/qwps_execute_request.xml', 'r')
+#postString = outFile.read()
+#outFile.close()
+#processIdentifier = 'Test Process'
+#dlg = QgsWpsServerThreadDialog(processIdentifier,  scheme,  server,  path,  postString)
+#dlg.show()
+#a.exec_()                
