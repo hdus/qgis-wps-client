@@ -1,79 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ServerThreadDialog</class>
- <widget class="QDialog" name="ServerThreadDialog">
+ <class>QgsWpsServerThreadDialog</class>
+ <widget class="QDialog" name="QgsWpsServerThreadDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>146</height>
+    <width>573</width>
+    <height>72</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" colspan="3">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Number of Iterations:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="spinBox">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>1000000</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnThread">
-       <property name="text">
-        <string>start threaded</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnNoThread">
-       <property name="text">
-        <string>start unthreaded</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="1" column="0" colspan="3">
-    <widget class="QProgressBar" name="progressBar">
-     <property name="value">
-      <number>0</number>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Process:</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLineEdit" name="lineEdit"/>
-     </item>
-     <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="standardButtons">
-        <set>QDialogButtonBox::Cancel</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
+   <item row="0" column="1" colspan="3">
+    <widget class="QLabel" name="lblProcess">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
    </item>
-   <item row="2" column="1">
+   <item row="1" column="2">
+    <widget class="QLineEdit" name="lineEdit"/>
+   </item>
+   <item row="1" column="4">
     <widget class="QLabel" name="lblTest">
      <property name="text">
       <string/>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Status:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="3">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>cancel</string>
      </property>
     </widget>
    </item>
