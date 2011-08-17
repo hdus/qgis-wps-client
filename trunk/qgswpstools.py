@@ -858,28 +858,6 @@ class QgsWpsTools:
 
       self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
-  ##############################################################################
-
-  def addIntroduction(self,  name, title):
-
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
-      groupbox.setTitle(name)
-      layout = QVBoxLayout()
-
-      myLabel = QLabel(groupbox)
-      myLabel.setObjectName("qLabel"+name)
-      myLabel.setText(QString(title))
-      myLabel.setMinimumWidth(600)
-      myLabel.setMinimumHeight(25)
-      myLabel.setWordWrap(True)
-
-      layout.addWidget(myLabel)
-
-      groupbox.setLayout(layout)
-
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
-      
-  ##############################################################################
 
   def addDocumentationTab(self, abstract):
     # Check for URL
