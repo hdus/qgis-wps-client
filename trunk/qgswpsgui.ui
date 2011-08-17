@@ -3,7 +3,7 @@
  <class>QgsWps</class>
  <widget class="QDialog" name="QgsWps">
   <property name="windowModality">
-   <enum>Qt::WindowModal</enum>
+   <enum>Qt::NonModal</enum>
   </property>
   <property name="geometry">
    <rect>
