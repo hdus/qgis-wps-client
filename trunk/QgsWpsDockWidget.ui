@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>262</width>
+    <width>267</width>
     <height>190</height>
    </rect>
   </property>
@@ -56,6 +56,19 @@
     </property>
     <property name="textFormat">
      <enum>Qt::PlainText</enum>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnConnect">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>10</y>
+      <width>78</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>connect</string>
     </property>
    </widget>
   </widget>
