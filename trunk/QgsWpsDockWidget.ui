@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>267</width>
-    <height>190</height>
+    <width>211</width>
+    <height>224</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -39,38 +39,42 @@
    <set>Qt::LeftDockWidgetArea</set>
   </property>
   <property name="windowTitle">
-   <string>QgsWps</string>
+   <string>QGIS WPS-Client</string>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <widget class="QLabel" name="warning">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>50</y>
-      <width>161</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="textFormat">
-     <enum>Qt::PlainText</enum>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="btnConnect">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>10</y>
-      <width>78</width>
-      <height>27</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>connect</string>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QPushButton" name="btnConnect">
+      <property name="text">
+       <string>server connections</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QToolButton" name="toolButton">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>120</y>
+         <width>26</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>images/button_cancel.png</normaloff>images/button_cancel.png</iconset>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
