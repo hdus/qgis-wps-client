@@ -16,11 +16,21 @@
 from qgswps import QgsWps
 def name():
   return "WPS-Client"
+  
 def description():
   return "Client for Web Processing Services"
+
 def version():
-  return "0.5.5"
+  return "0.6.0"
+
 def qgisMinimumVersion():
   return "1.4"  
+
+def authorName():
+  return "Dr. Horst Düster, Sören Gebbert"
+
+def homepage():
+  return "http://www.kappasys.ch"
+  
 def classFactory(iface):
   return QgsWps(iface)  
