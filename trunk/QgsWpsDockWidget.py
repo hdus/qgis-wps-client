@@ -162,7 +162,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
         # First part of the gui is a short overview about the process
         identifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(self.doc)
-        self.tools.addIntroduction(identifier, title)
+        self.addIntroduction(identifier, title)
         
         # If no Input Data  are requested
         if DataInputs.size()==0:
@@ -192,4 +192,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcess.setLayout(self.dlgProcessLayout)
         self.dlgProcess.setGeometry(QRect(190,100,800,600))
         self.dlgProcess.show()
+        
+  ##############################################################################
+
+    def addIntroduction(self,  name, title):
+
+      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox.setTitle(name)
+      layout = QVBoxLayout()
+
+      myLabel = QLabel(groupbox)
+      myLabel.setObjectName("qLabel"+name)
+      myLabel.setText(QString(title))
+      myLabel.setMinimumWidth(600)
+      myLabel.setMinimumHeight(25)
+      myLabel.setWordWrap(True)
+
+      layout.addWidget(myLabel)
+
+      groupbox.setLayout(layout)
+
+      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      
+  ##############################################################################
+        
              
