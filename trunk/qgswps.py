@@ -24,10 +24,11 @@ from PyQt4 import QtXml
 from PyQt4 import QtWebKit
 from qgis.core import *
 from qgswpstools import QgsWpsTools
-from qgswpsgui import QgsWpsGui
+#from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
-from QgsWpsServerThreadDialog import QgsWpsServerThreadDialog
+#from QgsWpsServerThreadDialog import QgsWpsServerThreadDialog
+from QgsWpsDockWidget import QgsWpsDockWidget
 from httplib import *
 from urlparse import urlparse
 import os, sys, string, tempfile, urllib2, urllib,  mimetypes
@@ -91,6 +92,9 @@ class QgsWps:
     
      self.tools = QgsWpsTools(self.iface)
 
+    
+#    QObject.connect(self.myDockWidget, SIGNAL("flipDirection()"), self.flipDirection) 
+
   ##############################################################################
 
   def unload(self):
@@ -102,15 +106,19 @@ class QgsWps:
   def run(self):  
        
     flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-    self.dlg = QgsWpsGui(self.iface.mainWindow(),  flags)    
-    QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
-    QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
-    QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
-    QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-    QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.createCapabilitiesGUI)    
+#    self.dlg = QgsWpsGui(self.iface.mainWindow(),  flags)    
+#    QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
+#    QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
+#    QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
+#    QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
+#    QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.createCapabilitiesGUI)    
 
-    self.dlg.initQgsWpsGui()
-    self.dlg.show()
+    self.myDockWidget = QgsWpsDockWidget(self.iface.mainWindow())
+    self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
+    self.myDockWidget.show()
+     
+#    self.dlg.initQgsWpsGui()
+#    self.dlg.show()
 
   ##############################################################################
 
@@ -979,7 +987,7 @@ class QgsWps:
           else:
             QMessageBox.warning(None, '', str(QCoreApplication.translate("WPS Error: Missing reference or literal data in response")))
             
-        QMessageBox.information(None, QCoreApplication.translate("QgsWps",'Process result'), QCoreApplication.translate("QgsWps",'The process finished successful'))
+#        QMessageBox.information(None, QCoreApplication.translate("QgsWps",'Process result'), QCoreApplication.translate("QgsWps",'The process finished successful'))
     else:
         print "Error"
         self.tools.errorHandler(resultXML)
@@ -990,7 +998,7 @@ class QgsWps:
   def setProcessStarted(self):
 #      self.dlgProcess.lneStatus.setText("Process started and running ... ")
         self.statusLabel = None
-        self.statusLabel = QLabel(QCoreApplication.translate("QgsWps",  "WPS Process running ... "),  self.iface.mainWindow().statusBar())
+        self.statusLabel = QLabel(QCoreApplication.translate("QgsWps",  "WPS running ... "),  self.iface.mainWindow().statusBar())
         self.iface.mainWindow().statusBar().insertPermanentWidget(0,  self.statusLabel)
         QMessageBox.information(None,'Status', 'Process started and running ...')
         pass
@@ -999,7 +1007,7 @@ class QgsWps:
   def setProcessFinished(self):
 #      self.dlgProcess.lneStatus.setText("Process finished")
         self.iface.mainWindow().statusBar().removeWidget(self.statusLabel)
-        QMessageBox.information(None,'Status', 'Process finished')
+        QMessageBox.information(self.iface.mainWindow(),'Status', 'Process finished')
       
   def setProcessTerminated(self):
 #      self.dlgProcess.lneStatus.setText("Process terminated")          

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Mon Aug  8 22:06:52 2011
-#      by: PyQt4 UI code generator 4.7.2
+# Created: Wed Aug 17 11:06:00 2011
+#      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -12,7 +12,7 @@ from PyQt4 import QtCore, QtGui
 class Ui_QgsWps(object):
     def setupUi(self, QgsWps):
         QgsWps.setObjectName("QgsWps")
-        QgsWps.setWindowModality(QtCore.Qt.WindowModal)
+        QgsWps.setWindowModality(QtCore.Qt.NonModal)
         QgsWps.resize(593, 442)
         QgsWps.setAcceptDrops(False)
         self.gridLayout = QtGui.QGridLayout(QgsWps)
