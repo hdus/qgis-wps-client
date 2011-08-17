@@ -16,19 +16,19 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from qgswpstools import QgsWpsTools
 from Ui_qgswpsgui import Ui_QgsWps
+#from qgswpstools import QgsWpsTools
 
 import os, sys, string
 
 class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   MSG_BOX_TITLE = "WPS"
   
-  def __init__(self, parent, fl):
+  def __init__(self, parent, tools,  fl):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
     
-    self.tools =QgsWpsTools()
+    self.tools =tools
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)

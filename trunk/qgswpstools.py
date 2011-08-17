@@ -18,7 +18,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
-from PyQt4.QtSql import *
+from PyQt4.QtSql import * 
 from qgis.core import *
 from httplib import *
 from urlparse import urlparse
@@ -47,12 +47,15 @@ VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML
                            #{"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
                            {"MIMETYPE":"APPLICATION/SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}]
 
+DEBUG = False
+
 # Our help class for the plugin
 class QgsWpsTools:
     
-  def __init__(self, iface=None):
+  def __init__(self, iface,  dlg=None):
     self.iface = iface
     self.doc = QtXml.QDomDocument()
+    self.dlg = dlg
 
   ##############################################################################
 
@@ -1072,82 +1075,6 @@ class QgsWpsTools:
 
   ##############################################################################   
  
-
-  def createProcessGUI(self,name, item):
-    """Create the GUI for a selected WPS process based on the DescribeProcess
-       response document. Mandatory inputs are marked as red, default is black"""
-    try:
-      self.processIdentifier = item.text(0)
-    except:
-      QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
-      return 0
-
-    # Lists which store the inputs and meta information (format, occurs, ...)
-    # This list is initialized every time the GUI is created
-    self.complexInputComboBoxList = [] # complex input for single raster and vector maps
-    self.complexInputListWidgetList = [] # complex input for multiple raster and vector maps
-    self.complexInputTextBoxList = [] # complex inpt of type text/plain
-    self.literalInputComboBoxList = [] # literal value list with selectable answers
-    self.literalInputLineEditList = [] # literal value list with single text line input
-    self.complexOutputComboBoxList = [] # list combo box
-    self.inputDataTypeList = {}
-    self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
-    self.outputsMetaInfo = {} # dictionary for output metainfo, key is the output identifier
-    self.outputDataTypeList = {}
-
-    self.processName = name
-    flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-    # Recive the XML process description
-    self.doc.setContent(self.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier), True)     
-    DataInputs = self.doc.elementsByTagName("Input")
-    DataOutputs = self.doc.elementsByTagName("Output")
-
-    # Create the layouts and the scroll area
-    self.dlgProcess = QgsWpsDescribeProcessGui(self.dlg, flags)
-    self.dlgProcessLayout = QGridLayout()
-    # Two tabs, one for the process inputs and one for the documentation
-    # TODO: add a tab for literal outputs
-    self.dlgProcessTab = QTabWidget()
-    self.dlgProcessTabFrame = QFrame()
-    self.dlgProcessTabFrameLayout = QGridLayout()
-    # The process description can be very long, so we make it scrollable
-    self.dlgProcessScrollArea = QScrollArea(self.dlgProcessTab)
-
-    self.dlgProcessScrollAreaWidget = QFrame()
-    self.dlgProcessScrollAreaWidgetLayout = QGridLayout()
-
-    # First part of the gui is a short overview about the process
-    identifier, title, abstract = self.getIdentifierTitleAbstractFromElement(self.doc)
-    self.addIntroduction(identifier, title)
-    
-    # If no Input Data  are requested
-    if DataInputs.size()==0:
-      self.defineProcess()
-      return 0
-  
-    # Generate the input GUI buttons and widgets
-    self.generateProcessInputsGUI(DataInputs)
-    # Generate the editable outpt widgets, you can set the output to none if it is not requested
-    self.generateProcessOutputsGUI(DataOutputs)
-    
-    self.dlgProcessScrollAreaWidgetLayout.setSpacing(10)
-    self.dlgProcessScrollAreaWidget.setLayout(self.dlgProcessScrollAreaWidgetLayout)
-    self.dlgProcessScrollArea.setWidget(self.dlgProcessScrollAreaWidget)
-    self.dlgProcessScrollArea.setWidgetResizable(True)
-
-    self.dlgProcessTabFrameLayout.addWidget(self.dlgProcessScrollArea)
-
-    self.addOkCancelButtons()
-
-    self.dlgProcessTabFrame.setLayout(self.dlgProcessTabFrameLayout)
-    self.dlgProcessTab.addTab(self.dlgProcessTabFrame, "Process")
-
-    self.addDocumentationTab(abstract)
-
-    self.dlgProcessLayout.addWidget(self.dlgProcessTab)
-    self.dlgProcess.setLayout(self.dlgProcessLayout)
-    self.dlgProcess.setGeometry(QRect(190,100,800,600))
-    self.dlgProcess.show()
 
   ##############################################################################
 
