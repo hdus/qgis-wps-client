@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/plugins/wps">
     <file>images/wps-add.png</file>
+    <file>images/button_cancel.png</file>
   </qresource>
 </RCC>  
