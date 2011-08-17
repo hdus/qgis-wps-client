@@ -119,10 +119,10 @@ class QgsWpsTools:
     title      = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title")    
     identifier = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier")
     abstract   = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract")
-
+    
     itemListAll = []
     
-    for i in range(version.size()):
+    for i in range(identifier.size()):
       v_element = version.at(i).toElement()
       i_element = identifier.at(i).toElement()
       t_element = title.at(i+1).toElement()
@@ -131,7 +131,10 @@ class QgsWpsTools:
       itemList = []
       itemList.append(i_element.text()) 
       itemList.append(t_element.text()) 
-      itemList.append(a_element.text()) 
+      if "*"+a_element.text()+"*"== "**":
+         itemList.append("*")
+      else:
+         itemList.append(a_element.text()) 
 #      print i_element.text()
       itemListAll.append(itemList)
 
@@ -189,7 +192,7 @@ class QgsWpsTools:
       inputIdentifier = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
       title      = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()
       abstract   = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract").at(0).toElement().text().simplified()
-
+        
       return inputIdentifier, title, abstract
 
   ##############################################################################
