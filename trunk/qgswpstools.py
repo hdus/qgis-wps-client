@@ -234,7 +234,7 @@ class QgsWpsTools:
   def createTmpGML(self, layer, processSelection="False"):
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
-    tmpFile = unicode(myQTempFile.fileName(),'latin1')
+    tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
     
     vLayer = self.getVLayer(layer)    
     fieldList = self.getFieldList(vLayer)
@@ -265,7 +265,7 @@ class QgsWpsTools:
     
     myQTempFile.close()
 
-    myFile = QFile(tmpFile+'.gml')
+    myFile = QFile(tmpFile)
     if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
       QMessageBox.information(None, '', 'File open problem')
       pass    
@@ -378,7 +378,7 @@ class QgsWpsTools:
 
   def errorHandler(self, resultXML):
      errorDoc = QtXml.QDomDocument()
-     myResult = errorDoc.setContent(resultXML.strip(), True)
+     myResult = errorDoc.setContent(resultXML.simplified(), True)
      resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
      exceptionText = ''
      if not resultExceptionNodeList.isEmpty():
