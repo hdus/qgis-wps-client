@@ -16,7 +16,9 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
+from qgswpstools import QgsWpsTools
 from Ui_qgswpsgui import Ui_QgsWps
+
 import os, sys, string
 
 class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
@@ -25,6 +27,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   def __init__(self, parent, fl):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
+    
+    self.tools =QgsWpsTools()
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -98,4 +102,11 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("QTreeWidgetItem*, int")
   def on_treeWidget_itemDoubleClicked(self, item, column):
       self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
-4
+
+  def createCapabilitiesGUI(self, connection):
+    if not self.tools.webConnectionExists(connection):
+        return 0
+        
+    itemListAll = self.tools.getCapabilities(connection)
+    
+    self.initTreeWPSServices(itemListAll)
