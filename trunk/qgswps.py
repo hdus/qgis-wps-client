@@ -46,6 +46,12 @@ class QgsWps:
     self.iface = iface  
     self.minimumRevision = 12026
     self.localePath = ""
+    
+    self.theThread = QgsWpsServerThread()
+    QObject.connect(self.theThread, SIGNAL("started()"), self.setProcessStarted)          
+    QObject.connect(self.theThread, SIGNAL("finished()"), self.setProcessFinished)          
+    QObject.connect(self.theThread, SIGNAL("terminated()"), self.setProcessTerminated)        
+    QObject.connect(self.theThread, SIGNAL("serviceFinished(QString)"), self.resultHandler)     
   
 
     #Initialise the translation environment    
@@ -694,13 +700,13 @@ class QgsWps:
     btnCancel.setMinimumWidth(100)
     btnCancel.setMaximumWidth(100)
 
-    lblStatus = QLabel(groupBox)
-    lblStatus.setText('Prozess Status: ')
-
-    lneStatus = QLineEdit(groupBox)
-
-    layout.addWidget(lblStatus)
-    layout.addWidget(lneStatus)
+#    lblStatus = QLabel(groupBox)
+#    lblStatus.setText('Prozess Status: ')
+#
+#    lneStatus = QLineEdit(groupBox)
+#
+#    layout.addWidget(lblStatus)
+#    layout.addWidget(lneStatus)
     layout.addStretch(10)
     layout.addWidget(btnCancel)
     layout.addWidget(btnOk)
@@ -843,7 +849,7 @@ class QgsWps:
         # Complex data is always requested as reference
         if literalOutputType.size() != 0:
           postString += "<wps:Output>\n"
-          postString += "<ows:Identifier>"+outpuqgswps.pytIdentifier+"</ows:Identifier>\n"
+          postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
           postString += "</wps:Output>\n"
 
       # Attach selected complex outputs ########################################
@@ -877,12 +883,11 @@ class QgsWps:
     QApplication.restoreOverrideCursor()
     QApplication .setOverrideCursor(Qt.ArrowCursor)
     
-    self.theThread = QgsWpsServerThread(scheme,  server,  path,  postString)
-#    QObject.connect(self.theThread, SIGNAL("started()"), self.setProcessStarted)          
-#    QObject.connect(self.theThread, SIGNAL("finished()"), self.setProcessFinished)          
-#    QObject.connect(self.theThread, SIGNAL("terminated()"), self.setProcessTerminated)        
-    QObject.connect(self.theThread, SIGNAL("serviceFinished(QString)"), self.resultHandler) 
-
+    self.theThread.setScheme(scheme)
+    self.theThread.setServer(server)
+    self.theThread.setPath(path)
+    self.theThread.setPostString(postString)
+    
     self.theThread.start()          
         
 #    self.serverThreadDlg = QgsWpsServerThreadDialog(self.processIdentifier,  scheme,  server,  path,  postString)
@@ -983,15 +988,23 @@ class QgsWps:
     
     
   def setProcessStarted(self):
-      self.dlgProcess.lneStatus.setText("Process started and running ... ")
+#      self.dlgProcess.lneStatus.setText("Process started and running ... ")
+        self.statusLabel = None
+        self.statusLabel = QLabel(QCoreApplication.translate("QgsWps",  "WPS Process running ... "),  self.iface.mainWindow().statusBar())
+        self.iface.mainWindow().statusBar().insertPermanentWidget(0,  self.statusLabel)
+        QMessageBox.information(None,'Status', 'Process started and running ...')
+        pass
 
 
   def setProcessFinished(self):
-      self.dlgProcess.lneStatus.setText("Process finished")
+#      self.dlgProcess.lneStatus.setText("Process finished")
+        self.iface.mainWindow().statusBar().removeWidget(self.statusLabel)
+        QMessageBox.information(None,'Status', 'Process finished')
       
   def setProcessTerminated(self):
-      self.dlgProcess.lneStatus.setText("Process terminated")          
-
+#      self.dlgProcess.lneStatus.setText("Process terminated")          
+        QMessageBox.information(None,'Status', 'Process terminated')
+        
   def closeDialog(self):
       self.close()
       
@@ -1004,11 +1017,19 @@ class QgsWps:
 
 class QgsWpsServerThread(QThread):
 
-    def __init__(self,  scheme,  server,  path,  postString,  parent = None):
+    def __init__(self,  parent = None):
         QThread.__init__(self, parent)
+  
+    def setScheme(self, scheme):
         self.scheme = scheme
+        
+    def setServer(self, server):        
         self.server = server
+        
+    def setPath(self,  path):
         self.path = path
+        
+    def setPostString(self,  postString):
         self.postString = postString        
 
     def run(self):
