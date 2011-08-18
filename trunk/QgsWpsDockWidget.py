@@ -10,13 +10,15 @@ from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
 from PyQt4 import QtWebKit
 from PyQt4 import QtNetwork
+from qgis.core import *
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
-from QgsWpsServerThread import QgsWpsServerThread
+from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
+#from QgsWpsServerThread import QgsWpsServerThread
 from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 
-import resources_rc
+import resources_rc,  urllib
 
 DEBUG = False
 
@@ -36,18 +38,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         self.tools = QgsWpsTools(self.iface)
         
-        self.theNetwork = QNetworkAccessManager()
+        self.theManager = QNetworkAccessManager( self )
 #        QObject.connect(self.theNetwork, SIGNAL("started()"), self.setProcessStarted)          
-        QObject.connect(self.theNetwork, SIGNAL("finished()"), self.setProcessFinished)          
+        QObject.connect(self.theManager, SIGNAL("finished(QNetworkReply*)"), self.setProcessFinished)          
 #        QObject.connect(self.theNetwork, SIGNAL("terminated()"), self.setProcessTerminated)        
 #        QObject.connect(self.theNetwork, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
         
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)    
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
-        QObject.connect(self.dlg, SIGNAL("newServer()"), self.tools.newServer)    
-        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.tools.editServer)    
-        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.tools.deleteServer)        
+        QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
+        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
+        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
         
             
@@ -69,7 +71,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         groupBox = QGroupBox(self.groupBox)
         layout = QHBoxLayout()
         self.lblProcess = QLabel(groupBox)
-        self.lblProcess.setText(QString(self.processIdentifier+" is running ..."))
+        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))
 
         self.btnProcessCancel = QToolButton(groupBox)
         self.btnProcessCancel.setIcon(QIcon(":/plugins/wps/images/button_cancel.png") )
@@ -77,7 +79,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnProcessCancel.setMaximumWidth(30)
         layout.addWidget(self.lblProcess)
         layout.addStretch(10)
-        layout.addWidget(self.btnProcessCancel)
+#        layout.addWidget(self.btnProcessCancel)
 
         self.groupBox.setLayout(layout)
         self.btnConnect.setEnabled(False)
@@ -85,13 +87,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         pass
 
 
-    def setProcessFinished(self):
-        self.lblProcess.setText('Process finished')
+    def setProcessFinished(self,  netWorkReply):
         self.btnConnect.setEnabled(True)
-        QMessageBox.information(self.iface.mainWindow(),'Status', "Process "+self.processIdentifier+" finished")
+        self.reply = netWorkReply
+        self.resultHandler(self.reply.readAll().data())
+        
+        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " finished successful")))
+
       
     def setProcessTerminated(self):
-        QMessageBox.information(None,'Status', "Process "+self.processIdentifier+" terminated")
+        QMessageBox.information(None,'Status', self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
         self.btnConnect.setEnabled(True)
 
         
@@ -102,10 +107,15 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       pass
 
     def terminateProcessing( self ):
-       if self.theThread != None:
-         self.theThread.terminate()
-         self.theThread = None    
-         self.lblProcess.setText('Process '+self.processIdentifier+' terminated')
+       if self.theManager != None:
+         result = self.tools.getServer(self.processName)
+         scheme = result["scheme"]
+         path = result["path"]
+         server = result["server"]
+         url = QUrl(scheme+'://'+server+'/path')
+         reply = self.theManager.deleteResource(QNetworkRequest(url))
+         
+         self.lblProcess.setText(self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
          btnProcessRemove = self.btnProcessCancel
          btnProcessRemove.setText('remove')
          self.btnConnect.setEnabled(True)
@@ -523,11 +533,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QApplication.restoreOverrideCursor()
         QApplication .setOverrideCursor(Qt.ArrowCursor)
         
-        postBuffer = QBuffer()
-        postBuffer.open(QBuffer.ReadWrite)
-        postBuffer.write(postSTring)
+        self.postBuffer = QBuffer()
+        self.postBuffer.open(QBuffer.ReadWrite)
+        self.postBuffer.write(QByteArray.fromRawData(postString))
+        self.postBuffer.close()
+        self.setProcessStarted()
         url = str(scheme)+"://"+str(server)+""+str(path)
-        result = self.theNetwork.put(QNetworkRequest(QUrl(url)),  postBuffer )
+        result = self.theManager.put(QNetworkRequest(QUrl(url)),  self.postBuffer )
 
   ##############################################################################
 
@@ -537,12 +549,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         layout = QHBoxLayout()
     
         btnOk = QPushButton(groupBox)
-        btnOk.setText(QString("Run"))
+        btnOk.setText(QString(QApplication.translate("QgsWps", "Run")))
         btnOk.setMinimumWidth(100)
         btnOk.setMaximumWidth(100)
     
         btnCancel = QPushButton(groupBox)
-        btnCancel.setText("Back")
+        btnCancel.setText(QApplication.translate("QgsWps", "Back"))
         btnCancel.setMinimumWidth(100)
         btnCancel.setMaximumWidth(100)
     
@@ -555,3 +567,165 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
         QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)            
+        
+    def resultHandler(self, resultXML,  resultType="store"):
+        """Handle the result of the WPS Execute request and add the outputs as new
+           map layers to the regestry or open an information window to show literal
+           outputs."""
+           
+# This is for debug purpose only
+        if DEBUG == True:
+            self.popUpMessageBox("Result XML", resultXML)
+            # Write the response into a file
+            outFile = open('/tmp/qwps_execute_response.xml', 'w')
+            outFile.write(resultXML)
+            outFile.close()
+            
+        self.doc.setContent(resultXML,  True)
+        resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")
+        
+        # TODO: Check if the process does not run correctly before
+        if resultNodeList.size() > 0:
+            for i in range(resultNodeList.size()):
+              f_element = resultNodeList.at(i).toElement()
+    
+              # Fetch the referenced complex data
+              if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
+                identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+                reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
+    
+                # Get the reference
+                fileLink = reference.attribute("href", "0")
+    
+                # Try with namespace if not successful
+                if fileLink == '0':
+                  fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
+                if fileLink == '0':
+                  QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+                  return
+    
+                # Get the mime type of the result
+                mimeType = str(reference.attribute("mimeType", "0").toLower())
+    
+                if fileLink != '0':                            
+                  # Set a valid layerName
+                  layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + identifier)
+                  # The layername is normally defined in the comboBox
+                  for comboBox in self.complexOutputComboBoxList:
+                    if comboBox.objectName() == identifier:
+                      layerName = comboBox.currentText()
+    
+                  resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
+                  resultFile = resultFileConnector[0]
+                  # Vector data 
+                  # TODO: Check for schema GML and KML
+                  if self.tools.isMimeTypeVector(mimeType) != None:
+                    vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
+                    vlayer.setCrs(self.myLayer.dataProvider().crs())
+                    QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+                  # Raster data
+                  elif self.tools.isMimeTypeRaster(mimeType) != None:
+                    # We can directly attach the new layer
+                    rLayer = QgsRasterLayer(resultFile, layerName)
+                    QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+                  # Text data
+                  elif self.tools.isMimeTypeText(mimeType) != None:
+                    #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
+                    QApplication.restoreOverrideCursor()
+                    text = open(resultFile, 'r').read()
+                    # TODO: This should be a text dialog with safe option
+                    self.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
+                  # Everything else
+                  else:
+                    # For unsupported mime types we assume text
+                    QApplication.restoreOverrideCursor()
+                    content = open(resultFile, 'r').read()
+                    # TODO: This should have a safe option
+                    self.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
+                    
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
+                QApplication.restoreOverrideCursor()
+                literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
+                self.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
+              else:
+                QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
+        else:
+            print "Error"
+            self.errorHandler(resultXML)
+    
+        pass
+        
+ ##############################################################################
+
+    def errorHandler(self, resultXML):
+         errorDoc = QtXml.QDomDocument()
+         errorDoc = self.doc
+
+         myResult = errorDoc.setContent(resultXML.strip(), True)
+         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
+         exceptionText = ''
+         if not resultExceptionNodeList.isEmpty():
+           for i in range(resultExceptionNodeList.size()):
+             resultElement = resultExceptionNodeList.at(i).toElement()
+             exceptionText += resultElement.text()
+    
+         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
+         if not resultExceptionNodeList.isEmpty():
+           for i in range(resultExceptionNodeList.size()):
+             resultElement = resultExceptionNodeList.at(i).toElement()
+             exceptionText += resultElement.text()
+      
+         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionText")
+         if not resultExceptionNodeList.isEmpty():
+           for i in range(resultExceptionNodeList.size()):
+             resultElement = resultExceptionNodeList.at(i).toElement()
+             exceptionText += resultElement.text()
+    
+         resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
+         if not resultExceptionNodeList.isEmpty():
+           resultElement = resultExceptionNodeList.at(0).toElement()
+           exceptionText += resultElement.attribute("exceptionCode")
+    
+         if len(exceptionText) > 0:
+             print resultXML
+             QMessageBox.about(None, '', resultXML)
+    #         self.popUpMessageBox("WPS Error", resultXML)
+             pass
+    
+
+
+##############################################################################
+
+    def deleteServer(self,  name):
+        settings = QSettings()
+        settings.beginGroup("WPS")
+        settings.remove(name)
+        settings.endGroup()
+        self.dlg.initQgsWpsGui() 
+
+  ##############################################################################   
+ 
+
+  ##############################################################################
+
+    def editServer(self, name):
+        info = self.tools.getServer(name)
+        flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
+        dlgEdit = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
+        dlgEdit.txtName.setText(name)
+        dlgEdit.txtUrl.setText(info["scheme"]+"://"+info["server"]+info["path"])
+        dlgEdit.show()
+        self.dlg.initQgsWpsGui()     
+    
+
+
+  ##############################################################################
+
+    
+  ##############################################################################
+
+    def newServer(self):
+        flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
+        dlgNew = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
+        dlgNew.show()
+        self.dlg.initQgsWpsGui()
