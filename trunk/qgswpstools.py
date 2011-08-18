@@ -63,7 +63,7 @@ class QgsWpsTools:
       xmlString = self.getServiceXML(connection,"GetCapabilities")
       return True
     except:
-      QMessageBox.critical(None,'','Web Connection Failed')
+      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
       return False
 
 
@@ -114,7 +114,7 @@ class QgsWpsTools:
     self.doc.setContent(xmlString,  True)  
 
     if self.getServiceVersion() != "1.0.0":
-      QMessageBox.information(None, 'Error', 'Only WPS Version 1.0.0 is supprted')
+      QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
       return 0
       
     version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")
@@ -211,7 +211,7 @@ class QgsWpsTools:
         base64String = outfile.read()
         os.remove(filename)
     except:
-        QMessageBox.error(None, '', "Unable to create temporal file: " + filename + " for base64 encoding")  
+        QMessageBox.error(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
     return base64String
 
   ##############################################################################
@@ -272,7 +272,7 @@ class QgsWpsTools:
 
     myFile = QFile(tmpFile)
     if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
-      QMessageBox.information(None, '', 'File open problem')
+      QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
       pass    
 
     myGML = QTextStream(myFile)
