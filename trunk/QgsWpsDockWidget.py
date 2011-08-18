@@ -68,7 +68,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         groupBox = QGroupBox(self.groupBox)
         layout = QHBoxLayout()
         self.lblProcess = QLabel(groupBox)
-        self.lblProcess.setText(QString("Process "+self.processIdentifier+" running ..."))
+        self.lblProcess.setText(QString(self.processIdentifier+" is running ..."))
 
         self.btnProcessCancel = QToolButton(groupBox)
         self.btnProcessCancel.setIcon(QIcon(":/plugins/wps/images/button_cancel.png") )
@@ -107,7 +107,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
          self.lblProcess.setText('Process '+self.processIdentifier+' terminated')
          btnProcessRemove = self.btnProcessCancel
          btnProcessRemove.setText('remove')
-         self.myDockWidget.btnConnect.setEnabled(True)
+         self.btnConnect.setEnabled(True)
          QObject.connect(btnProcessRemove,SIGNAL("clicked()"),self.removeProcessFromWidget)         
    
     def stopProcessing( self ):

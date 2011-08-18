@@ -904,6 +904,8 @@ class QgsWpsTools:
     """Handle the result of the WPS Execute request and add the outputs as new
        map layers to the regestry or open an information window to show literal
        outputs."""
+       
+    QMessageBox.information(None, '', 'Result')
 # This is for debug purpose only
     if DEBUG == True:
         self.popUpMessageBox("Result XML", resultXML)
