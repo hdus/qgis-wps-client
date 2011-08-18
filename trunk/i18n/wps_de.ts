@@ -152,7 +152,7 @@
     <message>
         <location filename="QgsWpsDockWidget.py" line="74"/>
         <source> is running ...</source>
-        <translation> läuft</translation>
+        <translation> läuft ...</translation>
     </message>
     <message>
         <location filename="QgsWpsDockWidget.py" line="95"/>
