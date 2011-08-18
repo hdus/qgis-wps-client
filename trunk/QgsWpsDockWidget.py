@@ -9,6 +9,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
 from PyQt4 import QtWebKit
+from PyQt4 import QtNetwork
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from QgsWpsServerThread import QgsWpsServerThread
@@ -35,11 +36,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         self.tools = QgsWpsTools(self.iface)
         
-        self.theThread = QgsWpsServerThread()
-        QObject.connect(self.theThread, SIGNAL("started()"), self.setProcessStarted)          
-        QObject.connect(self.theThread, SIGNAL("finished()"), self.setProcessFinished)          
-        QObject.connect(self.theThread, SIGNAL("terminated()"), self.setProcessTerminated)        
-        QObject.connect(self.theThread, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
+        self.theNetwork = QNetworkAccessManager()
+#        QObject.connect(self.theNetwork, SIGNAL("started()"), self.setProcessStarted)          
+        QObject.connect(self.theNetwork, SIGNAL("finished()"), self.setProcessFinished)          
+#        QObject.connect(self.theNetwork, SIGNAL("terminated()"), self.setProcessTerminated)        
+#        QObject.connect(self.theNetwork, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
         
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)    
@@ -522,12 +523,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QApplication.restoreOverrideCursor()
         QApplication .setOverrideCursor(Qt.ArrowCursor)
         
-        self.theThread.setScheme(scheme)
-        self.theThread.setServer(server)
-        self.theThread.setPath(path)
-        self.theThread.setPostString(postString)
-        
-        self.theThread.start()          
+        postBuffer = QBuffer()
+        postBuffer.open(QBuffer.ReadWrite)
+        postBuffer.write(postSTring)
+        url = str(scheme)+"://"+str(server)+""+str(path)
+        result = self.theNetwork.put(QNetworkRequest(QUrl(url)),  postBuffer )
 
   ##############################################################################
 
