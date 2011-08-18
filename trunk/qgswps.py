@@ -33,6 +33,7 @@ import os, sys, string, tempfile, urllib2, urllib,  mimetypes
 import resources_rc
 
 
+DEBUG = False
 
 # Our main class for the plugin
 class QgsWps:

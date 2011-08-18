@@ -581,10 +581,10 @@ class QgsWpsTools:
 
  ##############################################################################
 
-  def addComplexInputComboBox(self, title, name, mimeType, namesList, minOccurs):
+  def addComplexInputComboBox(self, title, name, mimeType, namesList, minOccurs,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
       """Adds a combobox to select a raster or vector map as input to the process tab"""
 
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
@@ -600,7 +600,7 @@ class QgsWpsTools:
       comboBox.setMaximumWidth(179)
       comboBox.setMinimumHeight(25)
       
-      myLabel = QLabel(self.dlgProcessScrollAreaWidget)
+      myLabel = QLabel(dlgProcessScrollAreaWidget)
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
@@ -620,14 +620,14 @@ class QgsWpsTools:
       
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return comboBox              
 
    
   ##############################################################################
 
-  def addComplexOutputComboBox(self, widget, name, title, mimeType):
+  def addComplexOutputComboBox(self, widget, name, title, mimeType,  processIdentifier):
       """Adds a combobox to select a raster or vector map as input to the process tab"""
 
       groupbox = QGroupBox(widget)
@@ -636,7 +636,7 @@ class QgsWpsTools:
       
       namesList = []
       # Generate a unique name for the layer
-      namesList.append(self.uniqueLayerName(self.processIdentifier + "_" + name + "_"))
+      namesList.append(self.uniqueLayerName(processIdentifier + "_" + name + "_"))
       namesList.append("<None>")
 
       comboBox = QComboBox(groupbox)
@@ -667,9 +667,9 @@ class QgsWpsTools:
 
   ##############################################################################
 
-  def addComplexInputListWidget(self, title, name, mimeType, namesList, minOccurs):
+  def addComplexInputListWidget(self, title, name, mimeType, namesList, minOccurs, dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
       """Adds a widget for multiple raster or vector selections as inputs to the process tab"""
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
@@ -707,15 +707,15 @@ class QgsWpsTools:
 
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return listWidget
 
   ##############################################################################
 
-  def addComplexInputTextBox(self, title, name, minOccurs):
+  def addComplexInputTextBox(self, title, name, minOccurs,  dlgProcessScrollAreaWidget, dlgProcessScrollAreaWidgetLayout):
       """Adds a widget to insert text as complex inputs to the process tab"""
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(50)
       layout = QHBoxLayout()
@@ -726,7 +726,7 @@ class QgsWpsTools:
       textBox.setMaximumWidth(200)
       textBox.setMinimumHeight(50)
 
-      myLabel = QLabel(self.dlgProcessScrollAreaWidget)
+      myLabel = QLabel(dlgProcessScrollAreaWidget)
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
@@ -746,27 +746,27 @@ class QgsWpsTools:
 
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return textBox
 
   ##############################################################################
 
-  def addLiteralComboBox(self, title, name, namesList, minOccurs):
+  def addLiteralComboBox(self, title, name, namesList, minOccurs,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
 
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
 
-      comboBox = QComboBox(self.dlgProcessScrollAreaWidget)
+      comboBox = QComboBox(dlgProcessScrollAreaWidget)
       comboBox.addItems(namesList)
       comboBox.setObjectName(name)
       comboBox.setMinimumWidth(179)
       comboBox.setMaximumWidth(179)
       comboBox.setMinimumHeight(25)
 
-      myLabel = QLabel(self.dlgProcessScrollAreaWidget)
+      myLabel = QLabel(dlgProcessScrollAreaWidget)
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
@@ -786,15 +786,15 @@ class QgsWpsTools:
 
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return comboBox
 
   ##############################################################################
 
-  def addLiteralLineEdit(self, title, name, minOccurs, defaultValue=""):
+  def addLiteralLineEdit(self, title, name, minOccurs, dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout,  defaultValue=""):
 
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
@@ -826,15 +826,15 @@ class QgsWpsTools:
 
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return myLineEdit
 
   ##############################################################################
 
-  def addCheckBox(self,  title,  name):
+  def addCheckBox(self,  title,  name,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
 
-      groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
+      groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
@@ -856,193 +856,24 @@ class QgsWpsTools:
 
       groupbox.setLayout(layout)
 
-      self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
+      dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
 
-  def addDocumentationTab(self, abstract):
+  def addDocumentationTab(self, dlgProcessTab,  abstract):
     # Check for URL
     if str(abstract).find("http://") == 0:
-      textBox = QtWebKit.QWebView(self.dlgProcessTab)
+      textBox = QtWebKit.QWebView(dlgProcessTab)
       textBox.load(QUrl(abstract))
       textBox.show()
     else:
-      textBox = QTextBrowser(self.dlgProcessTab)
+      textBox = QTextBrowser(dlgProcessTab)
       textBox.setText(QString(abstract))
 
-    self.dlgProcessTab.addTab(textBox, "Documentation")
+    dlgProcessTab.addTab(textBox, "Documentation")
 
-  ##############################################################################
-
-  def addOkCancelButtons(self):
-
-    groupBox = QFrame()
-    layout = QHBoxLayout()
-
-    btnOk = QPushButton(groupBox)
-    btnOk.setText(QString("Run"))
-    btnOk.setMinimumWidth(100)
-    btnOk.setMaximumWidth(100)
-
-    btnCancel = QPushButton(groupBox)
-    btnCancel.setText("Back")
-    btnCancel.setMinimumWidth(100)
-    btnCancel.setMaximumWidth(100)
-
-    layout.addStretch(10)
-    layout.addWidget(btnCancel)
-    layout.addWidget(btnOk)
-    
-    groupBox.setLayout(layout)
-    self.dlgProcessTabFrameLayout.addWidget(groupBox)
-
-    QObject.connect(btnOk,SIGNAL("clicked()"),self.defineProcess)
-    QObject.connect(btnCancel,SIGNAL("clicked()"),self.dlgProcess.close)
 
 
 ##############################################################################
-
-  def generateProcessInputsGUI(self, DataInputs):
-    """Generate the GUI for all Inputs defined in the process description XML file"""
-
-    # Create the complex inputs at first
-    for i in range(DataInputs.size()):
-      f_element = DataInputs.at(i).toElement()
-
-      inputIdentifier, title, abstract = self.getIdentifierTitleAbstractFromElement(f_element)
-
-      complexData = f_element.elementsByTagName("ComplexData")
-      minOccurs = int(f_element.attribute("minOccurs"))
-      maxOccurs = int(f_element.attribute("maxOccurs"))
-
-      # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
-      if complexData.size() > 0:
-        # Das i-te ComplexData Objekt auswerten
-        complexDataTypeElement = complexData.at(0).toElement()
-        complexDataFormat = self.getDefaultMimeType(complexDataTypeElement)
-        supportedComplexDataFormat = self.getSupportedMimeTypes(complexDataTypeElement)
-
-        # Store the input formats
-        self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
-        self.inputDataTypeList[inputIdentifier] = complexDataFormat
-
-        # Attach the selected vector or raster maps
-        if self.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
-          # Vector inputs
-          layerNamesList = self.getLayerNameList(0)
-          if maxOccurs == 1:
-            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
-          else:
-            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
-        elif self.isMimeTypeText(complexDataFormat["MimeType"]) != None:
-          # Text inputs
-          self.complexInputTextBoxList.append(self.addComplexInputTextBox(title, inputIdentifier, minOccurs))
-        elif self.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
-          # Raster inputs
-          layerNamesList = self.getLayerNameList(1)
-          if maxOccurs == 1:
-            self.complexInputComboBoxList.append(self.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
-          else:
-            self.complexInputListWidgetList.append(self.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs))
-        else:
-          # We assume text inputs in case of an unknown mime type
-          self.complexInputTextBoxList.append(self.addComplexInputTextBox(title, inputIdentifier, minOccurs))            
-
-    # Create the literal inputs as second
-    for i in range(DataInputs.size()):
-      f_element = DataInputs.at(i).toElement()
-
-      inputIdentifier, title, abstract = self.getIdentifierTitleAbstractFromElement(f_element)
-
-      literalData = f_element.elementsByTagName("LiteralData")
-      minOccurs = int(f_element.attribute("minOccurs"))
-      maxOccurs = int(f_element.attribute("maxOccurs"))
-
-      if literalData.size() > 0:
-        allowedValuesElement = literalData.at(0).toElement()
-        aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
-        dValue = str(allowedValuesElement.elementsByTagName("DefaultValue").at(0).toElement().text())
-#        print "Checking allowed values " + str(aValues.size())
-        if aValues.size() > 0:
-          valList = self.allowedValues(aValues)
-          if len(valList) > 0:
-            if len(valList[0]) > 0:
-              self.literalInputComboBoxList.append(self.addLiteralComboBox(title, inputIdentifier, valList, minOccurs))
-            else:
-              self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier, minOccurs, str(valList)))
-        else:
-          self.literalInputLineEditList.append(self.addLiteralLineEdit(title, inputIdentifier, minOccurs, dValue))
-
-    # At last, create the bounding box inputs
-    for i in range(DataInputs.size()):
-      f_element = DataInputs.at(i).toElement()
-
-      inputIdentifier, title, abstract = self.getIdentifierTitleAbstractFromElement(f_element)
-      
-      bBoxData = f_element.elementsByTagName("BoundingBoxData")
-      minOccurs = int(f_element.attribute("minOccurs"))
-      maxOccurs = int(f_element.attribute("maxOccurs"))
-
-      if bBoxData.size() > 0:
-        crsListe = []
-        bBoxElement = bBoxData.at(0).toElement()
-        defaultCrsElement = bBoxElement.elementsByTagName("Default").at(0).toElement()
-        defaultCrs = defaultCrsElement.elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href")
-        crsListe.append(defaultCrs)
-        self.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs)
-
-        supportedCrsElements = bBoxElement.elementsByTagName("Supported")
-
-        for i in range(supportedCrsElements.size()):
-          crsListe.append(supportedCrsElements.at(i).toElement().elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href"))
-
-        self.literalInputComboBoxList.append(self.addLiteralComboBox("Supported CRS", inputIdentifier,crsListe, minOccurs))
-
-
-    self.addCheckBox(QCoreApplication.translate("QgsWps","Process selected objects only"), QCoreApplication.translate("QgsWps","Selected"))
-    
-  ##############################################################################
-
-  def generateProcessOutputsGUI(self, DataOutputs):
-    """Generate the GUI for all complex ouputs defined in the process description XML file"""
-
-    if DataOutputs.size() < 1:
-        return
-
-    groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
-    groupbox.setTitle("Complex output(s)")
-    layout = QVBoxLayout()
-
-    # Add all complex outputs
-    for i in range(DataOutputs.size()):
-      f_element = DataOutputs.at(i).toElement()
-
-      outputIdentifier, title, abstract = self.getIdentifierTitleAbstractFromElement(f_element)
-      complexOutput = f_element.elementsByTagName("ComplexOutput")
-
-      # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
-      if complexOutput.size() > 0:
-        # Das i-te ComplexData Objekt auswerten
-        complexOutputTypeElement = complexOutput.at(0).toElement()
-        complexOutputFormat = self.getDefaultMimeType(complexOutputTypeElement)
-        supportedcomplexOutputFormat = self.getSupportedMimeTypes(complexOutputTypeElement)
-
-        # Store the input formats
-        self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
-        self.outputDataTypeList[outputIdentifier] = complexOutputFormat
-        
-        widget, comboBox = self.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat))
-        self.complexOutputComboBoxList.append(comboBox)
-        layout.addWidget(widget)
-    
-    # Set the layout
-    groupbox.setLayout(layout)
-    # Add the outputs
-    self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
-    
-
-    
-    
-  ##############################################################################
 
   def deleteServer(self,  name):
     settings = QSettings()
@@ -1164,179 +995,6 @@ class QgsWpsTools:
     dlgNew.show()
     self.dlg.initQgsWpsGui()
     
-
-
-  ##############################################################################  
-  def defineProcess(self):
-    """Create the execute request"""
-    self.doc.setContent(self.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier))
-    dataInputs = self.doc.elementsByTagName("Input")
-    dataOutputs = self.doc.elementsByTagName("Output")
-
-    QApplication.setOverrideCursor(Qt.WaitCursor)
-    result = self.getServer(self.processName)
-    scheme = result["scheme"]
-    path = result["path"]
-    server = result["server"]
-
-    checkBoxes = self.dlgProcess.findChildren(QCheckBox)
-
-    if len(checkBoxes) > 0:
-      useSelected = checkBoxes[0].isChecked()
-
-    postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-    postString += "<wps:Execute service=\"WPS\" version=\""+ self.getServiceVersion() + "\"" + \
-                   " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
-                   " xmlns:ows=\"http://www.opengis.net/ows/1.1\"" +\
-                   " xmlns:xlink=\"http://www.w3.org/1999/xlink\"" +\
-                   " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""\
-                   " xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0" +\
-                   " http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">"
-                   
-    postString += "<ows:Identifier>"+self.processIdentifier+"</ows:Identifier>\n"
-    postString += "<wps:DataInputs>"
-
-    # text/plain inputs ########################################################
-    for textBox in self.complexInputTextBoxList:
-      # Do not add undefined inputs
-      if textBox == None or str(textBox.document().toPlainText()) == "":
-        continue
-
-      postString += self.xmlExecuteRequestInputStart(textBox.objectName())
-      postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
-      postString += self.xmlExecuteRequestInputEnd()
-
-
-    # Single raster and vector inputs ##########################################
-    for comboBox in self.complexInputComboBoxList:
-      # Do not add undefined inputs
-      if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
-        continue
-           
-      postString += self.xmlExecuteRequestInputStart(comboBox.objectName())
-
-      # TODO: Check for more types
-      mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
-      schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
-      encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
-      self.myLayer = self.getVLayer(comboBox.currentText())
-      
-      if self.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
-        postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-        postString += self.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
-        postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
-      elif self.isMimeTypeVector(mimeType) != None or self.isMimeTypeRaster(mimeType) != None:
-        postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
-        postString += self.createTmpBase64(comboBox.currentText())
-
-      postString += "</wps:ComplexData>\n"
-      postString += self.xmlExecuteRequestInputEnd()
-
-    # Multiple raster and vector inputs ########################################
-    for listWidgets in self.complexInputListWidgetList:
-      # Do not add undefined inputs
-      if listWidgets == None:
-        continue
-        
-      mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
-      schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
-      encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
-      
-      # Iterate over each seletced item
-      for i in range(listWidgets.count()):
-        listWidget = listWidgets.item(i)
-        if listWidget == None or listWidget.isSelected() == False or str(listWidget.text()) == "<None>":
-          continue
-          
-        postString += self.xmlExecuteRequestInputStart(listWidgets.objectName())
-
-        # TODO: Check for more types
-        if self.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
-          postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-#          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
-          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
-        elif self.isMimeTypeVector(mimeType) != None or self.isMimeTypeRaster(mimeType) != None:
-          postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
-          postString += self.createTmpBase64(listWidget.text())
-
-        postString += "</wps:ComplexData>\n"
-        postString += self.xmlExecuteRequestInputEnd()
-
-    # Literal data as combo box choice #########################################
-    for comboBox in self.literalInputComboBoxList:
-      if comboBox == None or comboBox.currentText() == "":
-          continue
-
-      postString += self.xmlExecuteRequestInputStart(comboBox.objectName())
-      postString += "<wps:LiteralData>"+comboBox.currentText()+"</wps:LiteralData>\n"
-      postString += self.xmlExecuteRequestInputEnd()
-
-   # Literal data as combo box choice #########################################
-    for lineEdit in self.literalInputLineEditList:
-      if lineEdit == None or lineEdit.text() == "":
-          continue
-
-      postString += self.xmlExecuteRequestInputStart(lineEdit.objectName())
-      postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
-      postString += self.xmlExecuteRequestInputEnd()
-
-    postString += "</wps:DataInputs>\n"
-    
-    # Attach only defined outputs
-    if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
-      postString += "<wps:ResponseForm>\n"
-      # The server should store the result. No lineage should be returned or status
-      postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"true\" status=\"false\">\n"
-
-      # Attach ALL literal outputs #############################################
-      for i in range(dataOutputs.size()):
-        f_element = dataOutputs.at(i).toElement()
-        outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().simplified()
-        literalOutputType = f_element.elementsByTagName("LiteralOutput")
-
-        # Complex data is always requested as reference
-        if literalOutputType.size() != 0:
-          postString += "<wps:Output>\n"
-          postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
-          postString += "</wps:Output>\n"
-
-      # Attach selected complex outputs ########################################
-      for comboBox in self.complexOutputComboBoxList:
-        # Do not add undefined outputs
-        if comboBox == None or str(comboBox.currentText()) == "<None>":
-          continue
-        outputIdentifier = comboBox.objectName()
-        
-        mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
-        schema = self.outputDataTypeList[outputIdentifier]["Schema"]
-        encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
-        
-        postString += "<wps:Output asReference=\"true\" mimeType=\"" + mimeType + "\" schema=\"" + schema + "\">"
-        postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
-        postString += "</wps:Output>\n"
-
-      postString += "</wps:ResponseDocument>\n"
-      postString  += "</wps:ResponseForm>\n"
-      
-    postString += "</wps:Execute>\n"
-
-    # This is for debug purpose only
-    if DEBUG == True:
-#        self.popUpMessageBox("Execute request", postString)
-        # Write the request into a file
-        outFile = open('/tmp/qwps_execute_request.xml', 'w')
-        outFile.write(postString)
-        outFile.close()
-
-    QApplication.restoreOverrideCursor()
-    QApplication .setOverrideCursor(Qt.ArrowCursor)
-    
-    self.theThread.setScheme(scheme)
-    self.theThread.setServer(server)
-    self.theThread.setPath(path)
-    self.theThread.setPostString(postString)
-    
-    self.theThread.start()          
      
 ################################################################################
 ################################################################################
