@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsdescribeprocessgui.ui'
 #
-# Created: Wed Dec  8 12:32:05 2010
-#      by: PyQt4 UI code generator 4.7
+# Created: Thu Aug 18 16:45:46 2011
+#      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
 

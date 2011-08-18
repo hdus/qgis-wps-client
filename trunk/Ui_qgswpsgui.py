@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home_nas/sogis/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Wed Aug 17 11:06:00 2011
-#      by: PyQt4 UI code generator 4.5.4
+# Created: Thu Aug 18 16:45:45 2011
+#      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
 

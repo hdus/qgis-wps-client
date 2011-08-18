@@ -22,7 +22,6 @@ from PyQt4.QtSql import *
 from qgis.core import *
 from httplib import *
 from urlparse import urlparse
-from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 import os, sys, string, tempfile,  base64
 
 # initialize Qt resources from file resources.py
@@ -380,42 +379,7 @@ class QgsWpsTools:
 #     print str(valList)
      return valList        
 
-  ##############################################################################
-
-  def errorHandler(self, resultXML):
-     errorDoc = QtXml.QDomDocument()
-     myResult = errorDoc.setContent(resultXML.simplified(), True)
-     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
-     exceptionText = ''
-     if not resultExceptionNodeList.isEmpty():
-       for i in range(resultExceptionNodeList.size()):
-         resultElement = resultExceptionNodeList.at(i).toElement()
-         exceptionText += resultElement.text()
-
-     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
-     if not resultExceptionNodeList.isEmpty():
-       for i in range(resultExceptionNodeList.size()):
-         resultElement = resultExceptionNodeList.at(i).toElement()
-         exceptionText += resultElement.text()
-  
-     resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionText")
-     if not resultExceptionNodeList.isEmpty():
-       for i in range(resultExceptionNodeList.size()):
-         resultElement = resultExceptionNodeList.at(i).toElement()
-         exceptionText += resultElement.text()
-
-     resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
-     if not resultExceptionNodeList.isEmpty():
-       resultElement = resultExceptionNodeList.at(0).toElement()
-       exceptionText += resultElement.attribute("exceptionCode")
-
-     if len(exceptionText) > 0:
-         print resultXML
-         QMessageBox.about(None, '', resultXML)
-#         self.popUpMessageBox("WPS Error", resultXML)
-         pass
-
-  ##############################################################################
+   ##############################################################################
 
   # Creates a QgsVectorFileWriter for GML
   # Return: QgsVectorFileWriter
@@ -870,132 +834,6 @@ class QgsWpsTools:
       textBox.setText(QString(abstract))
 
     dlgProcessTab.addTab(textBox, "Documentation")
-
-
-
-##############################################################################
-
-  def deleteServer(self,  name):
-    settings = QSettings()
-    settings.beginGroup("WPS")
-    settings.remove(name)
-    settings.endGroup()
-    self.dlg.initQgsWpsGui() 
-
-  ##############################################################################   
- 
-
-  ##############################################################################
-
-  def editServer(self, name):
-    info = self.getServer(name)
-    flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-    dlgEdit = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
-    dlgEdit.txtName.setText(name)
-    dlgEdit.txtUrl.setText(info["scheme"]+"://"+info["server"]+info["path"])
-    dlgEdit.show()
-    self.dlg.initQgsWpsGui()     
-    
-
-
-  ##############################################################################
-
-  def resultHandler(self, resultXML,  resultType="store"):
-    """Handle the result of the WPS Execute request and add the outputs as new
-       map layers to the regestry or open an information window to show literal
-       outputs."""
-       
-    QMessageBox.information(None, '', 'Result')
-# This is for debug purpose only
-    if DEBUG == True:
-        self.popUpMessageBox("Result XML", resultXML)
-        # Write the response into a file
-        outFile = open('/tmp/qwps_execute_response.xml', 'w')
-        outFile.write(resultXML)
-        outFile.close()
-        
-    self.doc.setContent(resultXML,  True)
-    resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")
-    
-    # TODO: Check if the process does not run correctly before
-    if resultNodeList.size() > 0:
-        for i in range(resultNodeList.size()):
-          f_element = resultNodeList.at(i).toElement()
-
-          # Fetch the referenced complex data
-          if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
-            identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
-            reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
-
-            # Get the reference
-            fileLink = reference.attribute("href", "0")
-
-            # Try with namespace if not successful
-            if fileLink == '0':
-              fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
-            if fileLink == '0':
-              QMessageBox.warning(None, '', str(QCoreApplication.translate("WPS Error: Unable to download the result of reference: ")) + str(fileLink))
-              return
-
-            # Get the mime type of the result
-            mimeType = str(reference.attribute("mimeType", "0").toLower())
-
-            if fileLink != '0':                            
-              # Set a valid layerName
-              layerName = self.uniqueLayerName(self.processIdentifier + "_" + identifier)
-              # The layername is normally defined in the comboBox
-              for comboBox in self.complexOutputComboBoxList:
-                if comboBox.objectName() == identifier:
-                  layerName = comboBox.currentText()
-
-              resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
-              resultFile = resultFileConnector[0]
-              # Vector data 
-              # TODO: Check for schema GML and KML
-              if self.isMimeTypeVector(mimeType) != None:
-                vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
-                vlayer.setCrs(self.myLayer.dataProvider().crs())
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer)
-              # Raster data
-              elif self.isMimeTypeRaster(mimeType) != None:
-                # We can directly attach the new layer
-                rLayer = QgsRasterLayer(resultFile, layerName)
-                QgsMapLayerRegistry.instance().addMapLayer(rLayer)
-              # Text data
-              elif self.isMimeTypeText(mimeType) != None:
-                #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
-                QApplication.restoreOverrideCursor()
-                text = open(resultFile, 'r').read()
-                # TODO: This should be a text dialog with safe option
-                self.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
-              # Everything else
-              else:
-                # For unsupported mime types we assume text
-                QApplication.restoreOverrideCursor()
-                content = open(resultFile, 'r').read()
-                # TODO: This should have a safe option
-                self.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
-                
-          elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
-            QApplication.restoreOverrideCursor()
-            literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
-            self.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
-          else:
-            QMessageBox.warning(None, '', str(QCoreApplication.translate("WPS Error: Missing reference or literal data in response")))
-    else:
-        print "Error"
-        self.errorHandler(resultXML)
-
-    pass
-    
-    
-  ##############################################################################
-
-  def newServer(self):
-    flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-    dlgNew = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
-    dlgNew.show()
-    self.dlg.initQgsWpsGui()
     
      
 ################################################################################
