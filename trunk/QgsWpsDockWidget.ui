@@ -6,14 +6,26 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>211</width>
-    <height>224</height>
+    <width>246</width>
+    <height>150</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="minimumSize">
    <size>
     <width>190</width>
-    <height>190</height>
+    <height>150</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>524287</width>
+    <height>200</height>
    </size>
   </property>
   <property name="baseSize">
@@ -52,26 +64,15 @@
     </item>
     <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>30</verstretch>
+       </sizepolicy>
+      </property>
       <property name="title">
        <string/>
       </property>
-      <widget class="QToolButton" name="toolButton">
-       <property name="geometry">
-        <rect>
-         <x>160</x>
-         <y>120</y>
-         <width>26</width>
-         <height>25</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset>
-         <normaloff>images/button_cancel.png</normaloff>images/button_cancel.png</iconset>
-       </property>
-      </widget>
      </widget>
     </item>
    </layout>
