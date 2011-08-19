@@ -649,6 +649,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                       layerName = comboBox.currentText()
                   
                   url = QUrl(fileLink)
+                  QMessageBox.information(None,'', fileLink)
                   self.theHttp.setHost(url.host())    
                   self.theHttp.get(url.path())
                   tmpFile = QTemporaryFile()
