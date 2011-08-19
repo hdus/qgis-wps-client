@@ -70,6 +70,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 #      self.dlgProcess.lneStatus.setText("Process started and running ... ")
         groupBox = QGroupBox(self.groupBox)
         layout = QHBoxLayout()
+        self.lblProcess = None
         self.lblProcess = QLabel(groupBox)
         self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))
 
@@ -83,7 +84,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         self.groupBox.setLayout(layout)
         self.btnConnect.setEnabled(False)
-        QObject.connect(self.btnProcessCancel,SIGNAL("clicked()"),self.terminateProcessing)
+#        QObject.connect(self.btnProcessCancel,SIGNAL("clicked()"),self.terminateProcessing)
         pass
 
 
@@ -95,9 +96,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " finished successful")))
 
       
-    def setProcessTerminated(self):
-        QMessageBox.information(None,'Status', self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
-        self.btnConnect.setEnabled(True)
+#    def setProcessTerminated(self):
+#        QMessageBox.information(None,'Status', self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
+#        self.btnConnect.setEnabled(True)
 
         
     def closeDialog(self):
