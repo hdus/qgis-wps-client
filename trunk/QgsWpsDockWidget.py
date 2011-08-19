@@ -14,7 +14,6 @@ from qgis.core import *
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
-#from QgsWpsServerThread import QgsWpsServerThread
 from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 
@@ -35,33 +34,40 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QDockWidget.__init__(self, iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
-        
         self.tools = QgsWpsTools(self.iface)
-        
+        self.doc = QtXml.QDomDocument()
+        self.tmpPath = QDir.tempPath()        
         self.theManager = QNetworkAccessManager( self )
+
+        flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
+        self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
+        
+        
 #        QObject.connect(self.theNetwork, SIGNAL("started()"), self.setProcessStarted)          
         QObject.connect(self.theManager, SIGNAL("finished(QNetworkReply*)"), self.setProcessFinished)          
 #        QObject.connect(self.theNetwork, SIGNAL("terminated()"), self.setProcessTerminated)        
 #        QObject.connect(self.theNetwork, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
         
-        flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-        self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)    
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
+        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
-        
-            
-        self.doc = QtXml.QDomDocument()
-        self.tmpPath = QDir.tempPath()
     
 
-        
+
+    def cleanGui(self,  text=''):
+      try:
+        self.lblProcess.setText('')
+      except:
+        return
+    
     
     @pyqtSignature("")
     def on_btnConnect_clicked(self):
         self.dlg.initQgsWpsGui()
+        self.cleanGui()
         self.dlg.show()
         
         
@@ -70,21 +76,15 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 #      self.dlgProcess.lneStatus.setText("Process started and running ... ")
         groupBox = QGroupBox(self.groupBox)
         layout = QHBoxLayout()
-        self.lblProcess = None
-        self.lblProcess = QLabel(groupBox)
-        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))
+        try:
+          self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))          
+        except:
+          self.lblProcess = QLabel(groupBox)        
+          self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))
+          layout.addWidget(self.lblProcess)        
+          self.groupBox.setLayout(layout)
 
-        self.btnProcessCancel = QToolButton(groupBox)
-        self.btnProcessCancel.setIcon(QIcon(":/plugins/wps/images/button_cancel.png") )
-        self.btnProcessCancel.setMinimumWidth(30)
-        self.btnProcessCancel.setMaximumWidth(30)
-        layout.addWidget(self.lblProcess)
-        layout.addStretch(10)
-#        layout.addWidget(self.btnProcessCancel)
-
-        self.groupBox.setLayout(layout)
         self.btnConnect.setEnabled(False)
-#        QObject.connect(self.btnProcessCancel,SIGNAL("clicked()"),self.terminateProcessing)
         pass
 
 
@@ -424,14 +424,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
           
-          if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
-            postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-            postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
-            postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
-          elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
-            postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
-            postString += self.tools.createTmpBase64(comboBox.currentText())
-    
+          try:
+              if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
+                postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
+                postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
+                postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
+              elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
+                postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
+                postString += self.tools.createTmpBase64(comboBox.currentText())
+          except:
+              QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
+              return
+             
           postString += "</wps:ComplexData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
     

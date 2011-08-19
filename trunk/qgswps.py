@@ -20,14 +20,10 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from qgswpstools import QgsWpsTools
-from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
-from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
-#from QgsWpsServerThreadDialog import QgsWpsServerThreadDialog
+#from qgswpstools import QgsWpsTools
+#from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
+#from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from QgsWpsDockWidget import QgsWpsDockWidget
-from httplib import *
-from urlparse import urlparse
-import os, sys, string, tempfile, urllib2, urllib,  mimetypes
 
 # initialize Qt resources from file resources.py
 import resources_rc
@@ -76,25 +72,27 @@ class QgsWps:
     # Add toolbar button and menu item
      self.iface.addToolBarIcon(self.action)
      self.iface.addPluginToMenu("WPS", self.action)
+     
+     self.myDockWidget = QgsWpsDockWidget(self.iface)
+     self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
+     self.myDockWidget.show()
 
 
-    
-#    QObject.connect(self.myDockWidget, SIGNAL("flipDirection()"), self.flipDirection) 
 
   ##############################################################################
 
   def unload(self):
     self.iface.removePluginMenu("WPS", self.action)
     self.iface.removeToolBarIcon(self.action)
+    self.myDockWidget = None
 
 ##############################################################################
 
   def run(self):  
-
-    self.myDockWidget = QgsWpsDockWidget(self.iface)
-    self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
-    self.myDockWidget.show()
-
+    if self.myDockWidget.isVisible():
+        self.myDockWidget.hide()
+    else:
+        self.myDockWidget.show()
 
     
 

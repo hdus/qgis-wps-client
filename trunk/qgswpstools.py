@@ -250,7 +250,6 @@ class QgsWpsTools:
       encoding = vLayer.dataProvider().encoding()
 
     writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(), vLayer.dataProvider().crs(),  encoding)
-    
     provider = vLayer.dataProvider()
     feat = QgsFeature()
     allAttrs = provider.attributeIndexes()
@@ -835,6 +834,7 @@ class QgsWpsTools:
 
     dlgProcessTab.addTab(textBox, "Documentation")
     
+
      
 ################################################################################
 ################################################################################
