@@ -1,7 +1,22 @@
 # -*- coding: utf-8 -*-
-
 """
+ /***************************************************************************
 Module implementing QgsWpsDockWidget.
+  -------------------------------------------------------------------
+ Date                 : 09 November 2009
+ Copyright            : (C) 2009 by Dr. Horst Duester
+ email                : horst dot duester at kappasys dot ch
+
+ Authors              : Dr. Horst Duester, Soeren Gebbert
+
+  ***************************************************************************
+  *                                                                         *
+  *   This program is free software; you can redistribute it and/or modify  *
+  *   it under the terms of the GNU General Public License as published by  *
+  *   the Free Software Foundation; either version 2 of the License, or     *
+  *   (at your option) any later version.                                   *
+  *                                                                         *
+  ***************************************************************************/
 """
 
 from PyQt4.QtGui import *
@@ -37,27 +52,24 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.tools = QgsWpsTools(self.iface)
         self.doc = QtXml.QDomDocument()
         self.tmpPath = QDir.tempPath()        
-        self.theProgressBar = QProgressBar()
+        self.uploadFinished = False
+        self.status = ''
 
-#        if qVersion() > '4.6':
-#          self.theManager = QNetworkAccessManager( self )
-#          QObject.connect(self.theManager, SIGNAL("finished(QNetworkReply*)"), self.setProcessFinished)                    
-#        else:
-        self.theHttp = QHttp( self )
-        QObject.connect(self.theHttp, SIGNAL("done(bool)"), self.setHttpProcessFinished)          
-        QObject.connect(self.theHttp, SIGNAL("dataSendProgress(int,int)"), self.showProgressBar) 
-        QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), self.showProgressBar) 
+        self.theUploadHttp = QHttp( self )
+        self.theHttp = QHttp (self)
+#        QObject.connect(self.theUploadHttp, SIGNAL("requestFinished(int, bool)"), self.setProcessStarted)          
+        QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.setHttpProcessFinished)    
+        QObject.connect(self.theHttp, SIGNAL("done(bool)"), self.loadLayer)                
+#        QObject.connect(self.theHttp, SIGNAL("done(bool)"), self.setDownload)          
+        QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+        QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
 
 
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
-        
-        
-#        QObject.connect(self.theNetwork, SIGNAL("started()"), self.setProcessStarted)          
-#        QObject.connect(self.theNetwork, SIGNAL("terminated()"), self.setProcessTerminated)        
-#        QObject.connect(self.theNetwork, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
+
         
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
@@ -66,13 +78,55 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
     
+    def setUpload(self,  bool):
+        self.status = 'Upload'
+        QMessageBox.information(None, '', self.status)
+        
+    def setDownload(self,  bool):
+        self.status = 'Download'
+        QMessageBox.information(None, '', self.status)
 
-    def showProgressBar(self,  done,  all):
-      self.theProgressBar.setRange(0, all)
-      self.theProgressBar.setValue(done)
-      return
+    def showProgressBar(self,  done,  all,  status):
+      self.progressBar.setRange(0, all)
+      self.progressBar.setValue(done)
+      if done < all:
+          self.setStatusLabel(status)
+      else:
+         if status=='upload':
+            self.setStatusLabel('processing')
+         else:
+            self.setStatusLabel('finished') 
+      
       
       return
+      
+    def setStatusLabel(self,  status):
+        groupBox = QGroupBox(self.groupBox)
+        layout = QHBoxLayout()
+        if status == 'upload':
+            text = QApplication.translate("QgsWps", " upload data ...")
+        elif status == 'processing':
+            text = QApplication.translate("QgsWps", " is running ...")
+        elif status == 'download':
+            text = QApplication.translate("QgsWps", " download data ...")
+        elif status == 'finished':
+            self.btnConnect.setEnabled(True)
+            text = QApplication.translate("QgsWps", " finished successful")
+        elif status == 'error':
+            text = QApplication.translate("QgsWps", " terminated with errors!")
+            
+        try:
+          self.lblProcess.setText(QString(self.processIdentifier+text))          
+        except:
+          self.lblProcess = QLabel(groupBox)        
+          self.lblProcess.setText(QString(self.processIdentifier+text))
+          layout.addWidget(self.lblProcess)        
+          self.groupBox.setLayout(layout)
+
+        self.btnConnect.setEnabled(False)      
+        return
+    
+    
     def cleanGui(self,  text=''):
       try:
         self.lblProcess.setText('')
@@ -89,62 +143,22 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     
     def setProcessStarted(self):
-#      self.dlgProcess.lneStatus.setText("Process started and running ... ")
-        groupBox = QGroupBox(self.groupBox)
-        layout = QHBoxLayout()
-        try:
-          self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))          
-        except:
-          self.lblProcess = QLabel(groupBox)        
-          self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " is running ...")))
-          layout.addWidget(self.lblProcess)        
-          self.groupBox.setLayout(layout)
-
-        self.btnConnect.setEnabled(False)
+        self.showProgressBar(1, 0, 'processing')
         pass
-
-
-    def setProcessFinished(self,  netWorkReply):
-        self.btnConnect.setEnabled(True)
-        self.reply = netWorkReply
-        self.resultHandler(self.reply.readAll().data())
         
-    def setHttpProcessFinished(self,  error):
+    def setHttpProcessFinished(self,  error=None):
         if error:
           QMessageBox.information(None, 'Error',  self.theHttp.errorString())
         else:
-          self.resultHandler(self.theHttp.readAll().data())        
-        self.btnConnect.setEnabled(True)
-        
+              self.resultHandler(self.theHttp.readAll().data())        
+              self.setStatusLabel('finished')
+              self.btnConnect.setEnabled(True)
         return
 
 
 
     def closeDialog(self):
       self.close()
-      
-    def removeProcessFromWidget(self):
-      pass
-
-    def terminateProcessing( self ):
-       if self.theManager != None:
-         result = self.tools.getServer(self.processName)
-         scheme = result["scheme"]
-         path = result["path"]
-         server = result["server"]
-         url = QUrl(scheme+'://'+server+'/path')
-         reply = self.theManager.deleteResource(QNetworkRequest(url))
-         
-         self.lblProcess.setText(self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
-         btnProcessRemove = self.btnProcessCancel
-         btnProcessRemove.setText('remove')
-         self.btnConnect.setEnabled(True)
-         QObject.connect(btnProcessRemove,SIGNAL("clicked()"),self.removeProcessFromWidget)         
-   
-    def stopProcessing( self ):
-       if self.theThread != None:
-         self.theThread.stop()
-         self.theThread = None            
          
          
 
@@ -391,6 +405,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           ##############################################################################  
     def defineProcess(self):
         """Create the execute request"""
+        self.dlgProcess.close()
+        self.dlg.close()
         self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier))
         dataInputs = self.doc.elementsByTagName("Input")
         dataOutputs = self.doc.elementsByTagName("Output")
@@ -557,22 +573,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QApplication.restoreOverrideCursor()
         QApplication .setOverrideCursor(Qt.ArrowCursor)
         
-        self.theProgressBar.show()
-
         self.postBuffer = QBuffer()
         self.postBuffer.open(QBuffer.ReadWrite)
         self.postBuffer.write(QByteArray.fromRawData(postString))
         self.postBuffer.close()
         self.setProcessStarted()        
-#        if qVersion() > '4.6':
-#          url = str(scheme)+"://"+str(server)+""+str(path)
-#          result = self.theManager.put(QNetworkRequest(QUrl(url)),  self.postBuffer )
-#        else:        
+  
         url = QUrl()
         url.setPath(path)
         self.httpRequestResult = QBuffer()
-        self.theHttp.setHost(server)
-        result = self.theHttp.post(url.toString(), self.postBuffer)
+        self.theUploadHttp.setHost(server)
+        result = self.theUploadHttp.post(url.toString(), self.postBuffer)
           
 
   ##############################################################################
@@ -601,6 +612,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
         QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)            
+
         
     def resultHandler(self, resultXML,  resultType="store"):
         """Handle the result of the WPS Execute request and add the outputs as new
@@ -648,22 +660,22 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                     if comboBox.objectName() == identifier:
                       layerName = comboBox.currentText()
                   
-                  url = QUrl(fileLink)
-                  QMessageBox.information(None,'', fileLink)
-                  self.theHttp.setHost(url.host())    
-                  self.theHttp.get(url.path())
-                  tmpFile = QTemporaryFile()
-                  tmpFile.setAutoRemove(False)
-                  tmpFile.open(QIODevice.ReadWrite)
-                  resultFile = tmpFile.fileName()
-                  tmpFile.writeData(self.theHttp.readAll().data())
-                  QMessageBox.information(None, '',  self.theHttp.readAll().data())
-#                  resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
-#                  resultFile = resultFileConnector[0]
+#                  url = QUrl(fileLink)       
+#                  myQTempFile = QTemporaryFile()
+#                  myQTempFile.open()
+#                  tmpFile = QFile(myQTempFile.fileName()+".gml")
+#                  tmpFile.open(QIODevice.WriteOnly)
+#                  
+#                  self.theHttp.setHost(url.host())    
+#                  self.theHttp.get(url.path(),  tmpFile)
+#
+#                  resultFile = tmpFile.fileName()
+#                  tmpFile.close()
+
                   # Vector data 
                   # TODO: Check for schema GML and KML
                   if self.tools.isMimeTypeVector(mimeType) != None:
-                    vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
+                    vlayer = QgsVectorLayer(self.resultFile, layerName, "ogr")
                     vlayer.setCrs(self.myLayer.dataProvider().crs())
                     QgsMapLayerRegistry.instance().addMapLayer(vlayer)
                   # Raster data
@@ -693,11 +705,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               else:
                 QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
-            self.lblProcess.setText(QApplication.translate("QgsWps", self.processIdentifier+" terminated with errors!"))
+            self.setStatusLabel('error')
             return self.errorHandler(resultXML)
 
 
-        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " finished successful")))
+        self.setStatusLabel('finished')
 
         return True
         
@@ -763,10 +775,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgEdit.show()
         self.dlg.initQgsWpsGui()     
     
-
-
-  ##############################################################################
-
     
   ##############################################################################
 
@@ -775,3 +783,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgNew = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
         dlgNew.show()
         self.dlg.initQgsWpsGui()
+        
+        
+    def getProcessResult(self,  fileLink):        
+        url = QUrl(fileLink)       
+        myQTempFile = QTemporaryFile()
+        myQTempFile.open()
+        tmpFile = QFile(myQTempFile.fileName()+".gml")
+        tmpFile.open(QIODevice.WriteOnly)
+               
+        self.theHttp.setHost(url.host())    
+        self.theHttp.get(url.path(),  tmpFile)
+        resultFile = tmpFile.fileName()
+        tmpFile.close()
+        return resultFile

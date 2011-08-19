@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/QgsWpsDockWidget.ui'
 #
-# Created: Thu Aug 18 16:45:47 2011
+# Created: Fri Aug 19 12:37:53 2011
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,14 +12,14 @@ from PyQt4 import QtCore, QtGui
 class Ui_QgsWpsDockWidget(object):
     def setupUi(self, QgsWpsDockWidget):
         QgsWpsDockWidget.setObjectName("QgsWpsDockWidget")
-        QgsWpsDockWidget.resize(246, 150)
+        QgsWpsDockWidget.resize(237, 190)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(QgsWpsDockWidget.sizePolicy().hasHeightForWidth())
         QgsWpsDockWidget.setSizePolicy(sizePolicy)
-        QgsWpsDockWidget.setMinimumSize(QtCore.QSize(190, 150))
-        QgsWpsDockWidget.setMaximumSize(QtCore.QSize(524287, 200))
+        QgsWpsDockWidget.setMinimumSize(QtCore.QSize(190, 190))
+        QgsWpsDockWidget.setMaximumSize(QtCore.QSize(524287, 190))
         QgsWpsDockWidget.setBaseSize(QtCore.QSize(0, 0))
         font = QtGui.QFont()
         font.setPointSize(11)
@@ -42,9 +42,17 @@ class Ui_QgsWpsDockWidget(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
         self.groupBox.setSizePolicy(sizePolicy)
+        font = QtGui.QFont()
+        font.setFamily("Sans Serif")
+        font.setPointSize(10)
+        self.groupBox.setFont(font)
         self.groupBox.setTitle("")
         self.groupBox.setObjectName("groupBox")
         self.gridLayout.addWidget(self.groupBox, 1, 0, 1, 1)
+        self.progressBar = QtGui.QProgressBar(self.dockWidgetContents)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName("progressBar")
+        self.gridLayout.addWidget(self.progressBar, 2, 0, 1, 1)
         QgsWpsDockWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(QgsWpsDockWidget)
