@@ -92,8 +92,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnConnect.setEnabled(True)
         self.reply = netWorkReply
         self.resultHandler(self.reply.readAll().data())
-        
-        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " finished successful")))
 
       
 #    def setProcessTerminated(self):
@@ -577,7 +575,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the regestry or open an information window to show literal
            outputs."""
-           
 # This is for debug purpose only
         if DEBUG == True:
             self.popUpMessageBox("Result XML", resultXML)
@@ -607,7 +604,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
                 if fileLink == '0':
                   QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
-                  return
+                  return False
     
                 # Get the mime type of the result
                 mimeType = str(reference.attribute("mimeType", "0").toLower())
@@ -655,16 +652,20 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               else:
                 QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
-            print "Error"
-            self.errorHandler(resultXML)
-    
-        pass
+            self.lblProcess.setText(QApplication.translate("QgsWps", self.processIdentifier+" terminated with errors!"))
+            return self.errorHandler(resultXML)
+
+
+        self.lblProcess.setText(QString(self.processIdentifier+QApplication.translate("QgsWps", " finished successful")))
+
+        return True
         
  ##############################################################################
 
     def errorHandler(self, resultXML):
          errorDoc = QtXml.QDomDocument()
          errorDoc = self.doc
+         QMessageBox.information(None, '',  resultXML)
 
          myResult = errorDoc.setContent(resultXML.strip(), True)
          resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
@@ -695,7 +696,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
              print resultXML
              QMessageBox.about(None, '', resultXML)
     #         self.popUpMessageBox("WPS Error", resultXML)
-             pass
+         return False
     
 
 
