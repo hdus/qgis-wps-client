@@ -37,14 +37,25 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.tools = QgsWpsTools(self.iface)
         self.doc = QtXml.QDomDocument()
         self.tmpPath = QDir.tempPath()        
-        self.theManager = QNetworkAccessManager( self )
+        self.theProgressBar = QProgressBar()
+
+#        if qVersion() > '4.6':
+#          self.theManager = QNetworkAccessManager( self )
+#          QObject.connect(self.theManager, SIGNAL("finished(QNetworkReply*)"), self.setProcessFinished)                    
+#        else:
+        self.theHttp = QHttp( self )
+        QObject.connect(self.theHttp, SIGNAL("done(bool)"), self.setHttpProcessFinished)          
+        QObject.connect(self.theHttp, SIGNAL("dataSendProgress(int,int)"), self.showProgressBar) 
+        QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), self.showProgressBar) 
+
+
+
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
         
         
 #        QObject.connect(self.theNetwork, SIGNAL("started()"), self.setProcessStarted)          
-        QObject.connect(self.theManager, SIGNAL("finished(QNetworkReply*)"), self.setProcessFinished)          
 #        QObject.connect(self.theNetwork, SIGNAL("terminated()"), self.setProcessTerminated)        
 #        QObject.connect(self.theNetwork, SIGNAL("serviceFinished(QString)"), self.tools.resultHandler) 
         
@@ -56,7 +67,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
     
 
-
+    def showProgressBar(self,  done,  all):
+      self.theProgressBar.setRange(0, all)
+      self.theProgressBar.setValue(done)
+      return
+      
+      return
     def cleanGui(self,  text=''):
       try:
         self.lblProcess.setText('')
@@ -92,13 +108,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnConnect.setEnabled(True)
         self.reply = netWorkReply
         self.resultHandler(self.reply.readAll().data())
-
-      
-#    def setProcessTerminated(self):
-#        QMessageBox.information(None,'Status', self.processIdentifier+QApplication.translate("QgsWps", " terminated"))
-#        self.btnConnect.setEnabled(True)
-
         
+    def setHttpProcessFinished(self,  error):
+        if error:
+          QMessageBox.information(None, 'Error',  self.theHttp.errorString())
+        else:
+          self.resultHandler(self.theHttp.readAll().data())        
+        self.btnConnect.setEnabled(True)
+        
+        return
+
+
+
     def closeDialog(self):
       self.close()
       
@@ -536,13 +557,23 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QApplication.restoreOverrideCursor()
         QApplication .setOverrideCursor(Qt.ArrowCursor)
         
+        self.theProgressBar.show()
+
         self.postBuffer = QBuffer()
         self.postBuffer.open(QBuffer.ReadWrite)
         self.postBuffer.write(QByteArray.fromRawData(postString))
         self.postBuffer.close()
-        self.setProcessStarted()
-        url = str(scheme)+"://"+str(server)+""+str(path)
-        result = self.theManager.put(QNetworkRequest(QUrl(url)),  self.postBuffer )
+        self.setProcessStarted()        
+#        if qVersion() > '4.6':
+#          url = str(scheme)+"://"+str(server)+""+str(path)
+#          result = self.theManager.put(QNetworkRequest(QUrl(url)),  self.postBuffer )
+#        else:        
+        url = QUrl()
+        url.setPath(path)
+        self.httpRequestResult = QBuffer()
+        self.theHttp.setHost(server)
+        result = self.theHttp.post(url.toString(), self.postBuffer)
+          
 
   ##############################################################################
 
@@ -616,9 +647,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   for comboBox in self.complexOutputComboBoxList:
                     if comboBox.objectName() == identifier:
                       layerName = comboBox.currentText()
-    
-                  resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
-                  resultFile = resultFileConnector[0]
+                  
+                  url = QUrl(fileLink)
+                  self.theHttp.setHost(url.host())    
+                  self.theHttp.get(url.path())
+                  tmpFile = QTemporaryFile()
+                  tmpFile.setAutoRemove(False)
+                  tmpFile.open(QIODevice.ReadWrite)
+                  resultFile = tmpFile.fileName()
+                  tmpFile.writeData(self.theHttp.readAll().data())
+                  QMessageBox.information(None, '',  self.theHttp.readAll().data())
+#                  resultFileConnector = urllib.urlretrieve(unicode(fileLink,'latin1'))
+#                  resultFile = resultFileConnector[0]
                   # Vector data 
                   # TODO: Check for schema GML and KML
                   if self.tools.isMimeTypeVector(mimeType) != None:
@@ -665,8 +705,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def errorHandler(self, resultXML):
          errorDoc = QtXml.QDomDocument()
          errorDoc = self.doc
-         QMessageBox.information(None, '',  resultXML)
-
+         
          myResult = errorDoc.setContent(resultXML.strip(), True)
          resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
          exceptionText = ''
