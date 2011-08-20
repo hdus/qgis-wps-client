@@ -100,22 +100,22 @@
         <translation>Abstract</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="171"/>
+        <location filename="QgsWpsDockWidget.py" line="165"/>
         <source>Please select a Process</source>
         <translation>Bitte wählen Sie einen Prozess aus</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="338"/>
+        <location filename="QgsWpsDockWidget.py" line="332"/>
         <source>Process selected objects only</source>
         <translation>Nur die selektierten Objekte werden prozessiert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="338"/>
+        <location filename="QgsWpsDockWidget.py" line="332"/>
         <source>Selected</source>
         <translation>selektiert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="704"/>
+        <location filename="QgsWpsDockWidget.py" line="656"/>
         <source>Result</source>
         <translation>Ergebnis</translation>
     </message>
@@ -125,7 +125,7 @@
         <translation>Web Verbindung nicht erfolgreich</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="471"/>
+        <location filename="QgsWpsDockWidget.py" line="465"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
@@ -150,62 +150,62 @@
         <translation>Datei kann nicht geöffnet werden</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="109"/>
+        <location filename="QgsWpsDockWidget.py" line="104"/>
         <source> is running ...</source>
         <translation> läuft ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="114"/>
+        <location filename="QgsWpsDockWidget.py" line="110"/>
         <source> finished successful</source>
         <translation> erfolgreich abgeschlossen</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="597"/>
+        <location filename="QgsWpsDockWidget.py" line="591"/>
         <source>Run</source>
         <translation>Start</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="602"/>
+        <location filename="QgsWpsDockWidget.py" line="596"/>
         <source>Back</source>
         <translation>zurück</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="649"/>
+        <location filename="QgsWpsDockWidget.py" line="643"/>
         <source>WPS Error: Unable to download the result of reference: </source>
         <translation>WPS Fehler: Die Datei-Referenz kann nicht vom Server geladen werden</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="692"/>
+        <location filename="QgsWpsDockWidget.py" line="705"/>
         <source>Process result (text/plain)</source>
         <translation>Prozess Ergebnis (text/plain)</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="699"/>
+        <location filename="QgsWpsDockWidget.py" line="712"/>
         <source>Process result (unsupported mime type)</source>
         <translation>Prozess Ergebnis (nicht unterstützter Mime-Type)</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="706"/>
+        <location filename="QgsWpsDockWidget.py" line="661"/>
         <source>WPS Error: Missing reference or literal data in response</source>
         <translation>WPS-Fehler: Die Referenz fehlt oder es werden Literal Daten geliefert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="107"/>
+        <location filename="QgsWpsDockWidget.py" line="101"/>
         <source> upload data ...</source>
-        <translation> lade daten hoch ...</translation>
+        <translation> lade Daten hoch ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="111"/>
+        <location filename="QgsWpsDockWidget.py" line="107"/>
         <source> download data ...</source>
         <translation> lade Daten herunter ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="116"/>
+        <location filename="QgsWpsDockWidget.py" line="113"/>
         <source> terminated with errors!</source>
         <translation> mit Fehler abgebrochen!</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="471"/>
+        <location filename="QgsWpsDockWidget.py" line="465"/>
         <source>Please load or select a vector layer!</source>
         <translation>Bitte laden Sie einen Vektor Layer!</translation>
     </message>
