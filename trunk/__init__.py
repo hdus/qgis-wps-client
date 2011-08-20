@@ -32,7 +32,7 @@ def qgisMinimumVersion():
   return "1.4"  
 
 def authorName():
-  return "Dr. Horst Düster, Sören Gebbert"
+  return "Dr. Horst Düster"
 
 def homepage():
   return "http://www.kappasys.ch"
