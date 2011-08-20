@@ -1,12 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="de_DE">
+<!DOCTYPE TS><TS version="1.1" language="de_DE">
 <context>
     <name>Dialog</name>
     <message>
         <location filename="Ui_qgswpserrorgui.py" line="33"/>
         <source>Dialog</source>
         <translation>Dialog</translation>
+    </message>
+</context>
+<context>
+    <name>DlgAbout</name>
+    <message>
+        <location filename="doAbout.py" line="41"/>
+        <source>Version: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="doAbout.py" line="42"/>
+        <source>Date: %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -239,6 +251,34 @@
         <location filename="Ui_qgswpsdockwidget.py" line="21"/>
         <source>Form</source>
         <translation></translation>
+    </message>
+</context>
+<context>
+    <name>dlgAbout</name>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="89"/>
+        <source>About QgsWPS</source>
+        <translation>Über QgsWPS</translation>
+    </message>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="87"/>
+        <source>Version:</source>
+        <translation>Version:</translation>
+    </message>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="88"/>
+        <source>Date:</source>
+        <translation>Datum:</translation>
+    </message>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="90"/>
+        <source>Contributors</source>
+        <translation>Beitragende</translation>
+    </message>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="91"/>
+        <source>License</source>
+        <translation>Lizenz</translation>
     </message>
 </context>
 </TS>
