@@ -145,8 +145,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def processFinished(self,  error=None):
         if error:
           QMessageBox.information(None, 'Error',  self.theUploadHttp.errorString())
+          self.setStatusLabel('error')
         else:
-              self.resultHandler(self.theUploadHttp.readAll().data())        
+          self.resultHandler(self.theUploadHttp.readAll().data())        
         return
 
 
@@ -810,3 +811,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         resultFile = tmpFile.fileName()
         tmpFile.close()
         return resultFile
+    
+    @pyqtSignature("")
+    def on_btnKill_clicked(self):
+        self.theUploadHttp.abort()
