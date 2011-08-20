@@ -662,6 +662,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             self.setStatusLabel('error')
+            self.progressBar.setMinimum(0)
+            self.progressBar.setMaximum(100)            
             return self.errorHandler(resultXML)
         return True
         
