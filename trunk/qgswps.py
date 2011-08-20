@@ -96,7 +96,3 @@ class QgsWps:
     else:
         self.myDockWidget.show()
 
-    
-
-
-        

@@ -22,6 +22,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from Ui_qgswpsgui import Ui_QgsWps
+from doAbout import DlgAbout
 #from qgswpstools import QgsWpsTools
 
 import os, sys, string
@@ -34,6 +35,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.setupUi(self)
     
     self.tools =tools
+    self.dlgAbout = DlgAbout(parent)
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -102,7 +104,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     
   @pyqtSignature("on_btnAbout_clicked()")       
   def on_btnAbout_clicked(self):
-    pass
+      self.dlgAbout.show()
+      pass
     
   @pyqtSignature("QTreeWidgetItem*, int")
   def on_treeWidget_itemDoubleClicked(self, item, column):

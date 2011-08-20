@@ -452,6 +452,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
           encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
+          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
+          
           
           try:
               if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
