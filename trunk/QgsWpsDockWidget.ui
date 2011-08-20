@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>237</width>
+    <width>285</width>
     <height>190</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>190</width>
+    <width>285</width>
     <height>190</height>
    </size>
   </property>
@@ -56,11 +56,22 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
-     <widget class="QPushButton" name="btnConnect">
-      <property name="text">
-       <string>server connections</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="btnConnect">
+        <property name="text">
+         <string>connect</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnKill">
+        <property name="text">
+         <string>kill process</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item row="1" column="0">
      <widget class="QGroupBox" name="groupBox">
