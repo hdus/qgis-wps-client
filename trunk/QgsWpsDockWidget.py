@@ -452,7 +452,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
           encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
-          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
+#          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
           
           try:
               if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
@@ -689,7 +689,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         # TODO: Check for schema GML and KML
         if self.tools.isMimeTypeVector(mimeType) != None:
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
-            QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
+#            QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
             vlayer.setCrs(self.myLayer.dataProvider().crs())
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
        # Raster data
