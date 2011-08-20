@@ -454,7 +454,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
           QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
           
-          
           try:
               if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
                 postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
