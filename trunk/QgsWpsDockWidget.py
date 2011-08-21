@@ -124,6 +124,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         elif status == 'error':
             self.btnConnect.setEnabled(True)      
             self.btnKill.setEnabled(False)
+            self.progressBar.setRange(0, 100)
+            self.progressBar.setValue(0)
             text = QApplication.translate("QgsWps", " terminated with errors!")
             
         try:
