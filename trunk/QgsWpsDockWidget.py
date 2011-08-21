@@ -286,7 +286,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
             elif self.tools.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
               # Raster inputs
-              layerNamesList = self.getLayerNameList(1)
+              layerNamesList = self.tools.getLayerNameList(1)
               if maxOccurs == 1:
                 self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
               else:
