@@ -54,10 +54,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.tmpPath = QDir.tempPath()        
         self.uploadFinished = False
         self.status = ''
+        self.btnKill.setEnabled(False)
+        self.btnConnect.setEnabled(True)
 
         self.theUploadHttp = QHttp( self )
         QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.processFinished)    
         QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+        
+        self.theHttp = QHttp()     
+        QObject.connect(self.theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
+        QObject.connect(self.theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
+        QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -89,6 +97,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setMaximum(0)
          else:
             self.setStatusLabel('finished') 
+            print 'finished'
       
       
       return
@@ -98,18 +107,23 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         layout = QHBoxLayout()
         if status == 'upload':
             self.btnConnect.setEnabled(False)      
+            self.btnKill.setEnabled(False)
             text = QApplication.translate("QgsWps", " upload data ...")
         elif status == 'processing':
             self.btnConnect.setEnabled(False)      
+            self.btnKill.setEnabled(True)
             text = QApplication.translate("QgsWps", " is running ...")
         elif status == 'download':
             self.btnConnect.setEnabled(False)      
+            self.btnKill.setEnabled(False)
             text = QApplication.translate("QgsWps", " download data ...")
         elif status == 'finished':
             self.btnConnect.setEnabled(True)
+            self.btnKill.setEnabled(False)
             text = QApplication.translate("QgsWps", " finished successful")
         elif status == 'error':
             self.btnConnect.setEnabled(True)      
+            self.btnKill.setEnabled(False)
             text = QApplication.translate("QgsWps", " terminated with errors!")
             
         try:
@@ -201,8 +215,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcessScrollAreaWidgetLayout = QGridLayout()
     
         # First part of the gui is a short overview about the process
-        identifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(self.doc)
-        self.addIntroduction(identifier, title)
+        self.identifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(self.doc)
+        self.addIntroduction(self.identifier, title)
         
         # If no Input Data  are requested
         if DataInputs.size()==0:
@@ -449,19 +463,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
     
           # TODO: Check for more types
-          mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
+          self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
           schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
           encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
 #          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
           
           try:
-              if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
-                postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
+              if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
+                postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
                 postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
                 postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
-              elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
-                postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
+              elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+                postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                 postString += self.tools.createTmpBase64(comboBox.currentText())
           except:
               QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
@@ -476,7 +490,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           if listWidgets == None:
             continue
             
-          mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
+          self.mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
           schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
           encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
           
@@ -489,12 +503,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
     
             # TODO: Check for more types
-            if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
-              postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
+            if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
+              postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
     #          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
               postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
-            elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
-              postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
+            elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+              postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
               postString += self.tools.createTmpBase64(listWidget.text())
     
             postString += "</wps:ComplexData>\n"
@@ -545,11 +559,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               continue
             outputIdentifier = comboBox.objectName()
             
-            mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
+            self.mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
             schema = self.outputDataTypeList[outputIdentifier]["Schema"]
             encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
             
-            postString += "<wps:Output asReference=\"true\" mimeType=\"" + mimeType + "\" schema=\"" + schema + "\">"
+            postString += "<wps:Output asReference=\"true\" mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\">"
             postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
             postString += "</wps:Output>\n"
     
@@ -646,11 +660,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   return False
     
                 # Get the mime type of the result
-                mimeType = str(reference.attribute("mimeType", "0").toLower())
+                self.mimeType = str(reference.attribute("mimeType", "0").toLower())
     
                 if fileLink != '0':                            
                   # Set a valid layerName
-                  self.fetchResult(fileLink,  identifier,  mimeType)
+                  self.fetchResult(fileLink)
                   
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 QApplication.restoreOverrideCursor()
@@ -672,36 +686,31 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
                   
 
-    def loadData(self, theHttp,  identifier,  mimeType,  myInt=None,  myBool=None):
+    def loadData(self,  processId,  error):
         
-        myQTempFile = QTemporaryFile()
-        myQTempFile.open()
-        tmpFile = QFile(myQTempFile.fileName()+".gml")
-        tmpFile.open(QIODevice.WriteOnly)
-        resultFile = tmpFile.fileName()
-        tmpFile.writeData(theHttp.readAll().data())
-        tmpFile.close()
+        self.outFile.close()
+        resultFile = self.outFile.fileName()
         
-        layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + identifier)
+        layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
         # The layername is normally defined in the comboBox
         for comboBox in self.complexOutputComboBoxList:
-            if comboBox.objectName() == identifier:
+            if comboBox.objectName() == self.identifier:
                 layerName = comboBox.currentText()
                 
         # Vector data 
         # TODO: Check for schema GML and KML
-        if self.tools.isMimeTypeVector(mimeType) != None:
+        if self.tools.isMimeTypeVector(self.mimeType) != None:
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
 #            QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
             vlayer.setCrs(self.myLayer.dataProvider().crs())
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
        # Raster data
-        elif self.tools.isMimeTypeRaster(mimeType) != None:
+        elif self.tools.isMimeTypeRaster(self.mimeType) != None:
        # We can directly attach the new layer
             rLayer = QgsRasterLayer(resultFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
             # Text data
-        elif self.tools.isMimeTypeText(mimeType) != None:
+        elif self.tools.isMimeTypeText(self.mimeType) != None:
             #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             QApplication.restoreOverrideCursor()
             text = open(resultFile, 'r').read()
@@ -715,14 +724,38 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             # TODO: This should have a safe option
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
 
-    def fetchResult(self,  fileLink,  identifier,  mimeType):
-        url = QUrl(fileLink)       
-        theHttp = QHttp()     
-        QObject.connect(theHttp, SIGNAL("done(bool)"), lambda myBool,  myHttp=theHttp, myIdentifier=identifier,  myMimeType=mimeType: self.loadData(myHttp,  myIdentifier,  myMimeType,  myBool))                
-        QObject.connect(theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
-        QObject.connect(theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-        theHttp.setHost(url.host())    
-        theHttp.get(url.path())
+    def fetchResult(self,  fileLink):
+        url = QUrl(fileLink)
+        fileInfo = QFileInfo(url.path())
+        self.outFile = QFile(fileInfo.fileName()+".gml")
+        self.outFile.open(QIODevice.WriteOnly)
+        resultFile = self.outFile.fileName()
+        
+        if url.scheme().toLower() == 'https':
+            mode = self.theHttp.ConnectionModeHttps
+        else:
+            mode = self.theHttp.ConnectionModeHttp
+
+        port = url.port()
+
+        if port == -1:
+            port = 0
+
+        self.theHttp.setHost(url.host(), mode, port)
+        self.httpRequestAborted = False
+
+        path = QUrl.toPercentEncoding(url.path(), "!$&'()*+,;=:@/")
+        if path:
+            try:
+                # Python v3.
+                path = str(path, encoding='utf-8')
+            except TypeError:
+                # Python v2.
+                path = str(path)
+        else:
+            path = '/'
+            
+        self.httpGetId = self.theHttp.get(url.path(),  self.outFile)
         
 
 
@@ -814,4 +847,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
     @pyqtSignature("")
     def on_btnKill_clicked(self):
+        self.progressBar.setMinimum(0)
+        self.progressBar.setMaximum(100)
+        self.progressBar.setRange(0, 100)
+        self.progressBar.setValue(0)
         self.theUploadHttp.abort()
+        self.theHttp.abort()
