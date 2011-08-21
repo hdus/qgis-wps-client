@@ -709,7 +709,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
        # We can directly attach the new layer
-            rLayer = QgsRasterLayer(resultFile, layerName)
+            imageFile = self.tools.decodeBase64(resultFile)
+            rLayer = QgsRasterLayer(imageFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
             # Text data
         elif self.tools.isMimeTypeText(self.mimeType) != None:
