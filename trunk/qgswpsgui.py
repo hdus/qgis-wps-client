@@ -46,6 +46,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.cmbConnections.clear()
     self.cmbConnections.addItems(connections)
     
+    self.treeWidget.clear()
+        
     if self.cmbConnections.size() > 0:
       self.btnConnect.setEnabled(True)
       self.btnEdit.setEnabled(True)
