@@ -704,7 +704,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if self.tools.isMimeTypeVector(self.mimeType) != None:
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
 #            QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
-            vlayer.setCrs(self.myLayer.dataProvider().crs())
+            try:
+              vlayer.setCrs(self.myLayer.dataProvider().crs())
+            except:
+              pass
             QgsMapLayerRegistry.instance().addMapLayer(vlayer)
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
