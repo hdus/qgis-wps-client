@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project QGIS WPS-Plugn -->
-<!-- Saved: 2011-07-27, 12:35:12 -->
+<!-- Saved: 2011-09-06, 17:18:12 -->
 <!-- Copyright (C) 2011 ,  -->
 <Project version="4.6">
   <Language>en</Language>
@@ -18,7 +18,6 @@
     <Source>Ui_qgswpsdescribeprocessgui.py</Source>
     <Source>qgswpsdescribeprocessgui.py</Source>
     <Source>__init__.py</Source>
-    <Source>resources.py</Source>
     <Source>qgswps.py</Source>
     <Source>ui_qgswpsdescribeprocess.py</Source>
     <Source>Ui_qgswpserrormsggui.py</Source>
@@ -27,12 +26,20 @@
     <Source>qgswpserrormsggui.py</Source>
     <Source>qgsnewhttpconnectionbasegui.py</Source>
     <Source>Ui_qgsnewhttpconnectionbase.py</Source>
+    <Source>QgsWpsDockWidget.py</Source>
+    <Source>Ui_QgsWpsDockWidget.py</Source>
+    <Source>resources_rc.py</Source>
+    <Source>Ui_qgswpserrorgui.py</Source>
+    <Source>Ui_QgsWpsAbout.py</Source>
+    <Source>doAbout.py</Source>
   </Sources>
   <Forms>
     <Form>qgsnewhttpconnectionbase.ui</Form>
     <Form>qgswpsgui.ui</Form>
-    <Form>qgswpserrormsggui.ui</Form>
     <Form>qgswpsdescribeprocessgui.ui</Form>
+    <Form>QgsWpsDockWidget.ui</Form>
+    <Form>qgswpserrorgui.ui</Form>
+    <Form>QgsWpsAbout.ui</Form>
   </Forms>
   <Translations>
     <Translation>i18n/wps_de.qm</Translation>
@@ -45,7 +52,7 @@
   </Interfaces>
   <Others>
   </Others>
-  <MainScript>wps.py</MainScript>
+  <MainScript>qgswps.py</MainScript>
   <Vcs>
     <VcsType>Subversion</VcsType>
     <VcsOptions>
