@@ -23,6 +23,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
 from PyQt4.QtSql import * 
+from PyQt4.QtWebKit import QWebView
 from qgis.core import *
 from httplib import *
 from urlparse import urlparse
@@ -829,7 +830,7 @@ class QgsWpsTools:
   def addDocumentationTab(self, dlgProcessTab,  abstract):
     # Check for URL
     if str(abstract).find("http://") == 0:
-      textBox = QtWebKit.QWebView(dlgProcessTab)
+      textBox = QWebView(dlgProcessTab)
       textBox.load(QUrl(abstract))
       textBox.show()
     else:
