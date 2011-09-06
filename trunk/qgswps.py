@@ -86,6 +86,10 @@ class QgsWps:
   def unload(self):
     self.iface.removePluginMenu("WPS", self.action)
     self.iface.removeToolBarIcon(self.action)
+    
+    if self.myDockWidget:
+        self.myDockWidget.close()
+        
     self.myDockWidget = None
 
 ##############################################################################
