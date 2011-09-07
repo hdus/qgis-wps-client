@@ -22,9 +22,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-#from qgswpstools import QgsWpsTools
-#from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
-#from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from QgsWpsDockWidget import QgsWpsDockWidget
 
 # initialize Qt resources from file resources.py
