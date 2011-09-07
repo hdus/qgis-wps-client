@@ -480,6 +480,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                 postString += self.tools.createTmpBase64(comboBox.currentText())
           except:
+              QApplication.restoreOverrideCursor()
               QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
               return
              
@@ -583,7 +584,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             outFile.close()
     
         QApplication.restoreOverrideCursor()
-        QApplication .setOverrideCursor(Qt.ArrowCursor)
+        #QApplication .setOverrideCursor(Qt.ArrowCursor)
         
         self.postBuffer = QBuffer()
         self.postBuffer.open(QBuffer.ReadWrite)
