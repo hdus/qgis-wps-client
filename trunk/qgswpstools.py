@@ -280,6 +280,7 @@ class QgsWpsTools:
       pass    
 
     myGML = QTextStream(myFile)
+    myGML.setCodec(encoding)    
     gmlString = ""
 # Overread the first Line of GML Result    
     dummy = myGML.readLine()
