@@ -734,7 +734,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
         fileInfo = QFileInfo(url.path())
-        self.outFile = QFile(fileInfo.fileName()+".gml")
+    #Not working under Win7
+    #self.outFile = QFile(fileInfo.fileName()+".gml")
+   
+        myQTempFile = QTemporaryFile()
+        myQTempFile.open()
+        tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
+        myQTempFile.close()
+
+     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
+     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
+        
+        self.outFile = QFile(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
         
