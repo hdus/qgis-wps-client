@@ -273,7 +273,6 @@ class QgsWpsTools:
 
     
     myQTempFile.close()
-
     myFile = QFile(tmpFile)
     if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
       QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
@@ -286,6 +285,13 @@ class QgsWpsTools:
     dummy = myGML.readLine()
     gmlString += myGML.readAll()
     myFile.close()
+    myFilePath = QFileInfo(myFile).dir().path()
+    myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
+
+    QMessageBox.information(None, '',  myFileInfo)
+    
+    QFile(myFileInfo+'.xsd').remove()
+    QFile(myFileInfo+'.gml').remove()
     return gmlString.simplified()
 
   ##############################################################################
