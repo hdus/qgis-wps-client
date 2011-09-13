@@ -619,6 +619,7 @@ class QgsWpsTools:
       comboBox.setMinimumWidth(250)
       comboBox.setMaximumWidth(250)
       comboBox.setMinimumHeight(25)
+      comboBox.setEditable(False)
       
       myLabel = QLabel(widget)
       myLabel.setObjectName("qLabel"+name)
