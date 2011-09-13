@@ -287,8 +287,6 @@ class QgsWpsTools:
     myFile.close()
     myFilePath = QFileInfo(myFile).dir().path()
     myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
-
-    QMessageBox.information(None, '',  myFileInfo)
     
     QFile(myFileInfo+'.xsd').remove()
     QFile(myFileInfo+'.gml').remove()
