@@ -57,11 +57,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
+        proxySettings = self.tools.getProxy()
+#        proxy = QNetworkProxy(QNetworkProxy, '69.217.73.52', 8080)
+        proxy = QNetworkProxy(proxySettings['proxyType'], proxySettings['proxyHost'], proxySettings['proxyPort'], proxySettings['proxyUser'], proxySettings['proxyPassword'])
+
         self.theUploadHttp = QHttp( self )
+        self.theUploadHttp.setProxy(proxy)
         QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.processFinished)    
         QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
         
         self.theHttp = QHttp()     
+        self.theHttp.setProxy(proxy)
         QObject.connect(self.theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
         QObject.connect(self.theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
         QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
@@ -76,6 +82,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
+                
     
     def setUpload(self,  bool):
         self.status = 'Upload'

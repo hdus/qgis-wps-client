@@ -63,6 +63,21 @@ class QgsWpsTools:
 
   ##############################################################################
 
+  def getProxy(self):
+      settings = QSettings()
+      mySettings = "/proxy"
+      result = {}
+      result["proxyEnabled"] = settings.value(mySettings+"/proxyEnabled").toString()
+      result["proxyHost"] = settings.value(mySettings+"/proxyHost").toString()
+      result["proxyPort"] = settings.value(mySettings+"/proxyPort").toString()
+      result["proxyUser"] = settings.value(mySettings+"/proxyUser").toString()
+      result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
+      result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
+      
+      return result
+
+  ##############################################################################
+
   def webConnectionExists(self, connection):
     try:
       xmlString = self.getServiceXML(connection,"GetCapabilities")
