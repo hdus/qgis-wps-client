@@ -61,7 +61,8 @@ class QgsWpsTools:
     self.doc = QtXml.QDomDocument()
     self.dlg = dlg
 
-  ##############################################################################
+            
+##############################################################################
 
   def getProxy(self):
       settings = QSettings()
@@ -71,6 +72,7 @@ class QgsWpsTools:
       result["proxyHost"] = settings.value(mySettings+"/proxyHost").toString()
       result["proxyPort"] = settings.value(mySettings+"/proxyPort").toString()
       result["proxyUser"] = settings.value(mySettings+"/proxyUser").toString()
+      result["proxyPassword"] = settings.value(mySettings+"/proxyPassword").toString()
       result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
       result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
       

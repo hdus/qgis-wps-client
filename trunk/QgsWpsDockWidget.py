@@ -57,21 +57,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
-        proxySettings = self.tools.getProxy()
-#        proxy = QNetworkProxy(QNetworkProxy, '69.217.73.52', 8080)
-        proxy = QNetworkProxy(proxySettings['proxyType'], proxySettings['proxyHost'], proxySettings['proxyPort'], proxySettings['proxyUser'], proxySettings['proxyPassword'])
-
         self.theUploadHttp = QHttp( self )
-        self.theUploadHttp.setProxy(proxy)
         QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.processFinished)    
         QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
         
         self.theHttp = QHttp()     
-        self.theHttp.setProxy(proxy)
         QObject.connect(self.theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
         QObject.connect(self.theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
         QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-        
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -83,6 +76,20 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
                 
+#        proxySettings = self.tools.getProxy()
+#        
+#        if proxySettings['proxyEnabled'] == 'true':
+#            myPort = proxySettings['proxyPort'].toInt()
+#            proxy = QNetworkProxy()
+#            proxy.setType(QNetworkProxy.HttpProxy)
+#            proxy.setHostName(proxySettings['proxyHost'])
+#            proxy.setPort(myPort[1])
+#            proxy.setUser(proxySettings['proxyUser'])
+#            proxy.setPassword(proxySettings['proxyPassword'])
+#
+#            self.theHttp.setProxy(proxy)
+#            self.theUploadHttp.setProxy(proxy)
+            
     
     def setUpload(self,  bool):
         self.status = 'Upload'
@@ -343,7 +350,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             defaultCrsElement = bBoxElement.elementsByTagName("Default").at(0).toElement()
             defaultCrs = defaultCrsElement.elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href")
             crsListe.append(defaultCrs)
-            self.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
+            self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
     
             supportedCrsElements = bBoxElement.elementsByTagName("Supported")
     

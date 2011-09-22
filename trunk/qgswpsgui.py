@@ -23,7 +23,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 from Ui_qgswpsgui import Ui_QgsWps
 from doAbout import DlgAbout
-#from qgswpstools import QgsWpsTools
+
 
 import os, sys, string
 
@@ -34,7 +34,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
     
-    self.tools =tools
+    self.tools = tools
     self.dlgAbout = DlgAbout(parent)
    
   def initQgsWpsGui(self):    
