@@ -43,14 +43,15 @@ RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"APPLICATION/NETCDF", "GDALID":"netCDF"}, \
                            {"MIMETYPE":"APPLICATION/X-NETCDF", "GDALID":"netCDF"}, \
                            {"MIMETYPE":"APPLICATION/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}]
+                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}, 
+                           {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}]
 # All supported input vector formats [mime type, schema]
 VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
                            {"MIMETYPE":"TEXT/XML", "SCHEMA":"KML", "GDALID":"KML"}, \
                            {"MIMETYPE":"APPLICATION/DGN", "SCHEMA":"", "GDALID":"DGN"}, \
                            #{"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
                            {"MIMETYPE":"APPLICATION/SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}]
-
+                           
 DEBUG = False
 
 # Our help class for the plugin
@@ -571,6 +572,15 @@ class QgsWpsTools:
 
  ##############################################################################
 
+  def isMimeTypeFile(self, mimeType):
+    """Check for file output"""
+    for fileType in FILE_MIMETYPES:
+        if mimeType.upper() == fileType["MIMETYPE"]:
+          return "ZIP"
+    return None
+
+##############################################################################
+
   def addComplexInputComboBox(self, title, name, mimeType, namesList, minOccurs,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
       """Adds a combobox to select a raster or vector map as input to the process tab"""
 
@@ -820,6 +830,7 @@ class QgsWpsTools:
       dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return myLineEdit
+      
 
   ##############################################################################
 

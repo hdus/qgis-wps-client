@@ -32,7 +32,7 @@ from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 
-import resources_rc
+import resources_rc,  string
 
 DEBUG = False
 
@@ -203,6 +203,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.complexInputTextBoxList = [] # complex inpt of type text/plain
         self.literalInputComboBoxList = [] # literal value list with selectable answers
         self.literalInputLineEditList = [] # literal value list with single text line input
+        self.bboxInputLineEditList = [] # bbox value list with single text line input
         self.complexOutputComboBoxList = [] # list combo box
         self.inputDataTypeList = {}
         self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
@@ -350,14 +351,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             defaultCrsElement = bBoxElement.elementsByTagName("Default").at(0).toElement()
             defaultCrs = defaultCrsElement.elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href")
             crsListe.append(defaultCrs)
-            self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
+            myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
+            
+            self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
     
             supportedCrsElements = bBoxElement.elementsByTagName("Supported")
     
             for i in range(supportedCrsElements.size()):
               crsListe.append(supportedCrsElements.at(i).toElement().elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href"))
     
-            self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+#            self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
     
     
         self.tools.addCheckBox(QCoreApplication.translate("QgsWps","Process selected objects only"), QCoreApplication.translate("QgsWps","Selected"),  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
@@ -548,7 +551,23 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           postString += self.tools.xmlExecuteRequestInputStart(lineEdit.objectName())
           postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
+        
+       # BBOX data as lineEdit #########################################
+        for bbox in self.bboxInputLineEditList:
+          if bbox == None or bbox.text() == "":
+              continue
     
+          bboxArray = bbox.text().split(',')
+          
+          postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
+          postString += '<wps:BoundingBoxData ows:dimensions="2">'
+          postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
+          postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
+          postString += "</wps:BoundingBoxData>\n"
+          postString += self.tools.xmlExecuteRequestInputEnd()
+        
+        
+
         postString += "</wps:DataInputs>\n"
         
         # Attach only defined outputs
@@ -599,7 +618,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
         QApplication.restoreOverrideCursor()
         #QApplication .setOverrideCursor(Qt.ArrowCursor)
-        
+#        QMessageBox.information(None, '', postString)
         self.postBuffer = QBuffer()
         self.postBuffer.open(QBuffer.ReadWrite)
         self.postBuffer.write(QByteArray.fromRawData(postString))
@@ -645,6 +664,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the regestry or open an information window to show literal
            outputs."""
+#        QMessageBox.information(None, '', resultXML)
 # This is for debug purpose only
         if DEBUG == True:
             self.tools.popUpMessageBox("Result XML", resultXML)
@@ -727,7 +747,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
        # We can directly attach the new layer
-            imageFile = self.tools.decodeBase64(resultFile)
+            if string.upper(self.mimeType) != 'APPLICATION/X-ESRI-ASCII-GRID':
+              imageFile = self.tools.decodeBase64(resultFile)
+            else:
+                imageFile = resultFile
             rLayer = QgsRasterLayer(imageFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
             # Text data
@@ -737,6 +760,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             text = open(resultFile, 'r').read()
             # TODO: This should be a text dialog with safe option
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
+           # Everything else
+        elif self.tools.isMimeTypeFile(self.mimeType) != None:
+            #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
+            QApplication.restoreOverrideCursor()
+            text = open(resultFile, 'r').read()
+            # TODO: This should be a text dialog with safe option
+            fileName = QFileDialog().getSaveFileName()
+#            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
            # Everything else
         else:
             # For unsupported mime types we assume text
