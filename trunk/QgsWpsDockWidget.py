@@ -76,19 +76,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
                 
-#        proxySettings = self.tools.getProxy()
-#        
-#        if proxySettings['proxyEnabled'] == 'true':
-#            myPort = proxySettings['proxyPort'].toInt()
-#            proxy = QNetworkProxy()
-#            proxy.setType(QNetworkProxy.HttpProxy)
-#            proxy.setHostName(proxySettings['proxyHost'])
-#            proxy.setPort(myPort[1])
-#            proxy.setUser(proxySettings['proxyUser'])
-#            proxy.setPassword(proxySettings['proxyPassword'])
-#
-#            self.theHttp.setProxy(proxy)
-#            self.theUploadHttp.setProxy(proxy)
+        proxySettings = self.tools.getProxy()
+        
+        if proxySettings['proxyEnabled'] == 'true':
+            myPort = proxySettings['proxyPort'].toInt()
+            proxy = QNetworkProxy()
+            proxy.setType(QNetworkProxy.HttpProxy)
+            proxy.setHostName(proxySettings['proxyHost'])
+            proxy.setPort(myPort[1])
+            proxy.setUser(proxySettings['proxyUser'])
+            proxy.setPassword(proxySettings['proxyPassword'])
+
+            self.theHttp.setProxy(proxy)
+            self.theUploadHttp.setProxy(proxy)
             
     
     def setUpload(self,  bool):
