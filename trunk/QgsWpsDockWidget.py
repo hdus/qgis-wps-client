@@ -74,8 +74,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.Proxy.setUser(proxySettings['proxyUser'])
             self.Proxy.setPassword(proxySettings['proxyPassword'])
     
-            self.theUploadHttp.setProxy(self.Proxy)
-            self.theHttp.setProxy(self.Proxy)
+#            self.theUploadHttp.setProxy(self.Proxy)
+#            self.theHttp.setProxy(self.Proxy)
 
                     
 
