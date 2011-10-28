@@ -52,16 +52,32 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.tools = QgsWpsTools(self.iface)
         self.doc = QtXml.QDomDocument()
         self.tmpPath = QDir.tempPath()        
+        self.outFile = QFile()
         self.uploadFinished = False
         self.status = ''
+        self.processIdentifier = ''
+        self.identifier = ''
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
-        self.theUploadHttp = QHttp( self )
+        self.theUploadHttp = QHttp(  )
+        self.theHttp = QHttp(  )     
+        
+        proxySettings = self.tools.getProxy()
+        
+        if proxySettings['proxyEnabled'] == 'true':
+            myPort = proxySettings['proxyPort'].toInt()
+            self.Proxy = QNetworkProxy()
+#            proxy.setType(QNetworkProxy.HttpProxy)
+            self.Proxy.setHostName(proxySettings['proxyHost'])
+            self.Proxy.setPort(myPort[1])
+            self.Proxy.setUser(proxySettings['proxyUser'])
+            self.Proxy.setPassword(proxySettings['proxyPassword'])
+                    
+
         QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.processFinished)    
         QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
         
-        self.theHttp = QHttp()     
         QObject.connect(self.theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
         QObject.connect(self.theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
         QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
@@ -75,21 +91,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
-                
-        proxySettings = self.tools.getProxy()
         
-        if proxySettings['proxyEnabled'] == 'true':
-            myPort = proxySettings['proxyPort'].toInt()
-            proxy = QNetworkProxy()
-            proxy.setType(QNetworkProxy.HttpProxy)
-            proxy.setHostName(proxySettings['proxyHost'])
-            proxy.setPort(myPort[1])
-            proxy.setUser(proxySettings['proxyUser'])
-            proxy.setPassword(proxySettings['proxyPassword'])
-
-            self.theHttp.setProxy(proxy)
-            self.theUploadHttp.setProxy(proxy)
-            
+                            
     
     def setUpload(self,  bool):
         self.status = 'Upload'
@@ -629,6 +632,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         url.setPath(path)
         self.httpRequestResult = QBuffer()
         self.theUploadHttp.setHost(server)
+        self.theUploadHttp.setProxy(self.Proxy)
         result = self.theUploadHttp.post(url.toString(), self.postBuffer)
           
 
@@ -725,7 +729,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def loadData(self,  processId,  error):
         
-        self.outFile.close()
+        try:
+          self.outFile.close()
+        except:
+          pass
+
         resultFile = self.outFile.fileName()
         
         layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
@@ -789,8 +797,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
      #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
      #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
-        
-        self.outFile = QFile(tmpFile)
+        self.outFile.setFileName(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
         
@@ -805,6 +812,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             port = 0
 
         self.theHttp.setHost(url.host(), mode, port)
+        self.theHttp.setProxy(self.Proxy)
         self.httpRequestAborted = False
 
         path = QUrl.toPercentEncoding(url.path(), "!$&'()*+,;=:@/")
@@ -903,6 +911,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         tmpFile.open(QIODevice.WriteOnly)
                
         self.theHttp.setHost(url.host())    
+        self.theHttp.setProxy(self.Proxy)
         self.theHttp.get(url.path(),  tmpFile)
         resultFile = tmpFile.fileName()
         tmpFile.close()
