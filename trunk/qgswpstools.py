@@ -24,6 +24,7 @@ from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
 from PyQt4.QtSql import * 
 from PyQt4.QtWebKit import QWebView
+from PyQt4.QtNetwork import *
 from qgis.core import *
 from httplib import *
 from urlparse import urlparse
@@ -79,15 +80,35 @@ class QgsWpsTools:
       
       return result
 
+##############################################################################
+
+  def setMyProxy(self):
+        proxySettings = self.getProxy()
+        
+        if proxySettings['proxyEnabled'] == 'true':
+            myPort = proxySettings['proxyPort'].toInt()
+            proxy = QNetworkProxy()
+            proxy.setType(QNetworkProxy.HttpProxy)
+            proxy.setHostName(proxySettings['proxyHost'])
+            proxy.setPort(myPort[1])
+            proxy.setUser(proxySettings['proxyUser'])
+            proxy.setPassword(proxySettings['proxyPassword'])
+
+            self.theUploadNetworkManager.setProxy(proxy)
+            self.theDownloadNetworkManager.setProxy(proxy)
+        else:
+            QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
+  
+  
   ##############################################################################
 
   def webConnectionExists(self, connection):
-    try:
+#    try:
       xmlString = self.getServiceXML(connection,"GetCapabilities")
       return True
-    except:
-      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
-      return False
+#    except:
+#      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
+#      return False
 
 
   ##############################################################################
@@ -117,23 +138,27 @@ class QgsWpsTools:
     server = result["server"]
     method = result["method"]
     version = result["version"]
+    scheme = result["scheme"]
     if identifier <> '':
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
     else:
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
-    
-    myPath = path+myRequest
-    self.verbindung = HTTPConnection(str(server))
-    self.verbindung.request(str(method),str(myPath))
-    result = self.verbindung.getresponse()
-    return result.read()
+
+    url = QUrl()
+    url.setUrl(scheme+"://"+server+path+myRequest)
+#    QMessageBox.information(None, '', url.toString())
+    theManager = QNetworkAccessManager(  )    
+    theManager.proxyAuthenticationRequired.connect(self.setMyProxy)
+    result = theManager.get(QNetworkRequest(url))
+    theManager.finished.connect(self.getCapabilities)
 
 
   ##############################################################################
 
-  def getCapabilities(self, connection):
+  def getCapabilities(self, reply):
     
-    xmlString = self.getServiceXML(connection,"GetCapabilities")
+    QMessageBox.information(None, '', reply)
+    xmlString = reply.readAll()
     self.doc.setContent(xmlString,  True)  
 
     if self.getServiceVersion() != "1.0.0":

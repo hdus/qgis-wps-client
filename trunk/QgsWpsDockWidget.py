@@ -62,12 +62,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         self.theUploadNetworkManager = QNetworkAccessManager( self )
         self.theDownloadNetworkManager = QNetworkAccessManager( self )
-        self.theUploadNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
-        self.theDownloadNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
+        self.theUploadNetworkManager.proxyAuthenticationRequired.connect(self.tools.setMyProxy)
+        self.theDownloadNetworkManager.proxyAuthenticationRequired.connect(self.tools.setMyProxy)
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
-        
+
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
@@ -75,24 +75,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
 
-
-
-    def setMyProxy(self):
-        proxySettings = self.tools.getProxy()
-        
-        if proxySettings['proxyEnabled'] == 'true':
-            myPort = proxySettings['proxyPort'].toInt()
-            proxy = QNetworkProxy()
-            proxy.setType(QNetworkProxy.HttpProxy)
-            proxy.setHostName(proxySettings['proxyHost'])
-            proxy.setPort(myPort[1])
-            proxy.setUser(proxySettings['proxyUser'])
-            proxy.setPassword(proxySettings['proxyPassword'])
-
-            self.theUploadNetworkManager.setProxy(proxy)
-            self.theDownloadNetworkManager.setProxy(proxy)
-        else:
-            QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
 
     def showProgressBar(self,  done,  all):
       self.progressBar.setRange(0, all)
@@ -108,8 +90,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.setStatusLabel('finished') 
             print 'finished'
       return
-      
-      
+
+
     def setStatusLabel(self,  status,  myBool=None):
         groupBox = QGroupBox(self.groupBox)
         layout = QHBoxLayout()
@@ -135,7 +117,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setRange(0, 100)
             self.progressBar.setValue(0)
             text = QApplication.translate("QgsWps", " terminated with errors!")
-            
+
         try:
           self.lblProcess.setText(QString(self.processIdentifier+text))          
         except:
@@ -145,28 +127,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           self.groupBox.setLayout(layout)
 
         return
-    
-    
+
+
     def cleanGui(self,  text=''):
       try:
         self.lblProcess.setText('')
       except:
         return
-    
-    
+
+
     @pyqtSignature("")
     def on_btnConnect_clicked(self):
         self.dlg.initQgsWpsGui()
         self.cleanGui()
         self.dlg.show()
-        
-        
-    
+
+
+
     def setProcessStarted(self):
         self.status = 'processing'
         self.showProgressBar(1, 0)
         pass
-        
+
     def processFinished(self,  reply):
         if reply.error():
           QMessageBox.information(None, 'Error',  reply.errorString())
@@ -180,8 +162,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def closeDialog(self):
       self.close()
-         
-         
+
+
 
     def createProcessGUI(self,name, item):
         """Create the GUI for a selected WPS process based on the DescribeProcess
@@ -191,7 +173,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         except:
           QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
           return 0
-    
+
         # Lists which store the inputs and meta information (format, occurs, ...)
         # This list is initialized every time the GUI is created
         self.complexInputComboBoxList = [] # complex input for single raster and vector maps
@@ -205,14 +187,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
         self.outputsMetaInfo = {} # dictionary for output metainfo, key is the output identifier
         self.outputDataTypeList = {}
-    
+
         self.processName = name
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         # Recive the XML process description
         self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier), True)     
         DataInputs = self.doc.elementsByTagName("Input")
         DataOutputs = self.doc.elementsByTagName("Output")
-    
+
         # Create the layouts and the scroll area
         self.dlgProcess = QgsWpsDescribeProcessGui(self.dlg, flags)
         self.dlgProcessLayout = QGridLayout()
@@ -223,67 +205,67 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcessTabFrameLayout = QGridLayout()
         # The process description can be very long, so we make it scrollable
         self.dlgProcessScrollArea = QScrollArea(self.dlgProcessTab)
-    
+
         self.dlgProcessScrollAreaWidget = QFrame()
         self.dlgProcessScrollAreaWidgetLayout = QGridLayout()
-    
+
         # First part of the gui is a short overview about the process
         self.identifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(self.doc)
         self.addIntroduction(self.identifier, title)
-        
+
         # If no Input Data  are requested
         if DataInputs.size()==0:
           self.defineProcess()
           return 0
-      
+
         # Generate the input GUI buttons and widgets
         self.generateProcessInputsGUI(DataInputs)
         # Generate the editable outpt widgets, you can set the output to none if it is not requested
         self.generateProcessOutputsGUI(DataOutputs)
-        
+
         self.dlgProcessScrollAreaWidgetLayout.setSpacing(10)
         self.dlgProcessScrollAreaWidget.setLayout(self.dlgProcessScrollAreaWidgetLayout)
         self.dlgProcessScrollArea.setWidget(self.dlgProcessScrollAreaWidget)
         self.dlgProcessScrollArea.setWidgetResizable(True)
-    
+
         self.dlgProcessTabFrameLayout.addWidget(self.dlgProcessScrollArea)
-    
+
         self.addOkCancelButtons(self.dlgProcess,  self.dlgProcessTabFrameLayout)
-        
+
         self.dlgProcessTabFrame.setLayout(self.dlgProcessTabFrameLayout)
         self.dlgProcessTab.addTab(self.dlgProcessTabFrame, "Process")
-    
+
         self.tools.addDocumentationTab(self.dlgProcessTab,  abstract)
-    
+
         self.dlgProcessLayout.addWidget(self.dlgProcessTab)
         self.dlgProcess.setLayout(self.dlgProcessLayout)
         self.dlgProcess.setGeometry(QRect(190,100,800,600))
         self.dlgProcess.show()
-        
+
     def generateProcessInputsGUI(self, DataInputs):
         """Generate the GUI for all Inputs defined in the process description XML file"""
-    
+
         # Create the complex inputs at first
         for i in range(DataInputs.size()):
           f_element = DataInputs.at(i).toElement()
-    
+
           inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-    
+
           complexData = f_element.elementsByTagName("ComplexData")
           minOccurs = int(f_element.attribute("minOccurs"))
           maxOccurs = int(f_element.attribute("maxOccurs"))
-    
+
           # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
           if complexData.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexDataTypeElement = complexData.at(0).toElement()
             complexDataFormat = self.tools.getDefaultMimeType(complexDataTypeElement)
             supportedComplexDataFormat = self.tools.getSupportedMimeTypes(complexDataTypeElement)
-    
+
             # Store the input formats
             self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
             self.inputDataTypeList[inputIdentifier] = complexDataFormat
-    
+
             # Attach the selected vector or raster maps
             if self.tools.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
               # Vector inputs
@@ -305,17 +287,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             else:
               # We assume text inputs in case of an unknown mime type
               self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))            
-    
+
         # Create the literal inputs as second
         for i in range(DataInputs.size()):
           f_element = DataInputs.at(i).toElement()
-    
+
           inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-    
+
           literalData = f_element.elementsByTagName("LiteralData")
           minOccurs = int(f_element.attribute("minOccurs"))
           maxOccurs = int(f_element.attribute("maxOccurs"))
-    
+
           if literalData.size() > 0:
             allowedValuesElement = literalData.at(0).toElement()
             aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
@@ -330,17 +312,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(valList)))
             else:
               self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, dValue))
-    
+
         # At last, create the bounding box inputs
         for i in range(DataInputs.size()):
           f_element = DataInputs.at(i).toElement()
-    
+
           inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-          
+
           bBoxData = f_element.elementsByTagName("BoundingBoxData")
           minOccurs = int(f_element.attribute("minOccurs"))
           maxOccurs = int(f_element.attribute("maxOccurs"))
-    
+
           if bBoxData.size() > 0:
             crsListe = []
             bBoxElement = bBoxData.at(0).toElement()
@@ -348,60 +330,60 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             defaultCrs = defaultCrsElement.elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href")
             crsListe.append(defaultCrs)
             myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
-            
+
             self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
-    
+
             supportedCrsElements = bBoxElement.elementsByTagName("Supported")
-    
+
             for i in range(supportedCrsElements.size()):
               crsListe.append(supportedCrsElements.at(i).toElement().elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href"))
-    
+
 #            self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-    
-    
+
+
         self.tools.addCheckBox(QCoreApplication.translate("QgsWps","Process selected objects only"), QCoreApplication.translate("QgsWps","Selected"),  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
-        
+
   ##############################################################################
 
     def generateProcessOutputsGUI(self, DataOutputs):
         """Generate the GUI for all complex ouputs defined in the process description XML file"""
-    
+
         if DataOutputs.size() < 1:
             return
-    
+
         groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
         groupbox.setTitle("Complex output(s)")
         layout = QVBoxLayout()
-    
+
         # Add all complex outputs
         for i in range(DataOutputs.size()):
           f_element = DataOutputs.at(i).toElement()
-    
+
           outputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
           complexOutput = f_element.elementsByTagName("ComplexOutput")
-    
+
           # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
           if complexOutput.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexOutputTypeElement = complexOutput.at(0).toElement()
             complexOutputFormat = self.tools.getDefaultMimeType(complexOutputTypeElement)
             supportedcomplexOutputFormat = self.tools.getSupportedMimeTypes(complexOutputTypeElement)
-    
+
             # Store the input formats
             self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
             self.outputDataTypeList[outputIdentifier] = complexOutputFormat
-            
+
             widget, comboBox = self.tools.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat),  self.processIdentifier)
             self.complexOutputComboBoxList.append(comboBox)
             layout.addWidget(widget)
-        
+
         # Set the layout
         groupbox.setLayout(layout)
         # Add the outputs
         self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
-        
-        
-        
+
+
+
   ##############################################################################
 
     def addIntroduction(self,  name, title):
@@ -422,9 +404,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       groupbox.setLayout(layout)
 
       self.dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
-      
+
   ##############################################################################
-        
+
 
           ##############################################################################  
     def defineProcess(self):
@@ -434,18 +416,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier))
         dataInputs = self.doc.elementsByTagName("Input")
         dataOutputs = self.doc.elementsByTagName("Output")
-    
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
         result = self.tools.getServer(self.processName)
         scheme = result["scheme"]
         path = result["path"]
         server = result["server"]
-    
+
         checkBoxes = self.dlgProcess.findChildren(QCheckBox)
-    
+
         if len(checkBoxes) > 0:
           useSelected = checkBoxes[0].isChecked()
-    
+
         postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion() + "\"" + \
                        " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
@@ -454,36 +436,36 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                        " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""\
                        " xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0" +\
                        " http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">"
-                       
+
         postString += "<ows:Identifier>"+self.processIdentifier+"</ows:Identifier>\n"
         postString += "<wps:DataInputs>"
-    
+
         # text/plain inputs ########################################################
         for textBox in self.complexInputTextBoxList:
           # Do not add undefined inputs
           if textBox == None or str(textBox.document().toPlainText()) == "":
             continue
-    
+
           postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
           postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
-    
-    
+
+
         # Single raster and vector inputs ##########################################
         for comboBox in self.complexInputComboBoxList:
           # Do not add undefined inputs
           if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
             continue
-               
+
           postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
-    
+
           # TODO: Check for more types
           self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
           schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
           encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
           self.myLayer = self.tools.getVLayer(comboBox.currentText())
 #          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
-          
+
           try:
               if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
                 postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
@@ -496,28 +478,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               QApplication.restoreOverrideCursor()
               QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
               return
-             
+
           postString += "</wps:ComplexData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
-    
+
         # Multiple raster and vector inputs ########################################
         for listWidgets in self.complexInputListWidgetList:
           # Do not add undefined inputs
           if listWidgets == None:
             continue
-            
+
           self.mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
           schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
           encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
-          
+
           # Iterate over each seletced item
           for i in range(listWidgets.count()):
             listWidget = listWidgets.item(i)
             if listWidget == None or listWidget.isSelected() == False or str(listWidget.text()) == "<None>":
               continue
-              
+
             postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
-    
+
             # TODO: Check for more types
             if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
               postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
@@ -526,84 +508,84 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
               postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
               postString += self.tools.createTmpBase64(listWidget.text())
-    
+
             postString += "</wps:ComplexData>\n"
             postString += self.tools.xmlExecuteRequestInputEnd()
-    
+
         # Literal data as combo box choice #########################################
         for comboBox in self.literalInputComboBoxList:
           if comboBox == None or comboBox.currentText() == "":
               continue
-    
+
           postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
           postString += "<wps:LiteralData>"+comboBox.currentText()+"</wps:LiteralData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
-    
+
        # Literal data as combo box choice #########################################
         for lineEdit in self.literalInputLineEditList:
           if lineEdit == None or lineEdit.text() == "":
               continue
-    
+
           postString += self.tools.xmlExecuteRequestInputStart(lineEdit.objectName())
           postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
-        
+
        # BBOX data as lineEdit #########################################
         for bbox in self.bboxInputLineEditList:
           if bbox == None or bbox.text() == "":
               continue
-    
+
           bboxArray = bbox.text().split(',')
-          
+
           postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
           postString += '<wps:BoundingBoxData ows:dimensions="2">'
           postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
           postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
           postString += "</wps:BoundingBoxData>\n"
           postString += self.tools.xmlExecuteRequestInputEnd()
-        
-        
+
+
 
         postString += "</wps:DataInputs>\n"
-        
+
         # Attach only defined outputs
         if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
           postString += "<wps:ResponseForm>\n"
           # The server should store the result. No lineage should be returned or status
           postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"true\" status=\"false\">\n"
-    
+
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
             f_element = dataOutputs.at(i).toElement()
             outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().simplified()
             literalOutputType = f_element.elementsByTagName("LiteralOutput")
-    
+
             # Complex data is always requested as reference
             if literalOutputType.size() != 0:
               postString += "<wps:Output>\n"
               postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
               postString += "</wps:Output>\n"
-    
+
           # Attach selected complex outputs ########################################
           for comboBox in self.complexOutputComboBoxList:
             # Do not add undefined outputs
             if comboBox == None or str(comboBox.currentText()) == "<None>":
               continue
             outputIdentifier = comboBox.objectName()
-            
+
             self.mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
             schema = self.outputDataTypeList[outputIdentifier]["Schema"]
             encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
-            
+
             postString += "<wps:Output asReference=\"true\" mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\">"
             postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
             postString += "</wps:Output>\n"
-    
+
           postString += "</wps:ResponseDocument>\n"
           postString  += "</wps:ResponseForm>\n"
-          
+
         postString += "</wps:Execute>\n"
-    
+
         # This is for debug purpose only
         if DEBUG == True:
     #        self.popUpMessageBox("Execute request", postString)
@@ -611,7 +593,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             outFile = open('/tmp/qwps_execute_request.xml', 'w')
             outFile.write(postString)
             outFile.close()
-    
+
         QApplication.restoreOverrideCursor()
         #QApplication .setOverrideCursor(Qt.ArrowCursor)
 #        QMessageBox.information(None, '', postString)
@@ -620,7 +602,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.postBuffer.write(QByteArray.fromRawData(postString))
         self.postBuffer.close()
         self.setProcessStarted()        
-  
+
         url = QUrl()
         url.setUrl(scheme+"://"+server+path)
         self.result = self.theUploadNetworkManager.post(QNetworkRequest(url), self.postBuffer)
@@ -629,7 +611,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.result.uploadProgress.connect(self.showProgressBar) 
         self.theUploadNetworkManager.finished.connect(self.processFinished)
 
-          
+
 
   ##############################################################################
 
@@ -637,28 +619,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         groupBox = QFrame()
         layout = QHBoxLayout()
-    
+
         btnOk = QPushButton(groupBox)
         btnOk.setText(QString(QApplication.translate("QgsWps", "Run")))
         btnOk.setMinimumWidth(100)
         btnOk.setMaximumWidth(100)
-    
+
         btnCancel = QPushButton(groupBox)
         btnCancel.setText(QApplication.translate("QgsWps", "Back"))
         btnCancel.setMinimumWidth(100)
         btnCancel.setMaximumWidth(100)
-    
+
         layout.addStretch(10)
         layout.addWidget(btnCancel)
         layout.addWidget(btnOk)
-        
+
         groupBox.setLayout(layout)
         dlgProcessTabFrameLayout.addWidget(groupBox)
-        
+
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
         QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)            
 
-        
+
     def resultHandler(self, resultXML,  resultType="store"):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the regestry or open an information window to show literal
@@ -671,37 +653,37 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             outFile = open('/tmp/qwps_execute_response.xml', 'w')
             outFile.write(resultXML)
             outFile.close()
-            
+
         self.doc.setContent(resultXML,  True)
         resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")
-        
+
         # TODO: Check if the process does not run correctly before
         if resultNodeList.size() > 0:
             for i in range(resultNodeList.size()):
               f_element = resultNodeList.at(i).toElement()
-    
+
               # Fetch the referenced complex data
               if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
                 identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
                 reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
-    
+
                 # Get the reference
                 fileLink = reference.attribute("href", "0")
-    
+
                 # Try with namespace if not successful
                 if fileLink == '0':
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
                 if fileLink == '0':
                   QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
                   return False
-    
+
                 # Get the mime type of the result
                 self.mimeType = str(reference.attribute("mimeType", "0").toLower())
-    
+
                 if fileLink != '0':                            
                   # Set a valid layerName
                   self.fetchResult(fileLink)
-                  
+
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 QApplication.restoreOverrideCursor()
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
@@ -717,10 +699,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setMaximum(100)            
             return self.errorHandler(resultXML)
         return True
-        
+
  ##############################################################################
 
-                  
+
 
     def loadData(self,  reply):
         myQTempFile = QTemporaryFile()
@@ -734,7 +716,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outFile.setFileName(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
-        
+
 #        QMessageBox.information(None, '', reply.readAll().data())
         self.outFile.writeData(reply.readAll().data())
         self.outFile.close()
@@ -746,7 +728,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         for comboBox in self.complexOutputComboBoxList:
             if comboBox.objectName() == self.identifier:
                 layerName = comboBox.currentText()
-                
+
         # Vector data 
         # TODO: Check for schema GML and KML
         if self.tools.isMimeTypeVector(self.mimeType) != None:
@@ -804,15 +786,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 path = str(path)
         else:
             path = '/'
-            
+
         self.result = self.theDownloadNetworkManager.get(QNetworkRequest(url))
-        
-#        self.result.error.connect(self.processFinished)
         self.status = 'download'
         self.result.downloadProgress.connect(self.showProgressBar)         
         self.theDownloadNetworkManager.finished.connect(self.loadData)               
-        
-        
+
+
 
 
 ##############################################################################
@@ -821,7 +801,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def errorHandler(self, resultXML):
          errorDoc = QtXml.QDomDocument()
          errorDoc = self.doc
-         
+
          myResult = errorDoc.setContent(resultXML.strip(), True)
          resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
          exceptionText = ''
@@ -829,30 +809,30 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
            for i in range(resultExceptionNodeList.size()):
              resultElement = resultExceptionNodeList.at(i).toElement()
              exceptionText += resultElement.text()
-    
+
          resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
          if not resultExceptionNodeList.isEmpty():
            for i in range(resultExceptionNodeList.size()):
              resultElement = resultExceptionNodeList.at(i).toElement()
              exceptionText += resultElement.text()
-      
+
          resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionText")
          if not resultExceptionNodeList.isEmpty():
            for i in range(resultExceptionNodeList.size()):
              resultElement = resultExceptionNodeList.at(i).toElement()
              exceptionText += resultElement.text()
-    
+
          resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
          if not resultExceptionNodeList.isEmpty():
            resultElement = resultExceptionNodeList.at(0).toElement()
            exceptionText += resultElement.attribute("exceptionCode")
-    
+
          if len(exceptionText) > 0:
              print resultXML
              QMessageBox.about(None, '', resultXML)
     #         self.popUpMessageBox("WPS Error", resultXML)
          return False
-    
+
 
 
 ##############################################################################
@@ -865,7 +845,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlg.initQgsWpsGui() 
 
   ##############################################################################   
- 
+
 
   ##############################################################################
 
@@ -877,8 +857,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgEdit.txtUrl.setText(info["scheme"]+"://"+info["server"]+info["path"])
         dlgEdit.show()
         self.dlg.initQgsWpsGui()     
-    
-    
+
+
   ##############################################################################
 
     def newServer(self):
@@ -886,21 +866,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgNew = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
         dlgNew.show()
         self.dlg.initQgsWpsGui()
-        
-        
+
+
     def getProcessResult(self,  fileLink):        
         url = QUrl(fileLink)       
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
         tmpFile = QFile(myQTempFile.fileName()+".gml")
         tmpFile.open(QIODevice.WriteOnly)
-               
+
         self.theHttp.setHost(url.host())    
         self.theHttp.get(url.path(),  tmpFile)
         resultFile = tmpFile.fileName()
         tmpFile.close()
         return resultFile
-    
+
     @pyqtSignature("")
     def on_btnKill_clicked(self):
         self.progressBar.setMinimum(0)
