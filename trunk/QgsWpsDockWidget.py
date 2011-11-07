@@ -60,10 +60,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
-        self.theNetworkManager = QNetworkAccessManager( self )
-        self.theNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
-#        self.theUploadHttp = QNetworkAccessManager( self )
-#        self.theHttp = QNetworkAccessManager(self)     
+        self.theUploadNetworkManager = QNetworkAccessManager( self )
+        self.theDownloadNetworkManager = QNetworkAccessManager( self )
+        self.theUploadNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
+        self.theDownloadNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -89,35 +89,26 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             proxy.setUser(proxySettings['proxyUser'])
             proxy.setPassword(proxySettings['proxyPassword'])
 
-            self.theNetworkManager.setProxy(proxy)
+            self.theUploadNetworkManager.setProxy(proxy)
+            self.theDownloadNetworkManager.setProxy(proxy)
         else:
             QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
-            
-    
-    def setUpload(self,  bool):
-        self.status = 'Upload'
-        QMessageBox.information(None, '', self.status)
-        
-    def setDownload(self,  bool):
-        self.status = 'Download'
-        QMessageBox.information(None, '', self.status)
 
-    def showProgressBar(self,  done,  all,  status):
+    def showProgressBar(self,  done,  all):
       self.progressBar.setRange(0, all)
       self.progressBar.setValue(done)
       if done < all:
-          self.setStatusLabel(status)
+          self.setStatusLabel(self.status)
       else:
-         if status=='upload':
+         if self.status=='upload':
             self.setStatusLabel('processing')
             self.progressBar.setMinimum(0)
             self.progressBar.setMaximum(0)
          else:
             self.setStatusLabel('finished') 
             print 'finished'
-      
-      
       return
+      
       
     def setStatusLabel(self,  status,  myBool=None):
         groupBox = QGroupBox(self.groupBox)
@@ -172,20 +163,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     
     def setProcessStarted(self):
-        self.showProgressBar(1, 0, 'processing')
+        self.status = 'processing'
+        self.showProgressBar(1, 0)
         pass
         
-    def processError(self,  error):    
-        QMessageBox.information(None, '',  str(error))
-        
-    def processFinished(self,  reply,  error=None):
-        if error:
-          QMessageBox.information(None, 'Error',  self.theNetworkManager.errorString())
+    def processFinished(self,  reply):
+        if reply.error():
+          QMessageBox.information(None, 'Error',  reply.errorString())
           self.setStatusLabel('error')
         else:
           myResult = reply.readAll().data()
-#          QMessageBox.information(None, '', myResult)
-          self.resultHandler(myResult)       
+          self.resultHandler(myResult) 
         return
 
 
@@ -635,11 +623,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
   
         url = QUrl()
         url.setUrl(scheme+"://"+server+path)
-#        QMessageBox.information(None, '', url.toString())
-        result = self.theNetworkManager.post(QNetworkRequest(url), self.postBuffer)
-        result.error.connect(self.processError)                
-        self.theNetworkManager.finished.connect(self.processFinished)        
-        QObject.connect(result, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+        self.result = self.theUploadNetworkManager.post(QNetworkRequest(url), self.postBuffer)
+#        self.result.error.connect(self.processFinished)                
+        self.status = 'upload'
+        self.result.uploadProgress.connect(self.showProgressBar) 
+        self.theUploadNetworkManager.finished.connect(self.processFinished)
 
           
 
@@ -739,6 +727,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         myQTempFile.open()
         tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
         myQTempFile.close()
+        self.setStatusLabel('finished')        
 
      #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
      #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
@@ -746,12 +735,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
         
-        QMessageBox.information(None, '', reply.readAll().data())
+#        QMessageBox.information(None, '', reply.readAll().data())
         self.outFile.writeData(reply.readAll().data())
         self.outFile.close()
 
         resultFile = self.outFile.fileName()
-#        QMessageBox.information(None, '', resultFile)
 
         layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
         # The layername is normally defined in the comboBox
@@ -804,31 +792,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
         fileInfo = QFileInfo(url.path())
-    #Not working under Win7
-    #self.outFile = QFile(fileInfo.fileName()+".gml")
-   
-#        myQTempFile = QTemporaryFile()
-#        myQTempFile.open()
-#        tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
-#        myQTempFile.close()
-#
-#     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
-#     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
-#        self.outFile.setFileName(tmpFile)
-#        self.outFile.open(QIODevice.WriteOnly)
-#        resultFile = self.outFile.fileName()
-#        
-#        if url.scheme().toLower() == 'https':
-#            mode = self.theHttp.ConnectionModeHttps
-#        else:
-#            mode = self.theHttp.ConnectionModeHttp
-#
-#        port = url.port()
-#
-#        if port == -1:
-#            port = 0
-#
-#        self.theHttp.setHost(url.host(), mode, port)
         self.httpRequestAborted = False
 
         path = QUrl.toPercentEncoding(url.path(), "!$&'()*+,;=:@/")
@@ -842,13 +805,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         else:
             path = '/'
             
-#        self.httpGetId = self.theHttp.get(url.path(),  self.outFile)
-        result = self.theNetworkManager.get(QNetworkRequest(url))
+        self.result = self.theDownloadNetworkManager.get(QNetworkRequest(url))
         
-        result.error.connect(self.processError)
-        self.theNetworkManager.finished.connect(self.loadData)               
-        QObject.connect(result, SIGNAL("downloadProgress(qint64,qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-#        self.httpGetId = self.outFile.writeData(result.readAll().data())
+#        self.result.error.connect(self.processFinished)
+        self.status = 'download'
+        self.result.downloadProgress.connect(self.showProgressBar)         
+        self.theDownloadNetworkManager.finished.connect(self.loadData)               
         
         
 
@@ -945,5 +907,4 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.progressBar.setMaximum(100)
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
-        self.theUploadHttp.abort()
-        self.theHttp.abort()
+        self.result.abort()
