@@ -60,8 +60,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
-        self.theUploadHttp = QNetworkAccessManager( self )
-        self.theHttp = QNetworkAccessManager(self)     
+        self.theNetworkManager = QNetworkAccessManager( self )
+        self.theNetworkManager.proxyAuthenticationRequired.connect(self.setMyProxy)
+#        self.theUploadHttp = QNetworkAccessManager( self )
+#        self.theHttp = QNetworkAccessManager(self)     
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -72,7 +74,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
-                
+
+
+
+    def setMyProxy(self):
         proxySettings = self.tools.getProxy()
         
         if proxySettings['proxyEnabled'] == 'true':
@@ -84,8 +89,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             proxy.setUser(proxySettings['proxyUser'])
             proxy.setPassword(proxySettings['proxyPassword'])
 
-            self.theHttp.setProxy(proxy)
-            self.theUploadHttp.setProxy(proxy)
+            self.theNetworkManager.setProxy(proxy)
+        else:
+            QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
             
     
     def setUpload(self,  bool):
@@ -174,7 +180,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     def processFinished(self,  reply,  error=None):
         if error:
-          QMessageBox.information(None, 'Error',  self.theUploadHttp.errorString())
+          QMessageBox.information(None, 'Error',  self.theNetworkManager.errorString())
           self.setStatusLabel('error')
         else:
           myResult = reply.readAll().data()
@@ -630,10 +636,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         url = QUrl()
         url.setUrl(scheme+"://"+server+path)
 #        QMessageBox.information(None, '', url.toString())
-        result = self.theUploadHttp.post(QNetworkRequest(url), self.postBuffer)
+        result = self.theNetworkManager.post(QNetworkRequest(url), self.postBuffer)
         result.error.connect(self.processError)                
-        self.theUploadHttp.finished.connect(self.processFinished)        
-        QObject.connect(result, SIGNAL("uploadProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+        self.theNetworkManager.finished.connect(self.processFinished)        
+        QObject.connect(result, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
           
 
@@ -729,14 +735,24 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   
 
     def loadData(self,  reply):
-        self.outFile.writeData( reply.readAll().data())
-        try:
-          self.outFile.close()
-        except:
-          pass
+        myQTempFile = QTemporaryFile()
+        myQTempFile.open()
+        tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
+        myQTempFile.close()
 
+     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
+     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
+        self.outFile.setFileName(tmpFile)
+        self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
         
+        QMessageBox.information(None, '', reply.readAll().data())
+        self.outFile.writeData(reply.readAll().data())
+        self.outFile.close()
+
+        resultFile = self.outFile.fileName()
+#        QMessageBox.information(None, '', resultFile)
+
         layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
         # The layername is normally defined in the comboBox
         for comboBox in self.complexOutputComboBoxList:
@@ -791,17 +807,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     #Not working under Win7
     #self.outFile = QFile(fileInfo.fileName()+".gml")
    
-        myQTempFile = QTemporaryFile()
-        myQTempFile.open()
-        tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
-        myQTempFile.close()
-
-     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
-     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
-        self.outFile.setFileName(tmpFile)
-        self.outFile.open(QIODevice.WriteOnly)
-        resultFile = self.outFile.fileName()
-        
+#        myQTempFile = QTemporaryFile()
+#        myQTempFile.open()
+#        tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
+#        myQTempFile.close()
+#
+#     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
+#     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
+#        self.outFile.setFileName(tmpFile)
+#        self.outFile.open(QIODevice.WriteOnly)
+#        resultFile = self.outFile.fileName()
+#        
 #        if url.scheme().toLower() == 'https':
 #            mode = self.theHttp.ConnectionModeHttps
 #        else:
@@ -827,10 +843,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             path = '/'
             
 #        self.httpGetId = self.theHttp.get(url.path(),  self.outFile)
-        result = self.theHttp.get(QNetworkRequest(url))
+        result = self.theNetworkManager.get(QNetworkRequest(url))
+        
         result.error.connect(self.processError)
-        self.theHttp.finished.connect(self.loadData)               
-        QObject.connect(self.theHttp, SIGNAL("downloadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        self.theNetworkManager.finished.connect(self.loadData)               
+        QObject.connect(result, SIGNAL("downloadProgress(qint64,qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 #        self.httpGetId = self.outFile.writeData(result.readAll().data())
         
         
