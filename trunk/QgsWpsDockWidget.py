@@ -60,31 +60,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
 
-        self.theUploadHttp = QHttp(  )
-        self.theHttp = QHttp(  )     
-        
-        proxySettings = self.tools.getProxy()
-        
-        if proxySettings['proxyEnabled'] == 'true':
-            myPort = proxySettings['proxyPort'].toInt()
-            self.Proxy = QNetworkProxy()
-#            proxy.setType(QNetworkProxy.HttpProxy)
-            self.Proxy.setHostName(proxySettings['proxyHost'])
-            self.Proxy.setPort(myPort[1])
-            self.Proxy.setUser(proxySettings['proxyUser'])
-            self.Proxy.setPassword(proxySettings['proxyPassword'])
-    
-#            self.theUploadHttp.setProxy(self.Proxy)
-#            self.theHttp.setProxy(self.Proxy)
-
-                    
-
-        QObject.connect(self.theUploadHttp, SIGNAL("done(bool)"), self.processFinished)    
-        QObject.connect(self.theUploadHttp, SIGNAL("dataSendProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
-        
-        QObject.connect(self.theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
-        QObject.connect(self.theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
-        QObject.connect(self.theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        self.theUploadHttp = QNetworkAccessManager( self )
+        self.theHttp = QNetworkAccessManager(self)     
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -95,8 +72,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
+                
+        proxySettings = self.tools.getProxy()
         
-                            
+        if proxySettings['proxyEnabled'] == 'true':
+            myPort = proxySettings['proxyPort'].toInt()
+            proxy = QNetworkProxy()
+            proxy.setType(QNetworkProxy.HttpProxy)
+            proxy.setHostName(proxySettings['proxyHost'])
+            proxy.setPort(myPort[1])
+            proxy.setUser(proxySettings['proxyUser'])
+            proxy.setPassword(proxySettings['proxyPassword'])
+
+            self.theHttp.setProxy(proxy)
+            self.theUploadHttp.setProxy(proxy)
+            
     
     def setUpload(self,  bool):
         self.status = 'Upload'
@@ -179,12 +169,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.showProgressBar(1, 0, 'processing')
         pass
         
-    def processFinished(self,  error=None):
+    def processError(self,  error):    
+        QMessageBox.information(None, '',  str(error))
+        
+    def processFinished(self,  reply,  error=None):
         if error:
           QMessageBox.information(None, 'Error',  self.theUploadHttp.errorString())
           self.setStatusLabel('error')
         else:
-          self.resultHandler(self.theUploadHttp.readAll().data())        
+          myResult = reply.readAll().data()
+#          QMessageBox.information(None, '', myResult)
+          self.resultHandler(myResult)       
         return
 
 
@@ -633,10 +628,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.setProcessStarted()        
   
         url = QUrl()
-        url.setPath(path)
-        self.httpRequestResult = QBuffer()
-        self.theUploadHttp.setHost(server)
-        result = self.theUploadHttp.post(url.toString(), self.postBuffer)
+        url.setUrl(scheme+"://"+server+path)
+#        QMessageBox.information(None, '', url.toString())
+        result = self.theUploadHttp.post(QNetworkRequest(url), self.postBuffer)
+        result.error.connect(self.processError)                
+        self.theUploadHttp.finished.connect(self.processFinished)        
+        QObject.connect(result, SIGNAL("uploadProgress(int,int)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+
           
 
   ##############################################################################
@@ -730,8 +728,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
                   
 
-    def loadData(self,  processId,  error):
-        
+    def loadData(self,  reply):
+        self.outFile.writeData( reply.readAll().data())
         try:
           self.outFile.close()
         except:
@@ -804,17 +802,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outFile.open(QIODevice.WriteOnly)
         resultFile = self.outFile.fileName()
         
-        if url.scheme().toLower() == 'https':
-            mode = self.theHttp.ConnectionModeHttps
-        else:
-            mode = self.theHttp.ConnectionModeHttp
-
-        port = url.port()
-
-        if port == -1:
-            port = 0
-
-        self.theHttp.setHost(url.host(), mode, port)
+#        if url.scheme().toLower() == 'https':
+#            mode = self.theHttp.ConnectionModeHttps
+#        else:
+#            mode = self.theHttp.ConnectionModeHttp
+#
+#        port = url.port()
+#
+#        if port == -1:
+#            port = 0
+#
+#        self.theHttp.setHost(url.host(), mode, port)
         self.httpRequestAborted = False
 
         path = QUrl.toPercentEncoding(url.path(), "!$&'()*+,;=:@/")
@@ -828,7 +826,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         else:
             path = '/'
             
-        self.httpGetId = self.theHttp.get(url.path(),  self.outFile)
+#        self.httpGetId = self.theHttp.get(url.path(),  self.outFile)
+        result = self.theHttp.get(QNetworkRequest(url))
+        result.error.connect(self.processError)
+        self.theHttp.finished.connect(self.loadData)               
+        QObject.connect(self.theHttp, SIGNAL("downloadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+#        self.httpGetId = self.outFile.writeData(result.readAll().data())
+        
         
 
 
