@@ -84,7 +84,7 @@ class QgsWpsTools:
 
   def setMyProxy(self):
         proxySettings = self.getProxy()
-        
+        os.environ["http_proxy"] = "http://"+proxySettings['proxyUser']+":"+proxySettings['proxyPassword']+"@"+proxySettings['proxyHost']+":"+ proxySettings['proxyPort']
         if proxySettings['proxyEnabled'] == 'true':
             myPort = proxySettings['proxyPort'].toInt()
             proxy = QNetworkProxy()
@@ -98,6 +98,7 @@ class QgsWpsTools:
             self.theDownloadNetworkManager.setProxy(proxy)
         else:
             QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
+            
   
   
   ##############################################################################
@@ -144,21 +145,26 @@ class QgsWpsTools:
     else:
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
 
-    url = QUrl()
-    url.setUrl(scheme+"://"+server+path+myRequest)
-#    QMessageBox.information(None, '', url.toString())
-    theManager = QNetworkAccessManager(  )    
-    theManager.proxyAuthenticationRequired.connect(self.setMyProxy)
-    result = theManager.get(QNetworkRequest(url))
-    theManager.finished.connect(self.getCapabilities)
+    myPath = path+myRequest
+    self.verbindung = HTTPConnection(str(server))
+    self.verbindung.request(str(method),  str(myPath))
+    result = self.verbindung.getresponse()
+    return result.read()
+     
+#    url = QUrl()
+#    url.setUrl(scheme+"://"+server+path+myRequest)
+##    QMessageBox.information(None, '', url.toString())
+#    theManager = QNetworkAccessManager(  )    
+#    theManager.proxyAuthenticationRequired.connect(self.setMyProxy)
+#    result = theManager.get(QNetworkRequest(url))
+#    theManager.finished.connect(self.getCapabilities)
 
 
   ##############################################################################
 
-  def getCapabilities(self, reply):
+  def getCapabilities(self, connection):
     
-    QMessageBox.information(None, '', reply)
-    xmlString = reply.readAll()
+    xmlString = self.getServiceXML(connection,  "GetCapabilities")
     self.doc.setContent(xmlString,  True)  
 
     if self.getServiceVersion() != "1.0.0":
