@@ -45,9 +45,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     connections = settings.childGroups()
     self.cmbConnections.clear()
     self.cmbConnections.addItems(connections)
-    self.tools.setMyProxy()
+    
     self.treeWidget.clear()
-    QMessageBox.information(None, '', 'Gaga')
+        
     if self.cmbConnections.size() > 0:
       self.btnConnect.setEnabled(True)
       self.btnEdit.setEnabled(True)
