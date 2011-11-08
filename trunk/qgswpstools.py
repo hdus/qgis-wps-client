@@ -84,7 +84,8 @@ class QgsWpsTools:
 
   def setMyProxy(self):
         proxySettings = self.getProxy()
-        os.environ["http_proxy"] = "http://"+proxySettings['proxyUser']+":"+proxySettings['proxyPassword']+"@"+proxySettings['proxyHost']+":"+ proxySettings['proxyPort']
+        os.environ["http_proxy"] = str("http://"+proxySettings['proxyUser']+":"+proxySettings['proxyPassword']+"@"+proxySettings['proxyHost']+":"+ proxySettings['proxyPort'])
+        QMessageBox.information(None, '', os.environ["http_proxy"])
         if proxySettings['proxyEnabled'] == 'true':
             myPort = proxySettings['proxyPort'].toInt()
             proxy = QNetworkProxy()
@@ -93,9 +94,9 @@ class QgsWpsTools:
             proxy.setPort(myPort[1])
             proxy.setUser(proxySettings['proxyUser'])
             proxy.setPassword(proxySettings['proxyPassword'])
-
-            self.theUploadNetworkManager.setProxy(proxy)
-            self.theDownloadNetworkManager.setProxy(proxy)
+#
+#            self.theUploadNetworkManager.setProxy(proxy)
+#            self.theDownloadNetworkManager.setProxy(proxy)
         else:
             QMessageBox.information(None, 'Error', 'No Proxy Settings Defined')
             
