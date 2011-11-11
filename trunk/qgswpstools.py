@@ -78,6 +78,7 @@ class QgsWpsTools:
       result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
       
       return result
+      
 
   ##############################################################################
 
@@ -122,6 +123,14 @@ class QgsWpsTools:
     else:
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
     
+#    theHttp = self.setQgsProxy(QHttp( self ))     
+#    theHttp.setHost(url.host(), mode, port)
+#    self.httpRequestAborted = False
+#    QObject.connect(theHttp, SIGNAL("requestFinished(int, bool)"), lambda myInt,  myBool,  myTmpFile=outFile: self.loadData(myInt,  myBool,  myTmpFile))                
+#    QObject.connect(theHttp, SIGNAL("requestFinished(int, bool)"), lambda myInt,  myBool,  status='finished': self.setStatusLabel(myInt,  myBool,  status)) 
+#    QObject.connect(theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+#    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
+#     
     myPath = path+myRequest
     self.verbindung = HTTPConnection(str(server))
     self.verbindung.request(str(method),str(myPath))
