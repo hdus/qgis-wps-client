@@ -61,12 +61,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
         
-        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.createProcessGUI)    
+        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getProcessDescriptionXML)    
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
-        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
-        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
+        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)          
                 
             
     def setQgsProxy(self,  theHttp):
@@ -184,15 +182,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       self.close()
          
          
-
-    def createProcessGUI(self,name, item):
-        """Create the GUI for a selected WPS process based on the DescribeProcess
-           response document. Mandatory inputs are marked as red, default is black"""
+    def getProcessDescriptionXML(self,  name,  item):
         try:
           self.processIdentifier = item.text(0)
         except:
           QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
-          return 0
+          return 0        
+        
+        self.tools.getServiceXML(name,  'DescribeProcess',  self.processIdentifier )
+        QObject.connect(self.tools, SIGNAL("requestIsFinished(QNetworkReply)"),  lambda reply,  myName=self.processIdentifier: self.createProcessGUI(reply,  myName))  
+
+
+
+    def createProcessGUI(self, reply,  name):
+        """Create the GUI for a selected WPS process based on the DescribeProcess
+           response document. Mandatory inputs are marked as red, default is black"""
     
         # Lists which store the inputs and meta information (format, occurs, ...)
         # This list is initialized every time the GUI is created
@@ -211,7 +215,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.processName = name
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         # Recive the XML process description
-        self.doc.setContent(self.tools.getServiceXML(self.processName,"DescribeProcess",self.processIdentifier), True)     
+        self.doc.setContent(reply.readAll().data(), True)     
         DataInputs = self.doc.elementsByTagName("Input")
         DataOutputs = self.doc.elementsByTagName("Output")
     

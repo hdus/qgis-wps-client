@@ -55,9 +55,10 @@ VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML
 DEBUG = False
 
 # Our help class for the plugin
-class QgsWpsTools:
+class QgsWpsTools(QObject):
     
   def __init__(self, iface,  dlg=None):
+    QObject.__init__(self)
     self.iface = iface
     self.doc = QtXml.QDomDocument()
     self.dlg = dlg
@@ -118,31 +119,30 @@ class QgsWpsTools:
     server = result["server"]
     method = result["method"]
     version = result["version"]
+    scheme = result["scheme"]
+    requestFinished = False
+    
     if identifier <> '':
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
     else:
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
     
-#    theHttp = self.setQgsProxy(QHttp( self ))     
-#    theHttp.setHost(url.host(), mode, port)
-#    self.httpRequestAborted = False
-#    QObject.connect(theHttp, SIGNAL("requestFinished(int, bool)"), lambda myInt,  myBool,  myTmpFile=outFile: self.loadData(myInt,  myBool,  myTmpFile))                
-#    QObject.connect(theHttp, SIGNAL("requestFinished(int, bool)"), lambda myInt,  myBool,  status='finished': self.setStatusLabel(myInt,  myBool,  status)) 
-#    QObject.connect(theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-#    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
-#     
-    myPath = path+myRequest
-    self.verbindung = HTTPConnection(str(server))
-    self.verbindung.request(str(method),str(myPath))
-    result = self.verbindung.getresponse()
-    return result.read()
+    theHttp = QgsNetworkAccessManager.instance()     
+    url = QUrl()
+    url.setUrl(scheme+"://"+server+path+myRequest)
 
+#    self.httpRequestAborted = False
+#    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
+    theHttp.finished.connect(self.myRequestFinished)
+    theReply = theHttp.get(QNetworkRequest(url))
+        
+  def myRequestFinished(self,  reply):
+       self.emit(SIGNAL("requestIsFinished(QNetworkReply)"), reply) 
+       
 
   ##############################################################################
-
-  def getCapabilities(self, connection):
     
-    xmlString = self.getServiceXML(connection,"GetCapabilities")
+  def parseCapabilitiesXML(self,  xmlString):    
     self.doc.setContent(xmlString,  True)  
 
     if self.getServiceVersion() != "1.0.0":

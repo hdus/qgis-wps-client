@@ -20,6 +20,7 @@
 """
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtNetwork import *
 from qgis.core import *
 from Ui_qgswpsgui import Ui_QgsWps
 from doAbout import DlgAbout
@@ -71,7 +72,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnConnect_clicked()")       
   def on_btnConnect_clicked(self):
     self.treeWidget.clear()
-    self.emit(SIGNAL("connectServer(QString)"), self.cmbConnections.currentText() )
+    self.tools.getServiceXML(self.cmbConnections.currentText(),  'GetCapabilities' )
+    QObject.connect(self.tools, SIGNAL("requestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
+   
 
   @pyqtSignature("on_btnNew_clicked()")       
   def on_btnNew_clicked(self):    
@@ -113,10 +116,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   def on_treeWidget_itemDoubleClicked(self, item, column):
       self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
 
-  def createCapabilitiesGUI(self, connection):
-    if not self.tools.webConnectionExists(connection):
-        return 0
-        
-    itemListAll = self.tools.getCapabilities(connection)
-    
-    self.initTreeWPSServices(itemListAll)
+  def createCapabilitiesGUI(self, reply):
+     self.treeWidget.clear()
+     itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
+     self.initTreeWPSServices(itemListAll)
+     pass
