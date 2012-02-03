@@ -612,7 +612,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         wpsConnection = scheme+'://'+server+path
         thePostHttp = QgsNetworkAccessManager.instance()     
-        QMessageBox.information(None, '', wpsConnection)
+#        QMessageBox.information(None, '', wpsConnection)
         url = QUrl(wpsConnection)
         self.thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
         thePostHttp.finished.connect(self.processFinished)                
