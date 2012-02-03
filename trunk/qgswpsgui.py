@@ -72,9 +72,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnConnect_clicked()")       
   def on_btnConnect_clicked(self):
     self.treeWidget.clear()
+
+    self.selectedWPS = self.cmbConnections.currentText()
     self.tools.getServiceXML(self.cmbConnections.currentText(),  'GetCapabilities' )
-    QObject.connect(self.tools, SIGNAL("requestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
-   
+    QObject.connect(self.tools, SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
 
   @pyqtSignature("on_btnNew_clicked()")       
   def on_btnNew_clicked(self):    
