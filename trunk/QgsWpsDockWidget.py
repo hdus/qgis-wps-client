@@ -160,7 +160,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 #          self.setStatusLabel('error')
 #        else:
           QMessageBox.information(None, '', reply.readAll().data())
-#          self.resultHandler(reply.readAll().data())        
+          self.resultHandler(reply.readAll().data())        
           return
 
     def closeDialog(self):
@@ -612,6 +612,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         wpsConnection = scheme+'://'+server+path
         thePostHttp = QgsNetworkAccessManager.instance()     
+        QMessageBox.information(None, '', wpsConnection)
         url = QUrl(wpsConnection)
         self.thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
         thePostHttp.finished.connect(self.processFinished)                
@@ -710,10 +711,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
                   
 
-    def loadData(self,  processId,  error):
+    def loadData(self,  resultFile):
         
         self.outFile.close()
-        resultFile = self.outFile.fileName()
         
         layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
         # The layername is normally defined in the comboBox
@@ -765,8 +765,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
-        theHttp = QHttp( self )     
+        theHttp = QgsNetworkAccessManager()
+        theReply = theHttp.get(QNetworkRequest(url))
+       
+        thePostHttp.finished.connect(self.getResultFile)                
+        QObject.connect(theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
+        
+    def getResultFile(self,  reply):
         fileInfo = QFileInfo(url.path())
     #Not working under Win7
     #self.outFile = QFile(fileInfo.fileName()+".gml")
@@ -781,38 +787,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         self.outFile = QFile(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
-        resultFile = self.outFile.fileName()
-        
-        if url.scheme().toLower() == 'https':
-            mode = theHttp.ConnectionModeHttps
-        else:
-            mode = theHttp.ConnectionModeHttp
-
-        port = url.port()
-
-        if port == -1:
-            port = 0
-
-        theHttp.setHost(url.host(), mode, port)
-        self.httpRequestAborted = False
-
-        path = QUrl.toPercentEncoding(url.path(), "!$&'()*+,;=:@/")
-        if path:
-            try:
-                # Python v3.
-                path = str(path, encoding='utf-8')
-            except TypeError:
-                # Python v2.
-                path = str(path)
-        else:
-            path = '/'
-
-       
-#        QObject.connect(theHttp, SIGNAL("requestFinished(int, bool)"),  self.loadData)                
-#        QObject.connect(theHttp, SIGNAL("done(bool)"), lambda myBool,  status='finished': self.setStatusLabel(status,  myBool)) 
-#        QObject.connect(theHttp, SIGNAL("dataReadProgress(int,int)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-#
-#        self.httpGetId = theHttp.get(url.path(),  self.outFile)
+        self.outFile.write(replay.readAll())
+        self.outFile.close()
+        self.loadData(self.outFile.fileName())
         
 
 
