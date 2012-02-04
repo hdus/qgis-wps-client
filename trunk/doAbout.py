@@ -36,8 +36,8 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         self.tabWidget.setCurrentIndex( 0 )
     
         # setup labels
-        ver = '0.6.16'
-        dt = "2011-09-23"
+        ver = '0.7.0'
+        dt = "2012-02-10"
         self.lblVersion.setText( self.tr( "Version: %1" ).arg( ver ) )
         self.lblDate.setText( self.tr( "Date: %1" ).arg( dt ) )
     
@@ -49,7 +49,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString.append( "Sören Gebbert<br>" )
         contribString.append( "Eugeniy Nikulin<br>" )
         contribString.append( "Alexander Bruy (About GUI) <br>" )
-        contribString.append("Robert Szczepanek <br><br>")
+        contribString.append("Robert Szczepanek (Icon) <br><br>")
         contribString.append( "<b>and special thanks to the QGIS team</b></p>" )
     
         licenseString = QString("LICENSING INFORMATION:\n\n")
