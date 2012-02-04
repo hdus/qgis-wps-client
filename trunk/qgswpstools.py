@@ -25,8 +25,6 @@ from PyQt4 import QtXml
 from PyQt4.QtSql import * 
 from PyQt4.QtWebKit import QWebView
 from qgis.core import *
-from httplib import *
-from urlparse import urlparse
 import os, sys, string, tempfile,  base64
 
 # initialize Qt resources from file resources.py
@@ -62,6 +60,7 @@ class QgsWpsTools(QObject):
     self.iface = iface
     self.doc = QtXml.QDomDocument()
     self.dlg = dlg
+
 
             
 ##############################################################################
@@ -121,24 +120,37 @@ class QgsWpsTools(QObject):
     version = result["version"]
     scheme = result["scheme"]
     requestFinished = False
+    self.theHttp = QgsNetworkAccessManager.instance()     
+    
+    try:
+      self.theHttp.finished.disconnect()       
+    except:
+      pass
+
     
     if identifier <> '':
+      url = QUrl()        
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
+      url.setUrl(scheme+"://"+server+path+myRequest)
+      theReply = self.theHttp.get(QNetworkRequest(url))                        
+      self.theHttp.finished.connect(self.serviceRequestFinished)      
     else:
+      url = QUrl()        
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
-    
-    theHttp = QgsNetworkAccessManager.instance()     
-    url = QUrl()
-    url.setUrl(scheme+"://"+server+path+myRequest)
+      url.setUrl(scheme+"://"+server+path+myRequest)
+      theReply = self.theHttp.get(QNetworkRequest(url))      
+      self.theHttp.finished.connect(self.capabilitiesRequestFinished)
 
 #    self.httpRequestAborted = False
 #    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
-    theHttp.finished.connect(self.myRequestFinished)
-    theReply = theHttp.get(QNetworkRequest(url))
+
         
-  def myRequestFinished(self,  reply):
-       self.emit(SIGNAL("requestIsFinished(QNetworkReply)"), reply) 
+  def capabilitiesRequestFinished(self,  reply):
+       self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
+
        
+  def serviceRequestFinished(self,  reply):
+       self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
 
   ##############################################################################
     
