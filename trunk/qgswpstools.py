@@ -156,8 +156,7 @@ class QgsWpsTools(QObject):
     
   def parseCapabilitiesXML(self,  xmlString):    
     self.doc.setContent(xmlString,  True)  
-
-    if self.getServiceVersion() != "1.0.0":
+    if self.getServiceVersion(self.doc) != "1.0.0":
       QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
       return 0
       
@@ -181,7 +180,7 @@ class QgsWpsTools(QObject):
          itemList.append("*")
       else:
          itemList.append(a_element.text()) 
-#      print i_element.text()
+         
       itemListAll.append(itemList)
 
     return itemListAll
@@ -189,8 +188,8 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def getServiceVersion(self):
-    root = self.doc.documentElement()  
+  def getServiceVersion(self,  doc):
+    root = doc.documentElement()  
     version = root.attribute("version")
     return version
 

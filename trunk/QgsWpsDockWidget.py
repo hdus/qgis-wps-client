@@ -440,7 +440,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           useSelected = checkBoxes[0].isChecked()
     
         postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-        postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion() + "\"" + \
+        postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion(self.doc) + "\"" + \
                        " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
                        " xmlns:ows=\"http://www.opengis.net/ows/1.1\"" +\
                        " xmlns:xlink=\"http://www.w3.org/1999/xlink\"" +\
