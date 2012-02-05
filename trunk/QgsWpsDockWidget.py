@@ -153,15 +153,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def setProcessStarted(self):
         self.showProgressBar(1, 0, 'processing')
         pass
-        
-    def processFinished(self,  reply):
-#        if error:
-#          QMessageBox.information(None, 'Error',  reply.error())
-#          self.setStatusLabel('error')
-#        else:
-          QMessageBox.information(None, '', reply.readAll().data())
-          self.resultHandler(reply.readAll().data())        
-          return
 
     def closeDialog(self):
       self.close()
@@ -596,9 +587,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           postString  += "</wps:ResponseForm>\n"
           
         postString += "</wps:Execute>"
-    
-        postData = QByteArray().fromRawData(postString)
-        
+            
         # This is for debug purpose only
         if DEBUG == True:
     #        self.popUpMessageBox("Execute request", postString)
@@ -609,15 +598,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         QApplication.restoreOverrideCursor()
         self.setProcessStarted()        
-
+        postData = QByteArray()
+        postData.append(postString) 
+        
         wpsConnection = scheme+'://'+server+path
-        thePostHttp = QgsNetworkAccessManager.instance()     
-#        QMessageBox.information(None, '', wpsConnection)
+        thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
-        self.thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
-        thePostHttp.finished.connect(self.processFinished)                
-        QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
-          
+        thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
+        thePostHttp.finished.connect(self.resultHandler)                                
+        QObject.connect(thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+
+
 
   ##############################################################################
 
@@ -647,11 +638,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)            
 
         
-    def resultHandler(self, resultXML,  resultType="store"):
+    def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the regestry or open an information window to show literal
            outputs."""
 #        QMessageBox.information(None, '', resultXML)
+        resultXML = reply.readAll().data()
+        QMessageBox.information(None, 'ResultHandler',  resultXML)
 # This is for debug purpose only
         if DEBUG == True:
             self.tools.popUpMessageBox("Result XML", resultXML)
@@ -703,7 +696,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.setStatusLabel('error')
             self.progressBar.setMinimum(0)
             self.progressBar.setMaximum(100)        
-            QMessageBox.information(None, '', resultXML)    
+            QMessageBox.information(None, 'Result Handler', resultXML)    
             return self.errorHandler(resultXML)
         return True
         
@@ -773,10 +766,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         
     def getResultFile(self,  reply):
-        fileInfo = QFileInfo(url.path())
-    #Not working under Win7
-    #self.outFile = QFile(fileInfo.fileName()+".gml")
-   
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
         tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
