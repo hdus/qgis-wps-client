@@ -80,7 +80,7 @@
     <message>
         <location filename="QgsWpsDockWidget.py" line="123"/>
         <source> finished successful</source>
-        <translation type="unfinished"> успешно завершился</translation>
+        <translation> успешно завершился</translation>
     </message>
     <message>
         <location filename="QgsWpsDockWidget.py" line="129"/>
