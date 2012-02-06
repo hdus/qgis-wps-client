@@ -604,8 +604,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         wpsConnection = scheme+'://'+server+path
         thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
-        thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
         thePostHttp.finished.connect(self.resultHandler)                                
+        thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
         QObject.connect(thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
 
@@ -644,7 +644,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
            outputs."""
 #        QMessageBox.information(None, '', resultXML)
         resultXML = reply.readAll().data()
-        QMessageBox.information(None, 'ResultHandler',  resultXML)
+        QMessageBox.information(None, 'Result Handler',  resultXML)
 # This is for debug purpose only
         if DEBUG == True:
             self.tools.popUpMessageBox("Result XML", resultXML)
@@ -696,7 +696,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.setStatusLabel('error')
             self.progressBar.setMinimum(0)
             self.progressBar.setMaximum(100)        
-            QMessageBox.information(None, 'Result Handler', resultXML)    
+#            QMessageBox.information(None, 'Result Handler', resultXML)    
             return self.errorHandler(resultXML)
         return True
         
@@ -760,7 +760,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         url = QUrl(fileLink)
         theHttp = QgsNetworkAccessManager()
         theReply = theHttp.get(QNetworkRequest(url))
-       
         thePostHttp.finished.connect(self.getResultFile)                
         QObject.connect(theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
