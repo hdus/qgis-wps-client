@@ -598,14 +598,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         QApplication.restoreOverrideCursor()
         self.setProcessStarted()        
-        postData = QByteArray()
-        postData.append(postString) 
+#        postData = QByteArray()
+        postData = QByteArray().fromRawData(postString) 
         
         wpsConnection = scheme+'://'+server+path
         thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
+        request = QNetworkRequest(url)
+        request.setHeader(QNetworkRequest.ContentTypeHeader,  "text/xml")
         thePostHttp.finished.connect(self.resultHandler)                                
-        thePostReply = thePostHttp.post(QNetworkRequest(url), postData)      
+        thePostReply = thePostHttp.post(request, postData)      
         QObject.connect(thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
 
