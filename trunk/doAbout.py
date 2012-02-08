@@ -45,7 +45,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         aboutString = QString( "The goal of QgsWPS is to provide client to connect to any WPS-Server. " )
     
         contribString = QString( "<p><center><b>The following people contributed to QgsWPS:</b></center></p>" )
-        contribString.append( "<p>Dr. Horst Düster (Maintainer)<br>" )
+        contribString.append( "<p>Horst Düster (Maintainer)<br>" )
         contribString.append( "Sören Gebbert<br>" )
         contribString.append( "Eugeniy Nikulin<br>" )
         contribString.append( "Marco Hugentobler<br>" )
