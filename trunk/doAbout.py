@@ -48,6 +48,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString.append( "<p>Dr. Horst Düster (Maintainer)<br>" )
         contribString.append( "Sören Gebbert<br>" )
         contribString.append( "Eugeniy Nikulin<br>" )
+        contribString.append( "Marco Hugentobler<br>" )
         contribString.append( "Alexander Bruy (About GUI) <br>" )
         contribString.append("Robert Szczepanek (Icon) <br><br>")
         contribString.append( "<b>and special thanks to the QGIS team</b></p>" )
