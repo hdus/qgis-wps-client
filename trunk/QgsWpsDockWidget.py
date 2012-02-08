@@ -598,14 +598,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         QApplication.restoreOverrideCursor()
         self.setProcessStarted()        
-        postData = QByteArray().fromRawData(postString) 
+        self.postData = QByteArray()
+        self.postData.append(postString) 
         
         wpsConnection = scheme+'://'+server+path
-        thePostHttp = QgsNetworkAccessManager.instance() 
+        self.thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
-        request = QNetworkRequest(url)
-        thePostHttp.finished.connect(self.resultHandler)                
-        thePostReply = thePostHttp.post(request, postData)      
+        try:
+            self.thePostHttp.finished.disconnect()    
+        except:
+            pass
+            
+        self.thePostHttp.finished.connect(self.resultHandler)                                
+        thePostReply = self.thePostHttp.post(QNetworkRequest(url), self.postData)      
         QObject.connect(thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
 
@@ -642,12 +647,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the regestry or open an information window to show literal
            outputs."""
-#        QMessageBox.information(None, '', resultXML)
         resultXML = reply.readAll().data()
-        QMessageBox.information(None, 'Result Handler',  resultXML)
+        
 # This is for debug purpose only
         if DEBUG == True:
-            self.tools.popUpMessageBox("Result XML", resultXML)
+#            self.tools.popUpMessageBox("Result XML", resultXML)
             # Write the response into a file
             outFile = open('/tmp/qwps_execute_response.xml', 'w')
             outFile.write(resultXML)
@@ -758,16 +762,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
-        theHttp = QgsNetworkAccessManager()
+        theHttp = QgsNetworkAccessManager.instance()
         theReply = theHttp.get(QNetworkRequest(url))
-        thePostHttp.finished.connect(self.getResultFile)                
+        try:
+            theHttp.finished.disconnect()
+        except:
+            pass
+            
+        theHttp.finished.connect(self.getResultFile)                
         QObject.connect(theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
     def getResultFile(self,  reply):
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
-        tmpFile = unicode(myQTempFile.fileName()+fileInfo.fileName()+".gml",'latin1')
+        tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
         myQTempFile.close()
 
      #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
@@ -775,7 +784,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         self.outFile = QFile(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
-        self.outFile.write(replay.readAll())
+        self.outFile.write(reply.readAll())
         self.outFile.close()
         self.loadData(self.outFile.fileName())
         
