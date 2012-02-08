@@ -37,7 +37,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
     
         # setup labels
         ver = '0.7.0'
-        dt = "2012-02-10"
+        dt = "2012-02-08"
         self.lblVersion.setText( self.tr( "Version: %1" ).arg( ver ) )
         self.lblDate.setText( self.tr( "Date: %1" ).arg( dt ) )
     
