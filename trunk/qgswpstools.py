@@ -157,7 +157,8 @@ class QgsWpsTools(QObject):
   def parseCapabilitiesXML(self,  xmlString):    
     self.doc.setContent(xmlString,  True)  
     if self.getServiceVersion(self.doc) != "1.0.0":
-      QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
+      QMessageBox.information(None, QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"), xmlString)
+#      QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
       return 0
       
     version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")

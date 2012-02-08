@@ -121,7 +121,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
 
   def createCapabilitiesGUI(self, reply):
-     self.treeWidget.clear()
-     itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
-     self.initTreeWPSServices(itemListAll)
-     pass
+     try:
+         self.treeWidget.clear()
+         itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
+         self.initTreeWPSServices(itemListAll)
+     except:
+         pass
