@@ -763,7 +763,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
         self.theHttp = QgsNetworkAccessManager.instance()
-        theReply = theHttp.get(QNetworkRequest(url))
+        theReply = self.theHttp.get(QNetworkRequest(url))
         try:
             self.theHttp.finished.disconnect()
         except:
