@@ -121,6 +121,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
 
   def createCapabilitiesGUI(self, reply):
+     if reply.error() == 1:
+         QMessageBox.information(None, '', QApplication.translate("QgsWpsGui","Connection Refused. Please check your Proxy-Settings"))
+         pass
      try:
          self.treeWidget.clear()
          itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
