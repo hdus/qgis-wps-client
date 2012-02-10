@@ -7,15 +7,15 @@ Module implementing QgsWpsDockWidget.
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
 
- Authors              : Dr. Horst Duester, Soeren Gebbert
+ Authors              : Dr. Horst Duester
 
   ***************************************************************************
-  *                                                                         *
-  *   This program is free software; you can redistribute it and/or modify  *
+  *                                                                                                             *
+  *   This program is free software; you can redistribute it and/or modify     *
   *   it under the terms of the GNU General Public License as published by  *
-  *   the Free Software Foundation; either version 2 of the License, or     *
-  *   (at your option) any later version.                                   *
-  *                                                                         *
+  *   the Free Software Foundation; either version 2 of the License, or          *
+  *   (at your option) any later version.                                                        *
+  *                                                                                                              *
   ***************************************************************************/
 """
 
@@ -590,7 +590,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         # This is for debug purpose only
         if DEBUG == True:
-    #        self.popUpMessageBox("Execute request", postString)
+#            self.tools.popUpMessageBox("Execute request", postString)
             # Write the request into a file
             outFile = open('/tmp/qwps_execute_request.xml', 'w')
             outFile.write(postString)
@@ -762,14 +762,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
-        theHttp = QgsNetworkAccessManager.instance()
+        self.theHttp = QgsNetworkAccessManager.instance()
         theReply = theHttp.get(QNetworkRequest(url))
         try:
-            theHttp.finished.disconnect()
+            self.theHttp.finished.disconnect()
         except:
             pass
             
-        theHttp.finished.connect(self.getResultFile)                
+        self.theHttp.finished.connect(self.getResultFile)                
         QObject.connect(theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
