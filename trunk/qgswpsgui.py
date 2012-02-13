@@ -124,9 +124,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
      if reply.error() == 1:
          QMessageBox.information(None, '', QApplication.translate("QgsWpsGui","Connection Refused. Please check your Proxy-Settings"))
          pass
-     try:
-         self.treeWidget.clear()
-         itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
-         self.initTreeWPSServices(itemListAll)
-     except:
-         pass
+     else:
+       try:
+           self.treeWidget.clear()
+           itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
+           self.initTreeWPSServices(itemListAll)
+       except:
+           pass
