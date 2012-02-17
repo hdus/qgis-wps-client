@@ -609,8 +609,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         except:
             pass
             
-        self.thePostHttp.finished.connect(self.resultHandler)                                
-        self.thePostReply = self.thePostHttp.post(QNetworkRequest(url), self.postData)      
+        self.thePostHttp.finished.connect(self.resultHandler)                  
+        self.request = QNetworkRequest(url)
+        self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" );        
+        self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
         QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
 
