@@ -7,7 +7,7 @@
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
 
- Authors              : Dr. Horst Duester
+ Authors              : Dr. Horst Duester; Luca Delucchi (Fondazione Edmund Mach)
 
   ***************************************************************************
   *                                                                         *
@@ -95,6 +95,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnDelete_clicked()")       
   def on_btnDelete_clicked(self):    
     self.emit(SIGNAL("deleteServer(QString)"), self.cmbConnections.currentText())    
+
+  @pyqtSignature("on_pushDefaultServer_clicked()")       
+  def on_pushDefaultServer_clicked(self):    
+    self.emit(SIGNAL("pushDefaultServer()"))   
 
   def initTreeWPSServices(self, taglist):
     self.treeWidget.setColumnCount(self.treeWidget.columnCount())

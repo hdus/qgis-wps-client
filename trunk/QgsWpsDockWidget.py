@@ -7,7 +7,7 @@ Module implementing QgsWpsDockWidget.
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
 
- Authors              : Dr. Horst Duester
+ Authors              : Dr. Horst Duester; Luca Delucchi (Fondazione Edmund Mach)
 
   ***************************************************************************
   *                                                                                                             *
@@ -31,6 +31,7 @@ from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
+from urlparse import urlparse
 
 import resources_rc,  string
 
@@ -56,6 +57,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.status = ''
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
+        self.defaultServers = {'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
+			    'zoo project':'http://zoo-project.org/wps-foss4g2011/zoo_loader.cgi',
+			    'zoo project grass':'http://zoo-project.org/cgi-grass/zoo_loader.cgi'
+			    }
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
@@ -65,8 +70,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)            
-#        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)    
+        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
+        QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
+#        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)
+	
 
             
     def getDescription(self,  name, item):
@@ -863,7 +870,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgNew = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
         dlgNew.show()
         self.dlg.initQgsWpsGui()
-        
+
+    def pushDefaultServer(self):
+	settings = QSettings()
+	for k,v in self.defaultServers.iteritems():
+	    myURL = urlparse(str(v))
+	    mySettings = "/WPS/" + k
+	#    settings.setValue("WPS/connections/selected", QVariant(name) )
+	    settings.setValue(mySettings+"/scheme",  QVariant(myURL.scheme))
+	    settings.setValue(mySettings+"/server",  QVariant(myURL.netloc))
+	    settings.setValue(mySettings+"/path", QVariant(myURL.path))
+	    settings.setValue(mySettings+"/method",QVariant("GET"))
+	    settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+	self.dlg.initQgsWpsGui()
     
     @pyqtSignature("")
     def on_btnKill_clicked(self):
