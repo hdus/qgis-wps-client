@@ -57,10 +57,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.status = ''
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
-        self.defaultServers = {'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
-			    'zoo project':'http://zoo-project.org/wps-foss4g2011/zoo_loader.cgi',
-			    'zoo project grass':'http://zoo-project.org/cgi-grass/zoo_loader.cgi'
-			    }
+        self.defaultServers = {'Kappasys WPS':'http://www.kappasys.ch/pywps/pywps.cgi', 
+            'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
+            'zoo project':'http://zoo-project.org/wps-foss4g2011/zoo_loader.cgi',
+            'zoo project grass':'http://zoo-project.org/cgi-grass/zoo_loader.cgi'
+            }
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
