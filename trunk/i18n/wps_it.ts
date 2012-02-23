@@ -175,7 +175,7 @@
     <message>
         <location filename="QgsWpsDockWidget.py" line="353"/>
         <source>Process selected objects only</source>
-        <translation type="unfinished"></translation>
+        <translation>Elaborare solo oggetti selezionati</translation>
     </message>
     <message>
         <location filename="QgsWpsDockWidget.py" line="353"/>
