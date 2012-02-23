@@ -696,6 +696,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 if fileLink != '0':                            
                   # Set a valid layerName
                   self.fetchResult(fileLink)
+                
+                QApplication.restoreOverrideCursor()
+                self.setStatusLabel('finished')
                   
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 QApplication.restoreOverrideCursor()
@@ -773,14 +776,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def fetchResult(self,  fileLink):
         url = QUrl(fileLink)
         self.theHttp = QgsNetworkAccessManager.instance()
-        theReply = self.theHttp.get(QNetworkRequest(url))
+        self.theReply = self.theHttp.get(QNetworkRequest(url))
         try:
             self.theHttp.finished.disconnect()
         except:
             pass
             
         self.theHttp.finished.connect(self.getResultFile)                
-        QObject.connect(theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
     def getResultFile(self,  reply):
@@ -797,6 +800,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outFile.write(reply.readAll())
         self.outFile.close()
         self.loadData(self.outFile.fileName())
+        self.setStatusLabel('finished')
         
 
 
