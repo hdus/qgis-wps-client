@@ -7,7 +7,7 @@
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
 
- Authors              : Dr. Horst Duester, Soeren Gebbert
+ Authors              : Alexander Bruy
 
   ***************************************************************************
   *                                                                         *
@@ -49,7 +49,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString.append( "Sören Gebbert<br>" )
         contribString.append( "Eugeniy Nikulin<br>" )
         contribString.append( "Marco Hugentobler<br>" )
-        contribString.append( "Luca Delucci<br>" )
+        contribString.append( "Luca Delucchi<br>" )
         contribString.append( "Alexander Bruy (About GUI) <br>" )
         contribString.append("Robert Szczepanek (Icon) <br><br>")
         contribString.append( "<b>and special thanks to the QGIS team</b></p>" )
