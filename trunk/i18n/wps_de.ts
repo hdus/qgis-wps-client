@@ -63,67 +63,67 @@
 <context>
     <name>QgsWps</name>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="71"/>
+        <location filename="Ui_qgswpsgui.py" line="23"/>
         <source>Note: this plugin not considered stable yet. Use it on your own risk</source>
         <translation>Dieses Plugin ist noch nicht stabil. Sie verwendes es auf eigenes Risiko</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="72"/>
+        <location filename="Ui_qgswpsgui.py" line="50"/>
         <source>Server Connections</source>
         <translation>Server-Verbindungen</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="73"/>
+        <location filename="Ui_qgswpsgui.py" line="57"/>
         <source>&amp;New</source>
         <translation>Neu</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="74"/>
+        <location filename="Ui_qgswpsgui.py" line="62"/>
         <source>Edit</source>
         <translation>Bearbeiten</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="75"/>
+        <location filename="Ui_qgswpsgui.py" line="69"/>
         <source>C&amp;onnect</source>
         <translation>Verbinden</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="76"/>
+        <location filename="Ui_qgswpsgui.py" line="77"/>
         <source>Delete</source>
         <translation>löschen</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="77"/>
+        <location filename="Ui_qgswpsgui.py" line="31"/>
         <source>about</source>
         <translation>über</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="79"/>
+        <location filename="Ui_qgswpsgui.py" line="45"/>
         <source>Identifier</source>
         <translation>Identifier</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="80"/>
+        <location filename="Ui_qgswpsgui.py" line="46"/>
         <source>Title</source>
         <translation>Titel</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="81"/>
+        <location filename="Ui_qgswpsgui.py" line="47"/>
         <source>Abstract</source>
         <translation>Abstract</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="345"/>
+        <location filename="QgsWpsDockWidget.py" line="352"/>
         <source>Process selected objects only</source>
         <translation>Nur die selektierten Objekte werden prozessiert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="345"/>
+        <location filename="QgsWpsDockWidget.py" line="352"/>
         <source>Selected</source>
         <translation>selektiert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="693"/>
+        <location filename="QgsWpsDockWidget.py" line="702"/>
         <source>Result</source>
         <translation>Ergebnis</translation>
     </message>
@@ -133,89 +133,94 @@
         <translation>Web Verbindung nicht erfolgreich</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="481"/>
+        <location filename="QgsWpsDockWidget.py" line="488"/>
         <source>Error</source>
         <translation>Fehler</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="156"/>
+        <location filename="qgswpstools.py" line="160"/>
         <source>Only WPS Version 1.0.0 is supprted</source>
         <translation>Zur Zeit wird nur WPS-Version 1.0.0 unterstützt</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="254"/>
+        <location filename="qgswpstools.py" line="258"/>
         <source>Unable to create temporal file: </source>
         <translation>Erzeugen der temporären Datei: </translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="254"/>
+        <location filename="qgswpstools.py" line="258"/>
         <source> for base64 encoding</source>
         <translation>für das base64 Encoding fehlgeschlagen</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="313"/>
+        <location filename="qgswpstools.py" line="317"/>
         <source>File open problem</source>
         <translation>Datei kann nicht geöffnet werden</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="111"/>
+        <location filename="QgsWpsDockWidget.py" line="118"/>
         <source> is running ...</source>
         <translation> läuft ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="119"/>
+        <location filename="QgsWpsDockWidget.py" line="126"/>
         <source> finished successful</source>
         <translation> erfolgreich abgeschlossen</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="626"/>
+        <location filename="QgsWpsDockWidget.py" line="635"/>
         <source>Run</source>
         <translation>Start</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="631"/>
+        <location filename="QgsWpsDockWidget.py" line="640"/>
         <source>Back</source>
         <translation>zurück</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="680"/>
+        <location filename="QgsWpsDockWidget.py" line="689"/>
         <source>WPS Error: Unable to download the result of reference: </source>
         <translation>WPS Fehler: Die Datei-Referenz kann nicht vom Server geladen werden</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="746"/>
+        <location filename="QgsWpsDockWidget.py" line="755"/>
         <source>Process result (text/plain)</source>
         <translation>Prozess Ergebnis (text/plain)</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="761"/>
+        <location filename="QgsWpsDockWidget.py" line="770"/>
         <source>Process result (unsupported mime type)</source>
         <translation>Prozess Ergebnis (nicht unterstützter Mime-Type)</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="698"/>
+        <location filename="QgsWpsDockWidget.py" line="707"/>
         <source>WPS Error: Missing reference or literal data in response</source>
         <translation>WPS-Fehler: Die Referenz fehlt oder es werden Literal Daten geliefert</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="107"/>
+        <location filename="QgsWpsDockWidget.py" line="114"/>
         <source> upload data ...</source>
         <translation> lade Daten hoch ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="115"/>
+        <location filename="QgsWpsDockWidget.py" line="122"/>
         <source> download data ...</source>
         <translation> lade Daten herunter ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="125"/>
+        <location filename="QgsWpsDockWidget.py" line="132"/>
         <source> terminated with errors!</source>
         <translation> mit Fehler abgebrochen!</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="481"/>
+        <location filename="QgsWpsDockWidget.py" line="488"/>
         <source>Please load or select a vector layer!</source>
         <translation>Bitte laden Sie einen Vektor Layer!</translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsgui.py" line="81"/>
+        <source>Add default server</source>
+        <translation>Vorgegebene Server ergänzen</translation>
     </message>
 </context>
 <context>
@@ -252,7 +257,7 @@
 <context>
     <name>QgsWpsGui</name>
     <message>
-        <location filename="qgswpsgui.py" line="125"/>
+        <location filename="qgswpsgui.py" line="129"/>
         <source>Connection Refused. Please check your Proxy-Settings</source>
         <translation>Verbindung zurückgewiesern. Bitte überprüfen Sie die Proxy-Einstellungen</translation>
     </message>
