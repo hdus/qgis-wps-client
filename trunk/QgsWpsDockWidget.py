@@ -744,10 +744,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
        # We can directly attach the new layer
-            if string.upper(self.mimeType) != 'APPLICATION/X-ESRI-ASCII-GRID':
-              imageFile = self.tools.decodeBase64(resultFile)
-            else:
-                imageFile = resultFile
+            try:
+                    imageFile = self.tools.decodeBase64(resultFile)
+            except:
+                    imageFile = resultFile
             rLayer = QgsRasterLayer(imageFile, layerName)
             QgsMapLayerRegistry.instance().addMapLayer(rLayer)
             # Text data
