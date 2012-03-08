@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>593</width>
-    <height>442</height>
+    <width>780</width>
+    <height>604</height>
    </rect>
   </property>
   <property name="acceptDrops">
@@ -140,7 +140,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0" colspan="6">
+      <item row="0" column="0" colspan="7">
        <widget class="QComboBox" name="cmbConnections"/>
       </item>
       <item row="1" column="3">
@@ -153,10 +153,17 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="5">
+      <item row="1" column="6">
        <widget class="QPushButton" name="pushDefaultServer">
         <property name="text">
          <string>Add default server</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="5">
+       <widget class="QPushButton" name="btnBookmark">
+        <property name="text">
+         <string>Bookmarks</string>
         </property>
        </widget>
       </item>
