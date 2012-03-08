@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Thu Feb 23 08:08:10 2012
+# Created: Thu Mar  8 10:25:06 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,7 +18,7 @@ class Ui_QgsWps(object):
     def setupUi(self, QgsWps):
         QgsWps.setObjectName(_fromUtf8("QgsWps"))
         QgsWps.setWindowModality(QtCore.Qt.NonModal)
-        QgsWps.resize(593, 442)
+        QgsWps.resize(780, 604)
         QgsWps.setAcceptDrops(False)
         QgsWps.setWindowTitle(QtGui.QApplication.translate("QgsWps", "Note: this plugin not considered stable yet. Use it on your own risk", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout = QtGui.QGridLayout(QgsWps)
@@ -71,7 +71,7 @@ class Ui_QgsWps(object):
         self.gridlayout.addWidget(self.btnConnect, 1, 0, 1, 1)
         self.cmbConnections = QtGui.QComboBox(self.GroupBox1)
         self.cmbConnections.setObjectName(_fromUtf8("cmbConnections"))
-        self.gridlayout.addWidget(self.cmbConnections, 0, 0, 1, 6)
+        self.gridlayout.addWidget(self.cmbConnections, 0, 0, 1, 7)
         self.btnDelete = QtGui.QPushButton(self.GroupBox1)
         self.btnDelete.setEnabled(False)
         self.btnDelete.setText(QtGui.QApplication.translate("QgsWps", "Delete", None, QtGui.QApplication.UnicodeUTF8))
@@ -80,7 +80,11 @@ class Ui_QgsWps(object):
         self.pushDefaultServer = QtGui.QPushButton(self.GroupBox1)
         self.pushDefaultServer.setText(QtGui.QApplication.translate("QgsWps", "Add default server", None, QtGui.QApplication.UnicodeUTF8))
         self.pushDefaultServer.setObjectName(_fromUtf8("pushDefaultServer"))
-        self.gridlayout.addWidget(self.pushDefaultServer, 1, 5, 1, 1)
+        self.gridlayout.addWidget(self.pushDefaultServer, 1, 6, 1, 1)
+        self.btnBookmark = QtGui.QPushButton(self.GroupBox1)
+        self.btnBookmark.setText(QtGui.QApplication.translate("QgsWps", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnBookmark.setObjectName(_fromUtf8("btnBookmark"))
+        self.gridlayout.addWidget(self.btnBookmark, 1, 5, 1, 1)
         self.gridLayout.addWidget(self.GroupBox1, 0, 0, 1, 1)
 
         self.retranslateUi(QgsWps)
