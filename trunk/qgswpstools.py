@@ -45,16 +45,17 @@ RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}]
 # All supported input vector formats [mime type, schema]
 VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
+                           {"MIMETYPE":"TEXT/XML", "SCHEMA":"GML3", "GDALID":"GML"}, \
                            {"MIMETYPE":"TEXT/XML", "SCHEMA":"KML", "GDALID":"KML"}, \
                            {"MIMETYPE":"APPLICATION/DGN", "SCHEMA":"", "GDALID":"DGN"}, \
                            #{"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
                            {"MIMETYPE":"APPLICATION/SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}]
-                           
+
 DEBUG = False
 
 # Our help class for the plugin
 class QgsWpsTools(QObject):
-    
+
   def __init__(self, iface,  dlg=None):
     QObject.__init__(self)
     self.iface = iface
@@ -62,7 +63,7 @@ class QgsWpsTools(QObject):
     self.dlg = dlg
 
 
-            
+
 ##############################################################################
 
   def getProxy(self):
@@ -76,9 +77,9 @@ class QgsWpsTools(QObject):
       result["proxyPassword"] = settings.value(mySettings+"/proxyPassword").toString()
       result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
       result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
-      
+
       return result
-      
+
 
   ##############################################################################
 
@@ -108,7 +109,7 @@ class QgsWpsTools(QObject):
     return result    
 
   ##############################################################################
-  
+
   # Gets Server and Connection Info from Stored Server Connections
   # Param: String ConnectionName
   # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
@@ -121,13 +122,13 @@ class QgsWpsTools(QObject):
     scheme = result["scheme"]
     requestFinished = False
     self.theHttp = QgsNetworkAccessManager.instance()     
-    
+
     try:
       self.theHttp.finished.disconnect()       
     except:
       pass
 
-    
+
     if identifier <> '':
       url = QUrl()        
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
@@ -144,30 +145,30 @@ class QgsWpsTools(QObject):
 #    self.httpRequestAborted = False
 #    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
 
-        
+
   def capabilitiesRequestFinished(self,  reply):
        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
 
-       
+
   def serviceRequestFinished(self,  reply):
        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
 
   ##############################################################################
-    
+
   def parseCapabilitiesXML(self,  xmlString):    
     self.doc.setContent(xmlString,  True)  
     if self.getServiceVersion(self.doc) != "1.0.0":
-      QMessageBox.information(None, QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"), xmlString)
+      QMessageBox.information(None, QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supported"), xmlString)
 #      QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
       return 0
-      
+
     version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")
     title      = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title")    
     identifier = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier")
     abstract   = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract")
-    
+
     itemListAll = []
-    
+
     for i in range(identifier.size()):
       v_element = version.at(i).toElement()
       i_element = identifier.at(i).toElement()
@@ -181,11 +182,11 @@ class QgsWpsTools(QObject):
          itemList.append("*")
       else:
          itemList.append(a_element.text()) 
-         
+
       itemListAll.append(itemList)
 
     return itemListAll
-    
+
 
   ##############################################################################
 
@@ -228,7 +229,7 @@ class QgsWpsTools(QObject):
         encoding = str(Element.elementsByTagName("Encoding").at(0).toElement().text().simplified().toLower())
     except:
         pass
-    
+
     return {"MimeType":mimeType,"Schema":schema,"Encoding":encoding}
 
   ##############################################################################
@@ -238,7 +239,7 @@ class QgsWpsTools(QObject):
       inputIdentifier = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
       title      = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()
       abstract   = element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract").at(0).toElement().text().simplified()
-        
+
       return inputIdentifier, title, abstract
 
   ##############################################################################
@@ -275,7 +276,7 @@ class QgsWpsTools(QObject):
         outfile.close()
     except:
         raise
- 
+
     return filename
 
   ##############################################################################
@@ -284,60 +285,54 @@ class QgsWpsTools(QObject):
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
     tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
-    
+
     vLayer = self.getVLayer(layer)    
-    fieldList = self.getFieldList(vLayer)
-    
+
     if vLayer.dataProvider().name() == "postgres":
       encoding = self.getDBEncoding(vLayer.dataProvider())
     else:
       encoding = vLayer.dataProvider().encoding()
 
-    writer = self.createGMLFileWriter(tmpFile, fieldList, vLayer.dataProvider().geometryType(), vLayer.dataProvider().crs(),  encoding)
-    provider = vLayer.dataProvider()
-    feat = QgsFeature()
-    allAttrs = provider.attributeIndexes()
-    provider.select(allAttrs)
-    
-    featureList = vLayer.selectedFeatures()
-    
+    processSelected = False
     if processSelection and vLayer.selectedFeatureCount() > 0:
-      for feat in featureList:
-        writer.addFeature(feat)
+      processSelected = True
+
+    dso = QStringList()
+#    lco = QStringList("FORMAT=GML3")
+    lco = QStringList()
+    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
+
+    if error != QgsVectorFileWriter.NoError:
+        QMessageBox.information(None, 'Error',  'Process stopped with errors')
     else:
-      while provider.nextFeature(feat):
-        writer.addFeature(feat)
 
-    del writer        
-
+        myQTempFile.close()
+        myFile = QFile(tmpFile)
+        if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
+          QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
+          pass    
     
-    myQTempFile.close()
-    myFile = QFile(tmpFile)
-    if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
-      QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
-      pass    
-
-    myGML = QTextStream(myFile)
-    myGML.setCodec(encoding)    
-    gmlString = ""
-# Overread the first Line of GML Result    
-    dummy = myGML.readLine()
-    gmlString += myGML.readAll()
-    myFile.close()
-    myFilePath = QFileInfo(myFile).dir().path()
-    myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
+        myGML = QTextStream(myFile)
+        myGML.setCodec(encoding)    
+        gmlString = ""
+    # Overread the first Line of GML Result    
+        dummy = myGML.readLine()
+        gmlString += myGML.readAll()
+        myFile.close()
+        myFilePath = QFileInfo(myFile).dir().path()
+        myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
     
-    QFile(myFileInfo+'.xsd').remove()
-    QFile(myFileInfo+'.gml').remove()
+        QFile(myFileInfo+'.xsd').remove()
+        QFile(myFileInfo+'.gml').remove()
     return gmlString.simplified()
 
   ##############################################################################
-  
+
   def getVLayer(self,name):
   #   Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
         # get the map canvas
     mc=self.iface.mapCanvas()
-        
+
      # how many layers are there?
     nLayers=mc.layerCount()
 
@@ -350,7 +345,7 @@ class QgsWpsTools(QObject):
 
   def getProviderName(self, name):
     mc=self.iface.mapCanvas()
-        
+
      # how many layers are there?
     nLayers=mc.layerCount()
 
@@ -359,7 +354,7 @@ class QgsWpsTools(QObject):
       if layer.name() == name:    
        layerProvider = layer.dataProvider()
        providerName = layerProvider.name()    
-    
+
     return providerName
 
   ##############################################################################
@@ -368,7 +363,7 @@ class QgsWpsTools(QObject):
     #  Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
     # get the map canvas
     mc=self.iface.mapCanvas()
-        
+
      # how many layers are there?
     nLayers=mc.layerCount()
 
@@ -407,7 +402,7 @@ class QgsWpsTools(QObject):
      # Manage a value list defined by a range
      value_element = aValues.at(0).toElement()
      v_range_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Range")
-     
+
      if v_range_element.size() > 0:
        min_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MinimumValue").at(0).toElement().text()
        max_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MaximumValue").at(0).toElement().text()
@@ -423,7 +418,7 @@ class QgsWpsTools(QObject):
        for n in range(v_element.size()):
          mv_element = v_element.at(n).toElement() 
          valList.append(unicode(mv_element.text(),'latin1').strip())
-         
+
 #     print str(valList)
      return valList        
 
@@ -454,7 +449,7 @@ class QgsWpsTools(QObject):
 
     # retrieve every feature with its attributes
     myFields = fProvider.fields()
-      
+
     return myFields
 
   ##############################################################################
@@ -470,25 +465,25 @@ class QgsWpsTools(QObject):
 
     # retrieve every feature with its attributes
     myFields = provider.fields()
-      
+
     return myFields
 
   ##############################################################################
 
   def uniqueLayerName(self, name):
-    
+
     mapLayers = QgsMapLayerRegistry.instance().mapLayers()
     i=1
     layerNameList = []    
     for (k, layer) in mapLayers.iteritems():
       layerNameList.append(layer.name())
-    
+
     layerNameList.sort()
-    
+
     for layerName in layerNameList:
       if layerName == name+unicode(str(i),'latin1'):    
         i += 1
-    
+
     newName = name+unicode(str(i),'latin1')
     return newName
 
@@ -496,7 +491,7 @@ class QgsWpsTools(QObject):
 
   def getLayerNameList(self, dataType=0, all=False):
     myLayerList = []    
-        
+
     if all:
       mapLayers = QgsMapLayerRegistry.instance().mapLayers()      
       for (k, layer) in mapLayers.iteritems():
@@ -504,12 +499,12 @@ class QgsWpsTools(QObject):
     else:
       mc=self.iface.mapCanvas()
       nLayers=mc.layerCount()
-      
+
       for l in range(nLayers):
         # Nur die Layer des gew�nschten Datentypes ausw�hlen 0=Vectorlayer 1=Rasterlayer
         if mc.layer(l).type() == dataType:
           myLayerList.append(mc.layer(l).name())
-    
+
     return myLayerList
 
   ##############################################################################
@@ -523,7 +518,7 @@ class QgsWpsTools(QObject):
     db.setPassword(dbConnection.password())
     db.setPort(int(dbConnection.port()))
     db.open()
-    
+
     query =  "select pg_encoding_to_char(encoding) as encoding "
     query += "from pg_catalog.pg_database "
     query += "where datname = '"+dbConnection.database()+"' "
@@ -564,7 +559,7 @@ class QgsWpsTools(QObject):
     return string
 
   ############################################################################
-  
+
   def isMimeTypeRaster(self, mimeType):
     """Check for raster input"""
     for rasterType in RASTER_MIMETYPES:
@@ -573,7 +568,7 @@ class QgsWpsTools(QObject):
     return None
 
   ############################################################################
-  
+
   def isMimeTypeVector(self, mimeType):
     """Check for vector input. Zipped shapefiles must be extracted"""
     for vectorType in VECTOR_MIMETYPES:
@@ -582,14 +577,14 @@ class QgsWpsTools(QObject):
     return None
 
   ############################################################################
-  
+
   def isMimeTypeText(self, mimeType):
     """Check for text file input"""
     if mimeType.upper() == "TEXT/PLAIN":
        return "TXT"
     else:
        return None
-      
+
 
  ##############################################################################
 
@@ -609,7 +604,7 @@ class QgsWpsTools(QObject):
       #groupbox.setTitle(name)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
-      
+
       # This input is optional
       if minOccurs == 0:
         namesList.append("<None>")
@@ -620,7 +615,7 @@ class QgsWpsTools(QObject):
       comboBox.setMinimumWidth(179)
       comboBox.setMaximumWidth(179)
       comboBox.setMinimumHeight(25)
-      
+
       myLabel = QLabel(dlgProcessScrollAreaWidget)
       myLabel.setObjectName("qLabel"+name)
 
@@ -638,14 +633,14 @@ class QgsWpsTools(QObject):
       layout.addWidget(myLabel)
       layout.addStretch(1)
       layout.addWidget(comboBox)
-      
+
       groupbox.setLayout(layout)
 
       dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return comboBox              
 
-   
+
   ##############################################################################
 
   def addComplexOutputComboBox(self, widget, name, title, mimeType,  processIdentifier):
@@ -654,7 +649,7 @@ class QgsWpsTools(QObject):
       groupbox = QGroupBox(widget)
       groupbox.setMinimumHeight(25)
       layout = QHBoxLayout()
-      
+
       namesList = []
       # Generate a unique name for the layer
       namesList.append(self.uniqueLayerName(processIdentifier + "_" + name + "_"))
@@ -668,7 +663,7 @@ class QgsWpsTools(QObject):
       comboBox.setMaximumWidth(250)
       comboBox.setMinimumHeight(25)
       comboBox.setEditable(False)
-      
+
       myLabel = QLabel(widget)
       myLabel.setObjectName("qLabel"+name)
 
@@ -682,7 +677,7 @@ class QgsWpsTools(QObject):
       layout.addWidget(myLabel)
       layout.addStretch(1)
       layout.addWidget(comboBox)
-      
+
       groupbox.setLayout(layout)
 
       return groupbox, comboBox              
@@ -797,7 +792,7 @@ class QgsWpsTools(QObject):
       else:
         string = "[" + name + "]\n" + title
         myLabel.setText(string)
-        
+
       myLabel.setWordWrap(True)
       myLabel.setMinimumWidth(400)
       myLabel.setMinimumHeight(25)
@@ -827,7 +822,7 @@ class QgsWpsTools(QObject):
       myLineEdit.setMaximumWidth(179)
       myLineEdit.setMinimumHeight(25)
       myLineEdit.setText(defaultValue)
-      
+
       myLabel = QLabel(groupbox)
       myLabel.setObjectName("qLabel"+name)
 
@@ -837,7 +832,7 @@ class QgsWpsTools(QObject):
       else:
         string = "[" + name + "]\n" + title
         myLabel.setText(string)
-        
+
       myLabel.setWordWrap(True)
       myLabel.setMinimumWidth(400)
       myLabel.setMinimumHeight(25)
@@ -851,7 +846,7 @@ class QgsWpsTools(QObject):
       dlgProcessScrollAreaWidgetLayout.addWidget(groupbox)
 
       return myLineEdit
-      
+
 
   ##############################################################################
 
@@ -865,7 +860,7 @@ class QgsWpsTools(QObject):
       myCheckBox = QCheckBox(groupbox)
       myCheckBox.setObjectName("chkBox"+name)
       myCheckBox.setChecked(False)
-      
+
       myLabel = QLabel(groupbox)
       myLabel.setObjectName("qLabel"+name)  
       myLabel.setText("(" + name + ")" + "\n" + title)
@@ -893,9 +888,9 @@ class QgsWpsTools(QObject):
       textBox.setText(QString(abstract))
 
     dlgProcessTab.addTab(textBox, "Documentation")
-    
 
-     
+
+
 ################################################################################
 ################################################################################
 ################################################################################
@@ -924,4 +919,4 @@ class WPSMessageBox(QMessageBox):
             textEdit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         return result
-        
+
