@@ -299,7 +299,8 @@ class QgsWpsTools(QObject):
 
     dso = QStringList()
     lco = QStringList("FORMAT=GML3")
-#    lco = QStringList()
+
+    lco.append("FORMAT=GML3")
     error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
 
     if error != QgsVectorFileWriter.NoError:
