@@ -16,7 +16,7 @@ class Bookmarks(QDialog, Ui_Bookmarks):
     """
     Class documentation goes here.
     """
-    def __init__(self, parent,  tools,  fl):
+    def __init__(self, tools,  fl,  parent=None):
         """
         Constructor
         """

@@ -38,7 +38,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     
     self.tools = tools
     self.dlgAbout = DlgAbout(parent)
-    self.dlgBookmarks = Bookmarks(parent,  self.tools, fl)
+    self.dlgBookmarks = Bookmarks(self.tools, fl)
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
