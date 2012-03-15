@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
 #
-# Created: Thu Mar 15 11:35:50 2012
+# Created: Thu Mar 15 14:23:34 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -81,10 +81,10 @@ class Ui_QgsWps(object):
         self.pushDefaultServer.setText(QtGui.QApplication.translate("QgsWps", "Add default server", None, QtGui.QApplication.UnicodeUTF8))
         self.pushDefaultServer.setObjectName(_fromUtf8("pushDefaultServer"))
         self.gridlayout.addWidget(self.pushDefaultServer, 1, 6, 1, 1)
-        self.btnBookmark = QtGui.QPushButton(self.GroupBox1)
-        self.btnBookmark.setText(QtGui.QApplication.translate("QgsWps", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnBookmark.setObjectName(_fromUtf8("btnBookmark"))
-        self.gridlayout.addWidget(self.btnBookmark, 1, 5, 1, 1)
+        self.btnBookmarks = QtGui.QPushButton(self.GroupBox1)
+        self.btnBookmarks.setText(QtGui.QApplication.translate("QgsWps", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnBookmarks.setObjectName(_fromUtf8("btnBookmarks"))
+        self.gridlayout.addWidget(self.btnBookmarks, 1, 5, 1, 1)
         self.gridLayout.addWidget(self.GroupBox1, 0, 0, 1, 1)
 
         self.retranslateUi(QgsWps)

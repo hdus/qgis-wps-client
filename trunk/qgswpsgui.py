@@ -23,6 +23,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from qgis.core import *
 from Ui_qgswpsgui import Ui_QgsWps
+from qgswpsbookmarks import Bookmarks
 from doAbout import DlgAbout
 
 
@@ -37,6 +38,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     
     self.tools = tools
     self.dlgAbout = DlgAbout(parent)
+    self.dlgBookmarks = Bookmarks(parent,  self.tools, fl)
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -79,6 +81,11 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     except:
         pass
     QObject.connect(self.tools, SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
+
+  @pyqtSignature("on_btnBookmarks_clicked()")       
+  def on_btnBookmarks_clicked(self):    
+      self.dlgBookmarks.show()
+#    self.emit(SIGNAL("openBookmarks()"))
 
   @pyqtSignature("on_btnNew_clicked()")       
   def on_btnNew_clicked(self):    

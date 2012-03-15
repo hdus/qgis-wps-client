@@ -31,13 +31,3 @@ class QgsWpsDescribeProcessGui(QDialog, QObject, Ui_QgsWpsDescribeProcessGUI):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
 
-  @pyqtSignature("on_btnOk_clicked()")    
-  def on_btnAbbrechen_clicked(self):
-    self.close()
-
-  # see http://www.riverbankcomputing.com/Docs/PyQt4/pyqt4ref.html#connecting-signals-and-slots
-  # without this magic, the on_btnOk_clicked will be called two times: one clicked() and one clicked(bool checked)
-  @pyqtSignature("on_btnOk_clicked()")          
-  def on_btnOk_clicked(self):
-    self.close()
-               

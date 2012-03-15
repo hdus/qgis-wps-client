@@ -30,6 +30,7 @@ from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
+from qgswpsbookmarks import Bookmarks
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 
@@ -65,8 +66,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
-        
+        self.dlgBookmarks = Bookmarks(self.iface.mainWindow(),  self.tools,  flags)
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
+        QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
         QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)            
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
@@ -641,7 +643,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         btnCancel.setText(QApplication.translate("QgsWps", "Back"))
         btnCancel.setMinimumWidth(100)
         btnCancel.setMaximumWidth(100)
+        
+        btnBookmark = QPushButton(groupBox)
+        btnBookmark.setText(QApplication.translate("QgsWps", "Add Bookmark"))
+        btnBookmark.setMinimumWidth(110)
+        btnBookmark.setMaximumWidth(110)        
     
+        layout.addWidget(btnBookmark)
         layout.addStretch(10)
         layout.addWidget(btnCancel)
         layout.addWidget(btnOk)
@@ -650,8 +658,26 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgProcessTabFrameLayout.addWidget(groupBox)
         
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
-        QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)            
+        QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)         
+        QObject.connect(btnBookmark,SIGNAL("clicked()"), self.addWPSBookmark)            
+        
 
+    def addWPSBookmark(self):
+        self.doc.setContent(self.processXML)
+        settings = QSettings()    
+        result = self.tools.getServer(self.dlg.selectedWPS)
+        scheme = result["scheme"]
+        path = result["path"]
+        server = result["server"]
+        mySettings = "/WPS-Bookmarks/"+self.dlg.selectedWPS
+##    settings.setValue("WPS/connections/selected", QVariant(name) )
+        settings.setValue(mySettings+"/scheme",  QVariant(scheme))
+        settings.setValue(mySettings+"/server",  QVariant(server))
+        settings.setValue(mySettings+"/path", QVariant(path))
+        settings.setValue(mySettings+"/method",QVariant("GET"))
+        settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+        settings.setValue(mySettings+"/identifier", QVariant(self.processIdentifier))
+        
         
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
