@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/barpadue/.qgis/python/plugins/wps/qgswpsbookmarks.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsbookmarks.ui'
 #
-# Created: Thu Mar 15 17:03:58 2012
+# Created: Thu Mar 15 21:00:09 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -17,7 +17,7 @@ except AttributeError:
 class Ui_Bookmarks(object):
     def setupUi(self, Bookmarks):
         Bookmarks.setObjectName(_fromUtf8("Bookmarks"))
-        Bookmarks.resize(756, 671)
+        Bookmarks.resize(753, 422)
         Bookmarks.setWindowTitle(QtGui.QApplication.translate("Bookmarks", "WPS-Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout = QtGui.QGridLayout(Bookmarks)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
@@ -29,10 +29,6 @@ class Ui_Bookmarks(object):
         self.btnConnect.setText(QtGui.QApplication.translate("Bookmarks", "Connect", None, QtGui.QApplication.UnicodeUTF8))
         self.btnConnect.setObjectName(_fromUtf8("btnConnect"))
         self.horizontalLayout.addWidget(self.btnConnect)
-        self.btnEdit = QtGui.QPushButton(Bookmarks)
-        self.btnEdit.setText(QtGui.QApplication.translate("Bookmarks", "Edit", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnEdit.setObjectName(_fromUtf8("btnEdit"))
-        self.horizontalLayout.addWidget(self.btnEdit)
         self.btnRemove = QtGui.QPushButton(Bookmarks)
         self.btnRemove.setText(QtGui.QApplication.translate("Bookmarks", "Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.btnRemove.setObjectName(_fromUtf8("btnRemove"))
