@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/barpadue/.qgis/python/plugins/wps/qgswpsbookmarks.ui'
 #
-# Created: Thu Mar 15 16:19:26 2012
+# Created: Thu Mar 15 17:03:58 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -47,7 +47,7 @@ class Ui_Bookmarks(object):
         self.treeWidget.headerItem().setText(0, QtGui.QApplication.translate("Bookmarks", "Service", None, QtGui.QApplication.UnicodeUTF8))
         self.treeWidget.headerItem().setText(1, QtGui.QApplication.translate("Bookmarks", "Identifier", None, QtGui.QApplication.UnicodeUTF8))
         self.treeWidget.headerItem().setText(2, QtGui.QApplication.translate("Bookmarks", "URL", None, QtGui.QApplication.UnicodeUTF8))
-        self.treeWidget.header().setDefaultSectionSize(100)
+        self.treeWidget.header().setDefaultSectionSize(250)
         self.gridLayout.addWidget(self.treeWidget, 1, 0, 1, 1)
         self.btnBoxBookmarks = QtGui.QDialogButtonBox(Bookmarks)
         self.btnBoxBookmarks.setStandardButtons(QtGui.QDialogButtonBox.Close|QtGui.QDialogButtonBox.Ok)
