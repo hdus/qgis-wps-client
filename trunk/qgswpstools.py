@@ -285,6 +285,7 @@ class QgsWpsTools(QObject):
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
     tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
+    myQTempFile.close()
 
     vLayer = self.getVLayer(layer)    
 
@@ -297,14 +298,12 @@ class QgsWpsTools(QObject):
     if processSelection and vLayer.selectedFeatureCount() > 0:
       processSelected = True
 
-    dsco = QStringList()
-    lco = QStringList("-dlco FORMAT=GML3")
-#    lco = QStringList()
-    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dsco,  lco)
+    dso = QStringList("FORMAT=GML3")
+    lco = QStringList()
+    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
     if error != QgsVectorFileWriter.NoError:
         QMessageBox.information(None, 'Error',  'Process stopped with errors')
     else:
-        myQTempFile.close()
         myFile = QFile(tmpFile)
         if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
           QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
@@ -316,13 +315,12 @@ class QgsWpsTools(QObject):
     # Overread the first Line of GML Result    
         dummy = myGML.readLine()
         gmlString += myGML.readAll()
-        print gmlString
         myFile.close()
         myFilePath = QFileInfo(myFile).dir().path()
         myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
-        QMessageBox.information(None, '', gmlString.simplified())
         QFile(myFileInfo+'.xsd').remove()
         QFile(myFileInfo+'.gml').remove()
+#        QMessageBox.information(None, '', gmlString.simplified())        
     return gmlString.simplified()
 
   ##############################################################################
