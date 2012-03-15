@@ -65,7 +65,7 @@
       <number>3</number>
      </property>
      <attribute name="headerDefaultSectionSize">
-      <number>100</number>
+      <number>250</number>
      </attribute>
      <column>
       <property name="text">
