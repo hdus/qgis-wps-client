@@ -128,7 +128,6 @@ class QgsWpsTools(QObject):
     except:
       pass
 
-
     if identifier <> '':
       url = QUrl()        
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version

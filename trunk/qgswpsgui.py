@@ -39,6 +39,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.tools = tools
     self.dlgAbout = DlgAbout(parent)
     self.dlgBookmarks = Bookmarks(fl)
+    QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -57,6 +58,27 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.btnDelete.setEnabled(True)
     return 1    
     
+  def getDescription(self,  name, item):
+        self.tools.getServiceXML(name,"DescribeProcess",item.text(1))    
+
+#  def addWPSBookmark(self):
+##        self.doc.setContent(self.processXML)
+#        settings = QSettings()    
+#        result = self.tools.getServer(self.dlg.selectedWPS)
+#        scheme = result["scheme"]
+#        path = result["path"]
+#        server = result["server"]
+#        mySettings = "/WPS-Bookmarks/"+self.dlg.selectedWPS
+###    settings.setValue("WPS/connections/selected", QVariant(name) )
+#        settings.setValue(mySettings+"/scheme",  QVariant(scheme))
+#        settings.setValue(mySettings+"/server",  QVariant(server))
+#        settings.setValue(mySettings+"/path", QVariant(path))
+#        settings.setValue(mySettings+"/method",QVariant("GET"))
+#        settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+#        settings.setValue(mySettings+"/identifier", QVariant(self.processIdentifier))
+#        self.dlgBookmarks.initTreeWPSServices()
+        
+        
   def on_buttonBox_rejected(self):
     self.close()
 
@@ -85,7 +107,6 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnBookmarks_clicked()")       
   def on_btnBookmarks_clicked(self):    
       self.dlgBookmarks.show()
-#    self.emit(SIGNAL("openBookmarks()"))
 
   @pyqtSignature("on_btnNew_clicked()")       
   def on_btnNew_clicked(self):    

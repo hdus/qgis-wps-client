@@ -9,7 +9,7 @@ from PyQt4.QtCore import *
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
 
-class Bookmarks(QDialog, Ui_Bookmarks):
+class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     """
     Class documentation goes here.
     """
@@ -33,7 +33,7 @@ class Bookmarks(QDialog, Ui_Bookmarks):
         itemList = []
         for myBookmark in self.bookmarks:
            settings = QSettings()
-           item = QTreeWidgetItem()
+           self.myItem = QTreeWidgetItem()
            mySettings = "/WPS-Bookmarks/"+myBookmark
            scheme = settings.value(mySettings+"/scheme").toString()
            server = settings.value(mySettings+"/server").toString()
@@ -41,10 +41,10 @@ class Bookmarks(QDialog, Ui_Bookmarks):
            service = scheme+"://"+server+path
            version = settings.value(mySettings+"/version").toString()
            identifier = settings.value(mySettings+"/identifier").toString()
-           item.setText(0, myBookmark)  
-           item.setText(1,identifier)  
-           item.setText(2,service)
-           itemList.append(item)
+           self.myItem.setText(0, myBookmark)  
+           self.myItem.setText(1,identifier)  
+           self.myItem.setText(2,service)
+           itemList.append(self.myItem)
     
         self.treeWidget.addTopLevelItems(itemList)        
 
@@ -52,10 +52,13 @@ class Bookmarks(QDialog, Ui_Bookmarks):
     @pyqtSignature("QTreeWidgetItem*, int")
     def on_treeWidget_itemDoubleClicked(self, item, column):
         self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), item.text(0),  item)
+        self.close()
 
     @pyqtSignature("")
     def on_btnConnect_clicked(self):
-         pass
+#        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.myItem.text(0),  self.myItem)
+        self.close()
+
     
     @pyqtSignature("")
     def on_btnEdit_clicked(self):
@@ -67,7 +70,8 @@ class Bookmarks(QDialog, Ui_Bookmarks):
     
     @pyqtSignature("")
     def on_btnBoxBookmarks_accepted(self):
-         pass
+        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.myItem.text(0),  self.myItem)
+
     
     @pyqtSignature("")
     def on_btnBoxBookmarks_rejected(self):

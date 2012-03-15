@@ -66,9 +66,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
-        self.dlgBookmarks = Bookmarks(flags)
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-        QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
         QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)            
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
@@ -76,14 +74,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
         QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
 #        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)
-	
-
-            
-    def getDescription(self,  name, item):
-        QMessageBox.information(None, '',name)        
-        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))
         
-          
+    def getDescription(self,  name, item):
+        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
+        
     def setUpload(self,  bool):
         self.status = 'Upload'
         QMessageBox.information(None, '', self.status)
@@ -172,6 +166,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def createProcessGUI(self,reply):
         """Create the GUI for a selected WPS process based on the DescribeProcess
            response document. Mandatory inputs are marked as red, default is black"""
+           
+        self.processUrl = reply.url()
+           
 #        QMessageBox.information(None, '', item.text(0))           
 #        try:
 #          self.processIdentifier = item.text(0)
@@ -430,11 +427,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dataOutputs = self.doc.elementsByTagName("Output")
     
         QApplication.setOverrideCursor(Qt.WaitCursor)
-#        result = self.tools.getServer(self.processName)
-        result = self.tools.getServer(self.dlg.selectedWPS)
-        scheme = result["scheme"]
-        path = result["path"]
-        server = result["server"]
+        scheme = self.processUrl.scheme()
+        path = self.processUrl.path()
+        server = self.processUrl.host()
     
         checkBoxes = self.dlgProcess.findChildren(QCheckBox)
     
@@ -660,25 +655,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
         QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)         
-        QObject.connect(btnBookmark,SIGNAL("clicked()"), self.addWPSBookmark)            
-        
-
-    def addWPSBookmark(self):
-        self.doc.setContent(self.processXML)
-        settings = QSettings()    
-        result = self.tools.getServer(self.dlg.selectedWPS)
-        scheme = result["scheme"]
-        path = result["path"]
-        server = result["server"]
-        mySettings = "/WPS-Bookmarks/"+self.dlg.selectedWPS
-##    settings.setValue("WPS/connections/selected", QVariant(name) )
-        settings.setValue(mySettings+"/scheme",  QVariant(scheme))
-        settings.setValue(mySettings+"/server",  QVariant(server))
-        settings.setValue(mySettings+"/path", QVariant(path))
-        settings.setValue(mySettings+"/method",QVariant("GET"))
-        settings.setValue(mySettings+"/version",QVariant("1.0.0"))
-        settings.setValue(mySettings+"/identifier", QVariant(self.processIdentifier))
-        self.dlgBookmarks.initTreeWPSServices()
         
         
     def resultHandler(self, reply):
