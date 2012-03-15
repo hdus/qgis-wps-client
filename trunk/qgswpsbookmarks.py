@@ -6,9 +6,6 @@ Module implementing Bookmarks.
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from PyQt4.QtXml import *
-from PyQt4 import QtWebKit
-from PyQt4 import QtNetwork
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
 
@@ -16,7 +13,7 @@ class Bookmarks(QDialog, Ui_Bookmarks):
     """
     Class documentation goes here.
     """
-    def __init__(self, tools,  fl,  parent=None):
+    def __init__(self, fl,  parent=None):
         """
         Constructor
         """
@@ -24,7 +21,6 @@ class Bookmarks(QDialog, Ui_Bookmarks):
         self.setupUi(self)
         
 ##    self.btnOk.setEnabled(False)
-        self.tools = tools
         self.btnConnect.setEnabled(True)
         settings = QSettings()
         settings.beginGroup("WPS-Bookmarks")
@@ -55,8 +51,7 @@ class Bookmarks(QDialog, Ui_Bookmarks):
 
     @pyqtSignature("QTreeWidgetItem*, int")
     def on_treeWidget_itemDoubleClicked(self, item, column):
-        QMessageBox.information(None, '',item.text(0))
-        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), item.text(0),  self.treeWidget.currentItem() )
+        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), item.text(0),  item)
 
     @pyqtSignature("")
     def on_btnConnect_clicked(self):
