@@ -22,16 +22,16 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         
 ##    self.btnOk.setEnabled(False)
 #        self.btnConnect.setEnabled(True)
-        settings = QSettings()
-        settings.beginGroup("WPS-Bookmarks")
-        self.bookmarks = settings.childGroups()
         self.initTreeWPSServices()
         
     def initTreeWPSServices(self):
+        settings = QSettings()
+        settings.beginGroup("WPS-Bookmarks")
+        bookmarks = settings.childGroups()        
         self.treeWidget.clear()
         self.treeWidget.setColumnCount(self.treeWidget.columnCount())
         itemList = []
-        for myBookmark in self.bookmarks:
+        for myBookmark in bookmarks:
            settings = QSettings()
            self.myItem = QTreeWidgetItem()
            mySettings = "/WPS-Bookmarks/"+myBookmark
