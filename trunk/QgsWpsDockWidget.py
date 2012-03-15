@@ -66,7 +66,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
-        self.dlgBookmarks = Bookmarks(self.iface.mainWindow(),  self.tools,  flags)
+        self.dlgBookmarks = Bookmarks(flags)
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
         QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
         QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)            
@@ -80,6 +80,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
             
     def getDescription(self,  name, item):
+        QMessageBox.information(None, '',name)        
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0))
         
           
@@ -677,6 +678,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         settings.setValue(mySettings+"/method",QVariant("GET"))
         settings.setValue(mySettings+"/version",QVariant("1.0.0"))
         settings.setValue(mySettings+"/identifier", QVariant(self.processIdentifier))
+        self.dlgBookmarks.initTreeWPSServices()
         
         
     def resultHandler(self, reply):
