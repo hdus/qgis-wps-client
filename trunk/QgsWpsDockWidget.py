@@ -30,7 +30,7 @@ from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
-from qgswpsbookmarks import Bookmarks
+#from qgswpsbookmarks import Bookmarks
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 
@@ -642,8 +642,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         btnBookmark = QPushButton(groupBox)
         btnBookmark.setText(QApplication.translate("QgsWps", "Add Bookmark"))
-        btnBookmark.setMinimumWidth(110)
-        btnBookmark.setMaximumWidth(110)        
+        btnBookmark.setMinimumWidth(150)
+        btnBookmark.setMaximumWidth(150)        
     
         layout.addWidget(btnBookmark)
         layout.addStretch(10)
@@ -654,8 +654,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgProcessTabFrameLayout.addWidget(groupBox)
         
         QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
-        QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)         
+        QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)
+        QObject.connect(btnBookmark,SIGNAL("clicked()"), self.saveBookmark)
         
+    def saveBookmark(self):
+        settings = QSettings()
+        mySettings = "/WPS-Bookmarks/"+self.processUrl.host()+"-"+self.processUrl.queryItemValue('identifier')
+        settings.setValue(mySettings+"/scheme", self.processUrl.scheme())
+        settings.setValue(mySettings+"/server", self.processUrl.host())
+        settings.setValue(mySettings+"/path",  self.processUrl.path())
+        settings.setValue(mySettings+"/version", self.processUrl.queryItemValue('version'))
+        settings.setValue(mySettings+"/identifier",  self.processUrl.queryItemValue('identifier'))
         
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new

@@ -21,14 +21,14 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         self.setupUi(self)
         
 ##    self.btnOk.setEnabled(False)
-        self.btnConnect.setEnabled(True)
+#        self.btnConnect.setEnabled(True)
         settings = QSettings()
         settings.beginGroup("WPS-Bookmarks")
         self.bookmarks = settings.childGroups()
-
         self.initTreeWPSServices()
         
     def initTreeWPSServices(self):
+        self.treeWidget.clear()
         self.treeWidget.setColumnCount(self.treeWidget.columnCount())
         itemList = []
         for myBookmark in self.bookmarks:
@@ -41,7 +41,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
            service = scheme+"://"+server+path
            version = settings.value(mySettings+"/version").toString()
            identifier = settings.value(mySettings+"/identifier").toString()
-           self.myItem.setText(0, myBookmark)  
+           self.myItem.setText(0, server)  
            self.myItem.setText(1,identifier)  
            self.myItem.setText(2,service)
            itemList.append(self.myItem)
@@ -66,7 +66,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     
     @pyqtSignature("")
     def on_btnRemove_clicked(self):
-         pass
+         self.emit(SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.treeWidget.currentItem(),  self.treeWidget.currentColumn())    
     
     @pyqtSignature("")
     def on_btnBoxBookmarks_accepted(self):

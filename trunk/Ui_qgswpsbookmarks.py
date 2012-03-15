@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/qgswpsbookmarks.ui'
 #
-# Created: Thu Mar 15 21:00:09 2012
+# Created: Thu Mar 15 22:19:36 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -25,10 +25,6 @@ class Ui_Bookmarks(object):
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.btnConnect = QtGui.QPushButton(Bookmarks)
-        self.btnConnect.setText(QtGui.QApplication.translate("Bookmarks", "Connect", None, QtGui.QApplication.UnicodeUTF8))
-        self.btnConnect.setObjectName(_fromUtf8("btnConnect"))
-        self.horizontalLayout.addWidget(self.btnConnect)
         self.btnRemove = QtGui.QPushButton(Bookmarks)
         self.btnRemove.setText(QtGui.QApplication.translate("Bookmarks", "Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.btnRemove.setObjectName(_fromUtf8("btnRemove"))

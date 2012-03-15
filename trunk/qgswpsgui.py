@@ -35,11 +35,11 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   def __init__(self, parent, tools,  fl):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
-    
+    self.fl = fl
     self.tools = tools
     self.dlgAbout = DlgAbout(parent)
-    self.dlgBookmarks = Bookmarks(fl)
-    QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
+
+    
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -58,25 +58,17 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.btnDelete.setEnabled(True)
     return 1    
     
+  def removeBookmark(self,  item,  col):
+        settings = QSettings()
+        settings.beginGroup("WPS-Bookmarks")
+        settings.remove(item.text(0)+"-"+item.text(1))
+        settings.endGroup()
+#        self.dlgBookmarks.treeWidget.removeItemWidget(item,  col)
+        self.dlgBookmarks.initTreeWPSServices() 
+        
+        
   def getDescription(self,  name, item):
-        self.tools.getServiceXML(name,"DescribeProcess",item.text(1))    
-
-#  def addWPSBookmark(self):
-##        self.doc.setContent(self.processXML)
-#        settings = QSettings()    
-#        result = self.tools.getServer(self.dlg.selectedWPS)
-#        scheme = result["scheme"]
-#        path = result["path"]
-#        server = result["server"]
-#        mySettings = "/WPS-Bookmarks/"+self.dlg.selectedWPS
-###    settings.setValue("WPS/connections/selected", QVariant(name) )
-#        settings.setValue(mySettings+"/scheme",  QVariant(scheme))
-#        settings.setValue(mySettings+"/server",  QVariant(server))
-#        settings.setValue(mySettings+"/path", QVariant(path))
-#        settings.setValue(mySettings+"/method",QVariant("GET"))
-#        settings.setValue(mySettings+"/version",QVariant("1.0.0"))
-#        settings.setValue(mySettings+"/identifier", QVariant(self.processIdentifier))
-#        self.dlgBookmarks.initTreeWPSServices()
+        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
         
         
   def on_buttonBox_rejected(self):
@@ -106,6 +98,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
 
   @pyqtSignature("on_btnBookmarks_clicked()")       
   def on_btnBookmarks_clicked(self):    
+      self.dlgBookmarks = Bookmarks(self.fl)
+      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
+      QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)          
       self.dlgBookmarks.show()
 
   @pyqtSignature("on_btnNew_clicked()")       

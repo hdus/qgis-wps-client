@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project QGIS WPS-Plugn -->
-<!-- Saved: 2011-09-06, 17:18:12 -->
-<!-- Copyright (C) 2011 ,  -->
+<!-- Saved: 2012-03-15, 18:08:10 -->
+<!-- Copyright (C) 2012 ,  -->
 <Project version="4.6">
   <Language>en</Language>
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -32,6 +32,8 @@
     <Source>Ui_qgswpserrorgui.py</Source>
     <Source>Ui_QgsWpsAbout.py</Source>
     <Source>doAbout.py</Source>
+    <Source>Ui_qgswpsbookmarks.py</Source>
+    <Source>qgswpsbookmarks.py</Source>
   </Sources>
   <Forms>
     <Form>qgsnewhttpconnectionbase.ui</Form>
@@ -40,10 +42,17 @@
     <Form>QgsWpsDockWidget.ui</Form>
     <Form>qgswpserrorgui.ui</Form>
     <Form>QgsWpsAbout.ui</Form>
+    <Form>qgswpsbookmarks.ui</Form>
   </Forms>
   <Translations>
     <Translation>i18n/wps_de.qm</Translation>
     <Translation>i18n/wps_de.ts</Translation>
+    <Translation>i18n/wps_fr.qm</Translation>
+    <Translation>i18n/wps_fr.ts</Translation>
+    <Translation>i18n/wps_ru.qm</Translation>
+    <Translation>i18n/wps_ru.ts</Translation>
+    <Translation>i18n/wps_it.ts</Translation>
+    <Translation>i18n/wps_it.qm</Translation>
   </Translations>
   <Resources>
     <Resource>resources.qrc</Resource>
