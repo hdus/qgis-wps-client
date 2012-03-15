@@ -29,7 +29,7 @@ def version():
   return "0.7.10"
 
 def qgisMinimumVersion():
-  return "1.4"  
+  return "1.5"  
 
 def authorName():
   return "Dr. Horst Düster"
