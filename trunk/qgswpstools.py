@@ -297,16 +297,13 @@ class QgsWpsTools(QObject):
     if processSelection and vLayer.selectedFeatureCount() > 0:
       processSelected = True
 
-    dso = QStringList()
-    lco = QStringList("FORMAT=GML3")
-
-    lco.append("FORMAT=GML3")
-    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
-
+    dsco = QStringList()
+    lco = QStringList("-dlco FORMAT=GML3")
+#    lco = QStringList()
+    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dsco,  lco)
     if error != QgsVectorFileWriter.NoError:
         QMessageBox.information(None, 'Error',  'Process stopped with errors')
     else:
-
         myQTempFile.close()
         myFile = QFile(tmpFile)
         if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
@@ -319,10 +316,11 @@ class QgsWpsTools(QObject):
     # Overread the first Line of GML Result    
         dummy = myGML.readLine()
         gmlString += myGML.readAll()
+        print gmlString
         myFile.close()
         myFilePath = QFileInfo(myFile).dir().path()
         myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
-    
+        QMessageBox.information(None, '', gmlString.simplified())
         QFile(myFileInfo+'.xsd').remove()
         QFile(myFileInfo+'.gml').remove()
     return gmlString.simplified()
