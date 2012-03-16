@@ -642,8 +642,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         btnBookmark = QPushButton(groupBox)
         btnBookmark.setText(QApplication.translate("QgsWps", "Add Bookmark"))
-        btnBookmark.setMinimumWidth(150)
-        btnBookmark.setMaximumWidth(150)        
+        btnBookmark.setMinimumWidth(200)
+        btnBookmark.setMaximumWidth(200)        
     
         layout.addWidget(btnBookmark)
         layout.addStretch(10)
