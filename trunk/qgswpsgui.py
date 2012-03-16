@@ -63,7 +63,6 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
         settings.beginGroup("WPS-Bookmarks")
         settings.remove(item.text(0)+"-"+item.text(1))
         settings.endGroup()
-#        self.dlgBookmarks.treeWidget.removeItemWidget(item,  col)
         self.dlgBookmarks.initTreeWPSServices() 
         
         

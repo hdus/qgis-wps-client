@@ -141,9 +141,6 @@ class QgsWpsTools(QObject):
       theReply = self.theHttp.get(QNetworkRequest(url))      
       self.theHttp.finished.connect(self.capabilitiesRequestFinished)
 
-#    self.httpRequestAborted = False
-#    QObject.connect(self.btnKill, SIGNAL("clicked()"), lambda  myHttp=theHttp: self.abortProcess(myHttp)) 
-
 
   def capabilitiesRequestFinished(self,  reply):
        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
