@@ -51,7 +51,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
 
     @pyqtSignature("QTreeWidgetItem*, int")
     def on_treeWidget_itemDoubleClicked(self, item, column):
-        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), item.text(0),  item)
+        self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), item)
         self.close()
 
     @pyqtSignature("")
@@ -70,7 +70,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     
     @pyqtSignature("")
     def on_btnBoxBookmarks_accepted(self):
-        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.myItem.text(0),  self.myItem)
+        self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.myItem)
 
     
     @pyqtSignature("")

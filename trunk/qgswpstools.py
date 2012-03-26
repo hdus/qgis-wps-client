@@ -108,6 +108,33 @@ class QgsWpsTools(QObject):
     result["version"] = settings.value(mySettings+"/version").toString()
     return result    
 
+
+  # Gets Server and Connection Info from Stored Server Connections
+  # Param: String ConnectionName
+  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
+  def getBookmarkXML(self, name):
+    settings = QSettings()
+    mySettings = "/WPS-Bookmarks/"+name
+    scheme = settings.value(mySettings+"/scheme").toString()
+    server = settings.value(mySettings+"/server").toString()
+    path = settings.value(mySettings+"/path").toString()
+    identifier = settings.value(mySettings+"/identifier").toString()
+    version = settings.value(mySettings+"/version").toString()    
+    requestFinished = False
+    self.theHttp = QgsNetworkAccessManager.instance()     
+
+    try:
+      self.theHttp.finished.disconnect()       
+    except:
+      pass
+
+    url = QUrl()        
+    myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version="+version
+    url.setUrl(scheme+"://"+server+path+myRequest)
+    theReply = self.theHttp.get(QNetworkRequest(url))                        
+    self.theHttp.finished.connect(self.serviceRequestFinished)      
+      
+      
   ##############################################################################
 
   # Gets Server and Connection Info from Stored Server Connections

@@ -38,7 +38,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.fl = fl
     self.tools = tools
     self.dlgAbout = DlgAbout(parent)
-
+    self.dlgBookmarks = Bookmarks(self.fl)
     
    
   def initQgsWpsGui(self):    
@@ -49,7 +49,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     connections = settings.childGroups()
     self.cmbConnections.clear()
     self.cmbConnections.addItems(connections)
-    
+    QObject.connect(self.dlgBookmarks,  SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)
     self.treeWidget.clear()
         
     if self.cmbConnections.size() > 0:
@@ -68,7 +68,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
         
   def getDescription(self,  name, item):
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
-        
+    
+  def getBookmark(self, item):
+        self.tools.getBookmarkXML(item.text(0))        
         
   def on_buttonBox_rejected(self):
     self.close()
@@ -97,7 +99,6 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
 
   @pyqtSignature("on_btnBookmarks_clicked()")       
   def on_btnBookmarks_clicked(self):    
-      self.dlgBookmarks = Bookmarks(self.fl)
       QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
       QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)          
       self.dlgBookmarks.show()

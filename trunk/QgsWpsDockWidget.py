@@ -76,7 +76,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 #        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)
         
     def getDescription(self,  name, item):
-        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
+        self.tools.getServiceXML(name,"DescribeProcess",item.text(0)) 
+        
+    def getBookmarkDescription(self,  item):
+        self.tools.getBookmarkXML(item.text(0))            
         
     def setUpload(self,  bool):
         self.status = 'Upload'
