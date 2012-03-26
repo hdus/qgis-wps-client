@@ -37,9 +37,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.setupUi(self)
     self.fl = fl
     self.tools = tools
-    self.dlgAbout = DlgAbout(parent)
-    self.dlgBookmarks = Bookmarks(self.fl)
-    
+    self.dlgAbout = DlgAbout(parent)    
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -49,7 +47,6 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     connections = settings.childGroups()
     self.cmbConnections.clear()
     self.cmbConnections.addItems(connections)
-    QObject.connect(self.dlgBookmarks,  SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)
     self.treeWidget.clear()
         
     if self.cmbConnections.size() > 0:
@@ -57,20 +54,14 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.btnEdit.setEnabled(True)
       self.btnDelete.setEnabled(True)
     return 1    
-    
-  def removeBookmark(self,  item,  col):
-        settings = QSettings()
-        settings.beginGroup("WPS-Bookmarks")
-        settings.remove(item.text(0)+"-"+item.text(1))
-        settings.endGroup()
-        self.dlgBookmarks.initTreeWPSServices() 
         
         
   def getDescription(self,  name, item):
+        QMessageBox.information(None, '', name)
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
     
   def getBookmark(self, item):
-        self.tools.getBookmarkXML(item.text(0))        
+        self.tools.getServiceXML(item.text(0),"DescribeProcess",item.text(1))    
         
   def on_buttonBox_rejected(self):
     self.close()
@@ -99,8 +90,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
 
   @pyqtSignature("on_btnBookmarks_clicked()")       
   def on_btnBookmarks_clicked(self):    
-      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-      QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)          
+#      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
+#      QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)        
+      self.dlgBookmarks = Bookmarks(self.fl)
+      QObject.connect(self.dlgBookmarks,  SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)      
       self.dlgBookmarks.show()
 
   @pyqtSignature("on_btnNew_clicked()")       

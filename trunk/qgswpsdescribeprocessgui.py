@@ -30,4 +30,8 @@ class QgsWpsDescribeProcessGui(QDialog, QObject, Ui_QgsWpsDescribeProcessGUI):
   def __init__(self, parent, fl):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
-
+    self.selectedServiceName = parent.cmbConnections.currentText()
+    
+    
+  def currentServiceName(self):
+      return self.selectedServiceName 

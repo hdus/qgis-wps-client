@@ -20,8 +20,6 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         QDialog.__init__(self, parent,  fl)
         self.setupUi(self)
         
-##    self.btnOk.setEnabled(False)
-#        self.btnConnect.setEnabled(True)
         self.initTreeWPSServices()
         
     def initTreeWPSServices(self):
@@ -31,20 +29,27 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         self.treeWidget.clear()
         self.treeWidget.setColumnCount(self.treeWidget.columnCount())
         itemList = []
+        
+        self.btnOK.setEnabled(False)
+                
         for myBookmark in bookmarks:
            settings = QSettings()
            self.myItem = QTreeWidgetItem()
+           
            mySettings = "/WPS-Bookmarks/"+myBookmark
            scheme = settings.value(mySettings+"/scheme").toString()
            server = settings.value(mySettings+"/server").toString()
            path = settings.value(mySettings+"/path").toString()
-           service = scheme+"://"+server+path
+           myBookmarkArray = myBookmark.split("@@")
+           service = myBookmarkArray[0]
            version = settings.value(mySettings+"/version").toString()
            identifier = settings.value(mySettings+"/identifier").toString()
-           self.myItem.setText(0, server)  
+           self.myItem.setText(0, service)  
            self.myItem.setText(1,identifier)  
-           self.myItem.setText(2,service)
+           self.myItem.setText(2,server)
            itemList.append(self.myItem)
+           self.btnOK.setEnabled(True)
+           
     
         self.treeWidget.addTopLevelItems(itemList)        
 
@@ -66,13 +71,20 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     
     @pyqtSignature("")
     def on_btnRemove_clicked(self):
-         self.emit(SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.treeWidget.currentItem(),  self.treeWidget.currentColumn())    
-    
+        self.removeBookmark(self.treeWidget.currentItem())
+       
     @pyqtSignature("")
-    def on_btnBoxBookmarks_accepted(self):
+    def on_btnOK_clicked(self):
         self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.myItem)
 
     
     @pyqtSignature("")
-    def on_btnBoxBookmarks_rejected(self):
+    def on_btnClose_clicked(self):
          self.close()
+         
+    def removeBookmark(self,  item):
+        settings = QSettings()
+        settings.beginGroup("WPS-Bookmarks")
+        settings.remove(item.text(0))
+        settings.endGroup()
+        self.initTreeWPSServices()          

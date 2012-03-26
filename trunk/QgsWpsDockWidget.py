@@ -30,7 +30,6 @@ from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
-#from qgswpsbookmarks import Bookmarks
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 
@@ -73,12 +72,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
         QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-#        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.dlg.createCapabilitiesGUI)
+
         
     def getDescription(self,  name, item):
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0)) 
         
     def getBookmarkDescription(self,  item):
+        QMessageBox.information(None, '', item.text(0))
         self.tools.getBookmarkXML(item.text(0))            
         
     def setUpload(self,  bool):
@@ -662,12 +662,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     def saveBookmark(self):
         settings = QSettings()
-        mySettings = "/WPS-Bookmarks/"+self.processUrl.host()+"-"+self.processUrl.queryItemValue('identifier')
+        mySettings = "/WPS-Bookmarks/"+self.dlgProcess.currentServiceName()+"@@"+self.processUrl.queryItemValue('identifier')
         settings.setValue(mySettings+"/scheme", self.processUrl.scheme())
         settings.setValue(mySettings+"/server", self.processUrl.host())
         settings.setValue(mySettings+"/path",  self.processUrl.path())
         settings.setValue(mySettings+"/version", self.processUrl.queryItemValue('version'))
         settings.setValue(mySettings+"/identifier",  self.processUrl.queryItemValue('identifier'))
+        QMessageBox.information(None, QCoreApplication.translate("QgsWps","Bookmark"), QCoreApplication.translate("QgsWps","The creation bookmark was successful."))
         
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
