@@ -37,7 +37,6 @@ class QgsWps:
   def __init__(self, iface):
     # Save reference to the QGIS interface
     self.iface = iface  
-    self.minimumRevision = 12026
     self.localePath = ""
     
     #Initialise the translation environment    
