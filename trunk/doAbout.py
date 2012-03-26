@@ -36,8 +36,8 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         self.tabWidget.setCurrentIndex( 0 )
     
         # setup labels
-        ver = '0.7.10'
-        dt = "2012-03-15"
+        ver = '0.8.0'
+        dt = "2012-03-26"
         self.lblVersion.setText( self.tr( "Version: %1" ).arg( ver ) )
         self.lblDate.setText( self.tr( "Date: %1" ).arg( dt ) )
     
