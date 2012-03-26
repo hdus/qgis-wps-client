@@ -33,6 +33,9 @@ def qgisMinimumVersion():
 
 def authorName():
   return "Dr. Horst Düster"
+  
+def icon():
+	return "images/wps-add.png"   
 
 def homepage():
   return "http://www.kappasys.ch"
