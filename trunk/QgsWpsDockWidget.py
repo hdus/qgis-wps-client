@@ -433,7 +433,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         scheme = self.processUrl.scheme()
         path = self.processUrl.path()
         server = self.processUrl.host()
-    
+        port = self.processUrl.port()
+            
         checkBoxes = self.dlgProcess.findChildren(QCheckBox)
     
         if len(checkBoxes) > 0:
@@ -611,12 +612,15 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.postData.append(postString) 
         
         wpsConnection = scheme+'://'+server+path
+            
         self.thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
+        url.setPort(port)
         try:
             self.thePostHttp.finished.disconnect()    
         except:
             pass
+            
             
         self.thePostHttp.finished.connect(self.resultHandler)                  
         self.request = QNetworkRequest(url)
@@ -675,7 +679,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
            map layers to the regestry or open an information window to show literal
            outputs."""
         resultXML = reply.readAll().data()
-        
 # This is for debug purpose only
         if DEBUG == True:
 #            self.tools.popUpMessageBox("Result XML", resultXML)
