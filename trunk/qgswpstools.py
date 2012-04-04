@@ -103,6 +103,7 @@ class QgsWpsTools(QObject):
     result = {}
     result["scheme"] = settings.value(mySettings+"/scheme").toString()
     result["server"] = settings.value(mySettings+"/server").toString()
+    result["port"] =  settings.value(mySettings+"/port")
     result["path"] = settings.value(mySettings+"/path").toString()
     result["method"] = settings.value(mySettings+"/method").toString()
     result["version"] = settings.value(mySettings+"/version").toString()
@@ -118,6 +119,7 @@ class QgsWpsTools(QObject):
     scheme = settings.value(mySettings+"/scheme").toString()
     server = settings.value(mySettings+"/server").toString()
     path = settings.value(mySettings+"/path").toString()
+    port =  settings.value(mySettings+"/port")
     identifier = settings.value(mySettings+"/identifier").toString()
     version = settings.value(mySettings+"/version").toString()    
     requestFinished = False
@@ -131,6 +133,7 @@ class QgsWpsTools(QObject):
     url = QUrl()        
     myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version="+version
     url.setUrl(scheme+"://"+server+path+myRequest)
+    url.setPort(port)
     theReply = self.theHttp.get(QNetworkRequest(url))                        
     self.theHttp.finished.connect(self.serviceRequestFinished)      
       

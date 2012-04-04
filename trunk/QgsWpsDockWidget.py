@@ -670,6 +670,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         settings.setValue(mySettings+"/scheme", self.processUrl.scheme())
         settings.setValue(mySettings+"/server", self.processUrl.host())
         settings.setValue(mySettings+"/path",  self.processUrl.path())
+        settings.setValue(mySettings+"/port",  self.processUrl.port())
         settings.setValue(mySettings+"/version", self.processUrl.queryItemValue('version'))
         settings.setValue(mySettings+"/identifier",  self.processUrl.queryItemValue('identifier'))
         QMessageBox.information(None, QCoreApplication.translate("QgsWps","Bookmark"), QCoreApplication.translate("QgsWps","The creation bookmark was successful."))
@@ -735,7 +736,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               self.setStatusLabel('error')
               self.progressBar.setMinimum(0)
               self.progressBar.setMaximum(100)        
-              QMessageBox.information(None, 'Result Handler', resultXML)    
+#              QMessageBox.information(None, 'Result Handler', resultXML)    
               return self.errorHandler(resultXML)
         return True
         
