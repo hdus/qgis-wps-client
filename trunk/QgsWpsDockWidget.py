@@ -226,10 +226,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         # If no Input Data  are requested
         if DataInputs.size()==0:
-#          self.defineProcess()
+          self.defineProcess()
           return 0
       
         # Generate the input GUI buttons and widgets
+        
         self.generateProcessInputsGUI(DataInputs)
         # Generate the editable outpt widgets, you can set the output to none if it is not requested
         self.generateProcessOutputsGUI(DataOutputs)
@@ -436,10 +437,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         port = self.processUrl.port()
             
         checkBoxes = self.dlgProcess.findChildren(QCheckBox)
-    
         if len(checkBoxes) > 0:
           useSelected = checkBoxes[0].isChecked()
-    
+
         postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion(self.doc) + "\"" + \
                        " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
@@ -451,114 +451,113 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                        
         postString += "<ows:Identifier>"+self.processIdentifier+"</ows:Identifier>\n"
         postString += "<wps:DataInputs>"
-    
-        # text/plain inputs ########################################################
-        for textBox in self.complexInputTextBoxList:
-          # Do not add undefined inputs
-          if textBox == None or str(textBox.document().toPlainText()) == "":
-            continue
-    
-          postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
-          postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
-          postString += self.tools.xmlExecuteRequestInputEnd()
-    
-    
-        # Single raster and vector inputs ##########################################
-        for comboBox in self.complexInputComboBoxList:
-          # Do not add undefined inputs
-          if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
-            continue
-               
-          postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
-    
-          # TODO: Check for more types
-          self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
-          schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
-          encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
-          self.myLayer = self.tools.getVLayer(comboBox.currentText())
-#          QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
-          
-          try:
-              if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-                postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-                postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
-                postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
-              elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-                postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                postString += self.tools.createTmpBase64(comboBox.currentText())
-          except:
-              QApplication.restoreOverrideCursor()
-              QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
-              return
-             
-          postString += "</wps:ComplexData>\n"
-          postString += self.tools.xmlExecuteRequestInputEnd()
-    
-        # Multiple raster and vector inputs ########################################
-        for listWidgets in self.complexInputListWidgetList:
-          # Do not add undefined inputs
-          if listWidgets == None:
-            continue
-            
-          self.mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
-          schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
-          encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
-          
-          # Iterate over each seletced item
-          for i in range(listWidgets.count()):
-            listWidget = listWidgets.item(i)
-            if listWidget == None or listWidget.isSelected() == False or str(listWidget.text()) == "<None>":
-              continue
+        if dataInputs.size() > 0:
+            # text/plain inputs ########################################################
+            for textBox in self.complexInputTextBoxList:
+              # Do not add undefined inputs
+              if textBox == None or str(textBox.document().toPlainText()) == "":
+                continue
+        
+              postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
+              postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
+              postString += self.tools.xmlExecuteRequestInputEnd()
+        
+        
+            # Single raster and vector inputs ##########################################
+            for comboBox in self.complexInputComboBoxList:
+              # Do not add undefined inputs
+              if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
+                continue
+                   
+              postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
+        
+              # TODO: Check for more types
+              self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
+              schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
+              encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
+              self.myLayer = self.tools.getVLayer(comboBox.currentText())
               
-            postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
-    
-            # TODO: Check for more types
-            if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-              postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-    #          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
-              postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
-            elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-              postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-              postString += self.tools.createTmpBase64(listWidget.text())
-    
-            postString += "</wps:ComplexData>\n"
-            postString += self.tools.xmlExecuteRequestInputEnd()
-    
-        # Literal data as combo box choice #########################################
-        for comboBox in self.literalInputComboBoxList:
-          if comboBox == None or comboBox.currentText() == "":
-              continue
-    
-          postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
-          postString += "<wps:LiteralData>"+comboBox.currentText()+"</wps:LiteralData>\n"
-          postString += self.tools.xmlExecuteRequestInputEnd()
-    
-       # Literal data as combo box choice #########################################
-        for lineEdit in self.literalInputLineEditList:
-          if lineEdit == None or lineEdit.text() == "":
-              continue
-    
-          postString += self.tools.xmlExecuteRequestInputStart(lineEdit.objectName())
-          postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
-          postString += self.tools.xmlExecuteRequestInputEnd()
+              try:
+                  if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
+                    postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
+                    postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
+                    postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
+                  elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+                    postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
+                    postString += self.tools.createTmpBase64(comboBox.currentText())
+              except:
+                  QApplication.restoreOverrideCursor()
+                  QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
+                  return
+                 
+              postString += "</wps:ComplexData>\n"
+              postString += self.tools.xmlExecuteRequestInputEnd()
         
-       # BBOX data as lineEdit #########################################
-        for bbox in self.bboxInputLineEditList:
-          if bbox == None or bbox.text() == "":
-              continue
-    
-          bboxArray = bbox.text().split(',')
-          
-          postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
-          postString += '<wps:BoundingBoxData ows:dimensions="2">'
-          postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
-          postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
-          postString += "</wps:BoundingBoxData>\n"
-          postString += self.tools.xmlExecuteRequestInputEnd()
+            # Multiple raster and vector inputs ########################################
+            for listWidgets in self.complexInputListWidgetList:
+              # Do not add undefined inputs
+              if listWidgets == None:
+                continue
+                
+              self.mimeType = self.inputDataTypeList[listWidgets.objectName()]["MimeType"]
+              schema = self.inputDataTypeList[listWidgets.objectName()]["Schema"]
+              encoding = self.inputDataTypeList[listWidgets.objectName()]["Encoding"]
+              
+              # Iterate over each seletced item
+              for i in range(listWidgets.count()):
+                listWidget = listWidgets.item(i)
+                if listWidget == None or listWidget.isSelected() == False or str(listWidget.text()) == "<None>":
+                  continue
+                  
+                postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
         
+                # TODO: Check for more types
+                if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
+                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
+        #          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
+                  postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
+                elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
+                  postString += self.tools.createTmpBase64(listWidget.text())
         
-
+                postString += "</wps:ComplexData>\n"
+                postString += self.tools.xmlExecuteRequestInputEnd()
+        
+            # Literal data as combo box choice #########################################
+            for comboBox in self.literalInputComboBoxList:
+              if comboBox == None or comboBox.currentText() == "":
+                  continue
+        
+              postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
+              postString += "<wps:LiteralData>"+comboBox.currentText()+"</wps:LiteralData>\n"
+              postString += self.tools.xmlExecuteRequestInputEnd()
+        
+           # Literal data as combo box choice #########################################
+            for lineEdit in self.literalInputLineEditList:
+              if lineEdit == None or lineEdit.text() == "":
+                  continue
+        
+              postString += self.tools.xmlExecuteRequestInputStart(lineEdit.objectName())
+              postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
+              postString += self.tools.xmlExecuteRequestInputEnd()
+            
+           # BBOX data as lineEdit #########################################
+            for bbox in self.bboxInputLineEditList:
+              if bbox == None or bbox.text() == "":
+                  continue
+        
+              bboxArray = bbox.text().split(',')
+              
+              postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
+              postString += '<wps:BoundingBoxData ows:dimensions="2">'
+              postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
+              postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
+              postString += "</wps:BoundingBoxData>\n"
+              postString += self.tools.xmlExecuteRequestInputEnd()
+            
+            
         postString += "</wps:DataInputs>\n"
+        
         
         # Attach only defined outputs
         if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
@@ -597,7 +596,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           postString  += "</wps:ResponseForm>\n"
           
         postString += "</wps:Execute>"
-            
+
+
         # This is for debug purpose only
         if DEBUG == True:
 #            self.tools.popUpMessageBox("Execute request", postString)
@@ -626,7 +626,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.request = QNetworkRequest(url)
         self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" );        
         self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
-        QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+        
+        if dataInputs.size() > 0:
+          QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
 
 
