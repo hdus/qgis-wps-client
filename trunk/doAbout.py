@@ -50,9 +50,14 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString.append( "Eugeniy Nikulin<br>" )
         contribString.append( "Marco Hugentobler<br>" )
         contribString.append( "Luca Delucchi<br>" )
+        contribString.append( "Germán Carrillo<br>" )
         contribString.append( "Alexander Bruy (About GUI) <br>" )
         contribString.append("Robert Szczepanek (Icon) <br><br>")
         contribString.append( "<b>and special thanks to the QGIS team</b></p>" )
+        
+        sponsorString = QString( "<p><center><b>The following people or institutions funded QgsWPS:</b></center></p><br<br>" )
+        sponsorString.append("Kanton Solothurn<br><br>")        
+        sponsorString.append("Provincia di Terni - Ufficio Cave, Difesa del suolo, Protezione Civile e SIT <br>with the collaboration of Studio Associato GfosServices  <br>")
     
         licenseString = QString("LICENSING INFORMATION:\n\n")
         licenseString.append("QgsWPS Plugin is copyright (C) 2009 Dr. Horst Duester\n\n")
@@ -76,6 +81,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         # write texts
         self.memAbout.setText( self.tr(aboutString ))
         self.memContrib.setText( self.tr(contribString ))
+        self.memSponsoring.setText(self.tr(sponsorString))
         self.memAcknowl.setText( self.tr(licenseString ))
     
     
