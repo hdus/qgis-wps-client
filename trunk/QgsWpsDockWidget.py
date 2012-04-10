@@ -481,7 +481,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
                     postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
                     postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
-                    postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ gml.xsd\"")
+                    postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ http://schemas.opengis.net/gml/3.1.1/base/gml.xsd\"")
                   elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                     postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                     postString += self.tools.createTmpBase64(comboBox.currentText())
@@ -563,7 +563,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
           postString += "<wps:ResponseForm>\n"
           # The server should store the result. No lineage should be returned or status
-          postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"true\" status=\"false\">\n"
+          postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"false\" status=\"false\">\n"
     
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
@@ -817,6 +817,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
         myQTempFile.close()
 
+       # Check if there is redirection 
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
+        if not reDir.isEmpty():
+           self.fetchResult(reDir)
+           return
      #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
      #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
         
