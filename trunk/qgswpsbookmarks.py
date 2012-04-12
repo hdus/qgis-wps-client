@@ -40,6 +40,8 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
            scheme = settings.value(mySettings+"/scheme").toString()
            server = settings.value(mySettings+"/server").toString()
            path = settings.value(mySettings+"/path").toString()
+           port = settings.value(mySettings+"/port").toString()
+
            myBookmarkArray = myBookmark.split("@@")
            service = myBookmarkArray[0]
            version = settings.value(mySettings+"/version").toString()
@@ -83,8 +85,9 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
          self.close()
          
     def removeBookmark(self,  item):
+        QMessageBox.information(None, '', item.text(0)+'@@'+item.text(1))
         settings = QSettings()
         settings.beginGroup("WPS-Bookmarks")
-        settings.remove(item.text(0))
+        settings.remove(item.text(0)+'@@'+item.text(1))
         settings.endGroup()
         self.initTreeWPSServices()          
