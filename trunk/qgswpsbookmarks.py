@@ -85,7 +85,6 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
          self.close()
          
     def removeBookmark(self,  item):
-        QMessageBox.information(None, '', item.text(0)+'@@'+item.text(1))
         settings = QSettings()
         settings.beginGroup("WPS-Bookmarks")
         settings.remove(item.text(0)+'@@'+item.text(1))
