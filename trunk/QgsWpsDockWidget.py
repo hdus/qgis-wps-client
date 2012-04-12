@@ -107,8 +107,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       return
       
     def setStatusLabel(self,  status,  myBool=None):
-        groupBox = QGroupBox(self.groupBox)
-        layout = QHBoxLayout()
+#        groupBox = QGroupBox(self.groupBox)
+#        layout = QHBoxLayout()
         if status == 'upload':
             self.btnConnect.setEnabled(False)      
             self.btnKill.setEnabled(False)
@@ -135,10 +135,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         try:
           self.lblProcess.setText(QString(self.processIdentifier+text))          
         except:
-          self.lblProcess = QLabel(groupBox)        
           self.lblProcess.setText(QString(self.processIdentifier+text))
-          layout.addWidget(self.lblProcess)        
-          self.groupBox.setLayout(layout)
+
 
         return
     
@@ -812,6 +810,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         
     def getResultFile(self,  reply):
+
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
         tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
@@ -822,9 +821,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if not reDir.isEmpty():
            self.fetchResult(reDir)
            return
-     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
-     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
-        
+
+        QObject.connect(reply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
         self.outFile = QFile(tmpFile)
         self.outFile.open(QIODevice.WriteOnly)
         self.outFile.write(reply.readAll())
