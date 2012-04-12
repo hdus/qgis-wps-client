@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>285</width>
+    <width>358</width>
     <height>190</height>
    </rect>
   </property>
@@ -74,21 +74,18 @@
      </layout>
     </item>
     <item row="1" column="0">
-     <widget class="QGroupBox" name="groupBox">
+     <widget class="QLabel" name="lblProcess">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>0</horstretch>
-        <verstretch>30</verstretch>
+        <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="font">
-       <font>
-        <family>Sans Serif</family>
-        <pointsize>10</pointsize>
-       </font>
-      </property>
-      <property name="title">
+      <property name="text">
        <string/>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
       </property>
      </widget>
     </item>
