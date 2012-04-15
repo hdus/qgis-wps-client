@@ -33,6 +33,19 @@ from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 
+import os, sys
+import inspect
+try:
+    from sextante.core.Sextante import Sextante
+    from WpsAlgorithmProvider import WpsAlgorithmProvider
+    SEXTANTE=True
+except:
+    SEXTANTE=False
+   
+cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
+if cmd_folder not in sys.path:
+    sys.path.insert(0, cmd_folder)   
+
 import resources_rc,  string
 
 DEBUG = False
@@ -79,7 +92,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     def getBookmarkDescription(self,  item):
         QMessageBox.information(None, '', item.text(0))
-        self.tools.getBookmarkXML(item.text(0))            
+        self.tools.getBookmarkXML(item.text(0))           
+
         
     def setUpload(self,  bool):
         self.status = 'Upload'
@@ -107,8 +121,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       return
       
     def setStatusLabel(self,  status,  myBool=None):
-#        groupBox = QGroupBox(self.groupBox)
-#        layout = QHBoxLayout()
         if status == 'upload':
             self.btnConnect.setEnabled(False)      
             self.btnKill.setEnabled(False)
@@ -163,20 +175,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def closeDialog(self):
       self.close()
          
+    def createProcess(self,  reply):
+        self.processUrl = reply.url()
+       # Receive the XML process description
+        self.processXML = reply.readAll().data()
+        self.doc.setContent(self.processXML,  True)
+        ProcessDescription = self.doc.elementsByTagName("ProcessDescription")
+        self.processIdentifier = ProcessDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+        self.processName = ProcessDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
 
+# Create the complex inputs at first
+        DataInputs = self.doc.elementsByTagName("Input")
+        DataOutputs = self.doc.elementsByTagName("Output")       
+        
+        return DataInputs,  DataOutputs
+       
+         
     def createProcessGUI(self,reply):
         """Create the GUI for a selected WPS process based on the DescribeProcess
            response document. Mandatory inputs are marked as red, default is black"""
            
         self.processUrl = reply.url()
-           
-#        QMessageBox.information(None, '', item.text(0))           
-#        try:
-#          self.processIdentifier = item.text(0)
-#        except:
-#          QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
-#          return 0
-    
+#
         # Lists which store the inputs and meta information (format, occurs, ...)
         # This list is initialized every time the GUI is created
         self.complexInputComboBoxList = [] # complex input for single raster and vector maps
@@ -192,6 +212,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outputDataTypeList = {}
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
+        
+        
         # Receive the XML process description
         self.processXML = reply.readAll().data()
         self.doc.setContent(self.processXML,  True)
@@ -253,6 +275,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         self.dlgProcess.show()
         
+    def generateProcessInputs(self,  DataInputs):
+        
+        pass
+        
+        
+
     def generateProcessInputsGUI(self, DataInputs):
         """Generate the GUI for all Inputs defined in the process description XML file"""
     

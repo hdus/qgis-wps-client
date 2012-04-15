@@ -52,25 +52,14 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
            itemList.append(self.myItem)
            self.btnOK.setEnabled(True)
            
-    
         self.treeWidget.addTopLevelItems(itemList)        
-
-
+        
+        
     @pyqtSignature("QTreeWidgetItem*, int")
     def on_treeWidget_itemDoubleClicked(self, item, column):
         self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), item)
         self.close()
-
-    @pyqtSignature("")
-    def on_btnConnect_clicked(self):
-#        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.myItem.text(0),  self.myItem)
-        self.close()
-
-    
-    @pyqtSignature("")
-    def on_btnEdit_clicked(self):
-         pass
-    
+        
     @pyqtSignature("")
     def on_btnRemove_clicked(self):
         self.removeBookmark(self.treeWidget.currentItem())
@@ -78,8 +67,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     @pyqtSignature("")
     def on_btnOK_clicked(self):
         self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.myItem)
-
-    
+        
     @pyqtSignature("")
     def on_btnClose_clicked(self):
          self.close()

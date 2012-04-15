@@ -1,10 +1,13 @@
 from sextante.core.GeoAlgorithm import GeoAlgorithm
-from sextante.outputs.OutputVector import OutputVector
-from sextante.parameters.ParameterVector import ParameterVector
-from sextante.core.Sextante import Sextante
+from sextante.core.SextanteLog import SextanteLog
+from sextante.outputs.OutputFactory import OutputFactory
+from sextante.parameters.ParameterFactory import ParameterFactory
+import time,  inspect
+
 from qgis.core import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from qgswpstools import *
 
 
 class WpsAlgorithm(GeoAlgorithm):
@@ -24,41 +27,31 @@ class WpsAlgorithm(GeoAlgorithm):
     OUTPUT_LAYER = "OUTPUT_LAYER"
     INPUT_LAYER = "INPUT_LAYER"
 
-    def defineCharacteristics(self):
-        '''Here we define the inputs and output of the algorithm, along
-        with some other properties'''
-
-        #the name that the user will see in the toolbox
-        self.name = "Processes"
-
-        #the branch of the toolbox under which the algorithm will appear
-        self.group = "Bookmarked Processes"
-
-        #we add the input vector layer. It can have any kind of geometry
-        #It is a mandatory (not optional) one, hence the False argument
-        self.addParameter(ParameterVector(self.INPUT_LAYER, "Input layer", ParameterVector.VECTOR_TYPE_ANY, False))        
-
-        # we add a vector layer as output
-        self.addOutput(OutputVector(self.OUTPUT_LAYER, "Output layer with selected features"))
-
-#    def defineCharacteristicsFromFile(self):
-#        lines = open(self.descriptionFile)
-#        line = lines.readline().strip("\n").strip()
-#        self.name = line
-#        line = lines.readline().strip("\n").strip()
-#        self.group = line
-#        while line != "":
-#            try:
-#                line = line.strip("\n").strip()
-#                if line.startswith("Parameter"):
-#                    self.addParameter(ParameterFactory.getFromString(line))
-#                else:
-#                    self.addOutput(OutputFactory.getFromString(line))
-#                line = lines.readline().strip("\n").strip()
-#            except Exception,e:
-#                SextanteLog.addToLog(SextanteLog.LOG_ERROR, "Could not open GRASS algorithm: " + self.descriptionFile + "\n" + line)
-#                raise e
-#        lines.close()
+    def __init__(self, descriptionfile):
+        GeoAlgorithm.__init__(self)
+#        QMessageBox.information(None, 'in alg',  descriptionfile)
+        self.descriptionFile = descriptionfile
+        self.defineCharacteristicsFromFile()
+        self.numExportedLayers = 0
+        
+    def defineCharacteristicsFromFile(self):
+        lines = open(self.descriptionFile)
+        line = lines.readline().strip("\n").strip()
+        self.name = line
+        line = lines.readline().strip("\n").strip()
+        self.group = line
+        while line != "":
+            try:
+                    line = line.strip("\n").strip()
+                    if line.startswith("Parameter"):
+                        self.addParameter(ParameterFactory.getFromString(line))
+                    else:
+                        self.addOutput(OutputFactory.getFromString(line))
+                    line = lines.readline().strip("\n").strip()
+            except Exception,e:
+                SextanteLog.addToLog(SextanteLog.LOG_ERROR, "Could not open WPS algorithm: " + self.descriptionFile + "\n" + line)
+                raise e
+        lines.close()
 
     def processAlgorithm(self, progress):
         '''Here is where the processing itself takes place'''

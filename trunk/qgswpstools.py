@@ -32,7 +32,7 @@ import resources_rc
 
 
 # All supported import raster formats
-RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
+RASTER_MIMETYPES = [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"IMAGE/PNG", "GDALID":"PNG"}, \
                            {"MIMETYPE":"IMAGE/GIF", "GDALID":"GIF"}, \
                            {"MIMETYPE":"IMAGE/JPEG", "GDALID":"JPEG"}, \
@@ -44,53 +44,24 @@ RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}, 
                            {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}]
 # All supported input vector formats [mime type, schema]
-VECTOR_MIMETYPES =        [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
+VECTOR_MIMETYPES = [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
                            {"MIMETYPE":"TEXT/XML", "SCHEMA":"GML3", "GDALID":"GML"}, \
                            {"MIMETYPE":"TEXT/XML", "SCHEMA":"KML", "GDALID":"KML"}, \
                            {"MIMETYPE":"APPLICATION/DGN", "SCHEMA":"", "GDALID":"DGN"}, \
-                           #{"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
-                           {"MIMETYPE":"APPLICATION/SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}]
+                           {"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
+                           {"MIMETYPE":"APPLICATION/X-OGC-BNA", "SCHEMA":"", "GDALID":"BNA"}]
 
 DEBUG = False
+
 
 # Our help class for the plugin
 class QgsWpsTools(QObject):
 
-  def __init__(self, iface,  dlg=None):
+  def __init__(self, iface=None,  dlg=None):
     QObject.__init__(self)
     self.iface = iface
     self.doc = QtXml.QDomDocument()
     self.dlg = dlg
-
-
-
-##############################################################################
-
-  def getProxy(self):
-      settings = QSettings()
-      mySettings = "/proxy"
-      result = {}
-      result["proxyEnabled"] = settings.value(mySettings+"/proxyEnabled").toString()
-      result["proxyHost"] = settings.value(mySettings+"/proxyHost").toString()
-      result["proxyPort"] = settings.value(mySettings+"/proxyPort").toString()
-      result["proxyUser"] = settings.value(mySettings+"/proxyUser").toString()
-      result["proxyPassword"] = settings.value(mySettings+"/proxyPassword").toString()
-      result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
-      result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
-
-      return result
-
-
-  ##############################################################################
-
-  def webConnectionExists(self, connection):
-    try:
-      xmlString = self.getServiceXML(connection,"GetCapabilities")
-      return True
-    except:
-      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
-      return False
-
 
   ##############################################################################
 
@@ -109,6 +80,29 @@ class QgsWpsTools(QObject):
     result["version"] = settings.value(mySettings+"/version").toString()
     return result    
 
+  # Gets Server and Connection Info from Stored Server Connections
+  # Param: String ConnectionName
+  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
+  def getBookmarkXmlUrl(self, name):
+    settings = QSettings()
+    mySettings = "/WPS-Bookmarks/"+name
+    scheme = settings.value(mySettings+"/scheme").toString()
+    server = settings.value(mySettings+"/server").toString()
+    path = settings.value(mySettings+"/path").toString()
+    port =  settings.value(mySettings+"/port")
+    identifier = settings.value(mySettings+"/identifier").toString()
+    version = settings.value(mySettings+"/version").toString()    
+
+    url = QUrl()        
+    myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version=1.0.0"
+    url.setUrl(scheme+"://"+server+path+myRequest)
+    
+    try:
+        url.setPort(port)
+    except:
+        pass
+        
+    return url 
 
   # Gets Server and Connection Info from Stored Server Connections
   # Param: String ConnectionName
@@ -174,7 +168,6 @@ class QgsWpsTools(QObject):
 
   def capabilitiesRequestFinished(self,  reply):
        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
-
 
   def serviceRequestFinished(self,  reply):
        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 

@@ -89,9 +89,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     QObject.connect(self.tools, SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
 
   @pyqtSignature("on_btnBookmarks_clicked()")       
-  def on_btnBookmarks_clicked(self):    
-#      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-#      QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)        
+  def on_btnBookmarks_clicked(self):       
       self.dlgBookmarks = Bookmarks(self.fl)
       QObject.connect(self.dlgBookmarks,  SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)      
       self.dlgBookmarks.show()
