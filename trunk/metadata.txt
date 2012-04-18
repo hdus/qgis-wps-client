@@ -6,12 +6,12 @@
 # This file should be included when you package your plugin.
 
 [general]
-name=SEXTANTE
-description=SEXTANTE for QGIS
-version=1.0.3
-qgisMinimumVersion=1.0
-class_name=SextantePlugin
-website=www.sextantegis.com
+name=WPS-Client
+description=Client for Web Processing Services
+version=0.9.0
+qgisMinimumVersion=1.5
+class_name=QgsWps
+website=www.kappasys.ch
 [author]
-name=Victor Olaya
-email=volayaf@gmail.com
+name=Dr. Horst Düster
+email=horst.duester@kappasys.ch
