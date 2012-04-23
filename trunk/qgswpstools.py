@@ -32,7 +32,7 @@ import resources_rc
 
 
 # All supported import raster formats
-RASTER_MIMETYPES = [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
+RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"IMAGE/PNG", "GDALID":"PNG"}, \
                            {"MIMETYPE":"IMAGE/GIF", "GDALID":"GIF"}, \
                            {"MIMETYPE":"IMAGE/JPEG", "GDALID":"JPEG"}, \
@@ -41,27 +41,58 @@ RASTER_MIMETYPES = [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
                            {"MIMETYPE":"APPLICATION/NETCDF", "GDALID":"netCDF"}, \
                            {"MIMETYPE":"APPLICATION/X-NETCDF", "GDALID":"netCDF"}, \
                            {"MIMETYPE":"APPLICATION/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}, 
-                           {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}]
+                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}, \
+                           {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}, \
+                           {"MIMETYPE":"APPLICATION/IMAGE-ASCII-GRASS", "GDALID":"GRASSASCIIGrid"}]
 # All supported input vector formats [mime type, schema]
-VECTOR_MIMETYPES = [{"MIMETYPE":"TEXT/XML", "SCHEMA":"GML", "GDALID":"GML"}, \
-                           {"MIMETYPE":"TEXT/XML", "SCHEMA":"GML3", "GDALID":"GML"}, \
-                           {"MIMETYPE":"TEXT/XML", "SCHEMA":"KML", "GDALID":"KML"}, \
-                           {"MIMETYPE":"APPLICATION/DGN", "SCHEMA":"", "GDALID":"DGN"}, \
-                           {"MIMETYPE":"APPLICATION/X-ZIPPED-SHP", "SCHEMA":"", "GDALID":"ESRI_Shapefile"}, \
-                           {"MIMETYPE":"APPLICATION/X-OGC-BNA", "SCHEMA":"", "GDALID":"BNA"}]
+VECTOR_MIMETYPES =        [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", "GDALID":"ESRI Shapefile", "DATATYPE":"SHP"}, \
+                           {"MIMETYPE":"application/vnd.google-earth.kml+xml", "SCHEMA":"KML", "GDALID":"KML", "DATATYPE":"KML"}, \
+                           {"MIMETYPE":"text/xml", "SCHEMA":"GML", "GDALID":"GML", "DATATYPE":"GML"}, \
+                           {"MIMETYPE":"text/xml; subtype=gml/2.", "SCHEMA":"GML2", "GDALID":"GML", "DATATYPE":"GML2"}, \
+                           {"MIMETYPE":"text/xml; subtype=gml/3.", "SCHEMA":"GML3", "GDALID":"GML", "DATATYPE":"GML3"}, \
+                           {"MIMETYPE":"application/json", "SCHEMA":"JSON", "GDALID":"GEOJSON", "DATATYPE":"JSON"}, \
+                           {"MIMETYPE":"application/geojson", "SCHEMA":"GEOJSON", "GDALID":"GEOJSON", "DATATYPE":"GEOJSON"}]
 
 DEBUG = False
-
 
 # Our help class for the plugin
 class QgsWpsTools(QObject):
 
-  def __init__(self, iface=None,  dlg=None):
+  def __init__(self, iface,  dlg=None):
     QObject.__init__(self)
     self.iface = iface
     self.doc = QtXml.QDomDocument()
     self.dlg = dlg
+
+
+
+##############################################################################
+
+  def getProxy(self):
+      settings = QSettings()
+      mySettings = "/proxy"
+      result = {}
+      result["proxyEnabled"] = settings.value(mySettings+"/proxyEnabled").toString()
+      result["proxyHost"] = settings.value(mySettings+"/proxyHost").toString()
+      result["proxyPort"] = settings.value(mySettings+"/proxyPort").toString()
+      result["proxyUser"] = settings.value(mySettings+"/proxyUser").toString()
+      result["proxyPassword"] = settings.value(mySettings+"/proxyPassword").toString()
+      result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
+      result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
+
+      return result
+
+
+  ##############################################################################
+
+  def webConnectionExists(self, connection):
+    try:
+      xmlString = self.getServiceXML(connection,"GetCapabilities")
+      return True
+    except:
+      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
+      return False
+
 
   ##############################################################################
 
@@ -80,29 +111,6 @@ class QgsWpsTools(QObject):
     result["version"] = settings.value(mySettings+"/version").toString()
     return result    
 
-  # Gets Server and Connection Info from Stored Server Connections
-  # Param: String ConnectionName
-  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
-  def getBookmarkXmlUrl(self, name):
-    settings = QSettings()
-    mySettings = "/WPS-Bookmarks/"+name
-    scheme = settings.value(mySettings+"/scheme").toString()
-    server = settings.value(mySettings+"/server").toString()
-    path = settings.value(mySettings+"/path").toString()
-    port =  settings.value(mySettings+"/port")
-    identifier = settings.value(mySettings+"/identifier").toString()
-    version = settings.value(mySettings+"/version").toString()    
-
-    url = QUrl()        
-    myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version=1.0.0"
-    url.setUrl(scheme+"://"+server+path+myRequest)
-    
-    try:
-        url.setPort(port)
-    except:
-        pass
-        
-    return url 
 
   # Gets Server and Connection Info from Stored Server Connections
   # Param: String ConnectionName
@@ -168,6 +176,7 @@ class QgsWpsTools(QObject):
 
   def capabilitiesRequestFinished(self,  reply):
        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
+
 
   def serviceRequestFinished(self,  reply):
        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
@@ -265,7 +274,7 @@ class QgsWpsTools(QObject):
 
   def createTmpBase64(self,  layer):
     try:
-        filename = tempfile.mktemp(prefix="base64")         
+        filename = tempfile.mktemp(prefix="base64")
         rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
         outfile = open(filename, 'w')
@@ -300,7 +309,10 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def createTmpGML(self, layer, processSelection="False"):
+  def createTmpGML(self, layer, processSelection="False", supportedGML="GML2"):
+    if supportedGML == "": # Neither GML, GML2 or GML3 are supported!
+      return 0
+      
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
     tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
@@ -317,7 +329,11 @@ class QgsWpsTools(QObject):
     if processSelection and vLayer.selectedFeatureCount() > 0:
       processSelected = True
 
-    dso = QStringList("FORMAT=GML3")
+    # FORMAT=GML3 only works with OGR >= 1.8.0, otherwise GML2 is always returned
+    if supportedGML == "GML3":
+      dso = QStringList("FORMAT=GML3") 
+    else: # "GML" or "GML2"
+      dso = QStringList() 
     lco = QStringList()
     error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
     if error != QgsVectorFileWriter.NoError:
@@ -588,7 +604,7 @@ class QgsWpsTools(QObject):
   def isMimeTypeVector(self, mimeType):
     """Check for vector input. Zipped shapefiles must be extracted"""
     for vectorType in VECTOR_MIMETYPES:
-        if mimeType.upper() == vectorType["MIMETYPE"]:
+        if vectorType["MIMETYPE"] in mimeType.lower():
           return vectorType["GDALID"]
     return None
 
@@ -606,7 +622,7 @@ class QgsWpsTools(QObject):
 
   def isMimeTypeFile(self, mimeType):
     """Check for file output"""
-    for fileType in FILE_MIMETYPES:
+    for fileType in FILE_MIMETYPES: # TODO define FILE_MIMETYPES, sometimes it yields errors
         if mimeType.upper() == fileType["MIMETYPE"]:
           return "ZIP"
     return None
@@ -720,7 +736,7 @@ class QgsWpsTools(QObject):
       listWidget.setMaximumHeight(120)
       listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-      myLabel = QLabel(self.dlgProcessScrollAreaWidget)
+      myLabel = QLabel(dlgProcessScrollAreaWidget)
       myLabel.setObjectName("qLabel"+name)
 
       if minOccurs > 0:
@@ -905,8 +921,33 @@ class QgsWpsTools(QObject):
 
     dlgProcessTab.addTab(textBox, "Documentation")
 
+  ##############################################################################
+
+  def getBaseMimeType(self, dataType):
+    # Return a base mimeType (might not be completed) from a data type (e.g.GML2)
+    for vectorType in VECTOR_MIMETYPES:
+      if vectorType["DATATYPE"] == dataType.upper():
+        return vectorType["MIMETYPE"]
+    return None
 
 
+  def getOGRVersion(self):
+    # Data conversion options might vary according to the OGR version
+    try:
+      import osgeo.gdal
+      return int(osgeo.gdal.VersionInfo())
+    except:
+      return 0 # If not accessible, assume it is 0
+
+
+  def isGML3SupportedByOGR(self):
+    # GDAL/OGR versions <= 1800 don't support the FORMAT=GML3 option
+    version = self.getOGRVersion()
+    if version < 1800: # OGR < 1.8.0
+       return False
+    else:
+       return True
+  
 ################################################################################
 ################################################################################
 ################################################################################
