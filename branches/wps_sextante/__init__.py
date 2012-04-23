@@ -23,7 +23,7 @@ def name():
   return "WPS-Client"
   
 def description():
-  return "Client for Web Processing Services"
+  return "Developement of WPS and SEXTANTE"
 
 def version():
   return "0.9.0"
