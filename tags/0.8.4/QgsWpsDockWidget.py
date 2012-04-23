@@ -60,7 +60,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.defaultServers = {'Kappasys WPS':'http://www.kappasys.ch/pywps/pywps.cgi', 
             'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
             'zoo project':'http://zoo-project.org/wps-foss4g2011/zoo_loader.cgi',
-            'zoo project grass':'http://zoo-project.org/cgi-grass/zoo_loader.cgi'
+            'zoo project grass':'http://zoo-project.org/cgi-grass/zoo_loader.cgi',
+            '52 North':'http://geoprocessing.demo.52north.org:8080/wps/WebProcessingService'
             }
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
@@ -101,7 +102,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setMaximum(0)
          else:
             self.setStatusLabel('finished') 
-            print 'finished'
+            #print 'finished'
       
       
       return
@@ -231,7 +232,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       
         # Generate the input GUI buttons and widgets
         
-        self.generateProcessInputsGUI(DataInputs)
+        res = self.generateProcessInputsGUI(DataInputs)
+        if res == 0:
+           return 0
+
         # Generate the editable outpt widgets, you can set the output to none if it is not requested
         self.generateProcessOutputsGUI(DataOutputs)
         
@@ -272,15 +276,28 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           if complexData.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexDataTypeElement = complexData.at(0).toElement()
-            complexDataFormat = self.tools.getDefaultMimeType(complexDataTypeElement)
             supportedComplexDataFormat = self.tools.getSupportedMimeTypes(complexDataTypeElement)
+            complexDataFormat = self.tools.getDefaultMimeType(complexDataTypeElement)
     
             # Store the input formats
             self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
-            self.inputDataTypeList[inputIdentifier] = complexDataFormat
-    
+      
             # Attach the selected vector or raster maps
             if self.tools.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
+            
+              # Since it is a vector, choose an appropriate GML version
+              complexDataFormat = self.getSupportedGMLDataFormat(inputIdentifier) 
+              
+              if complexDataFormat == None :
+                QMessageBox.warning(self.iface.mainWindow(), QApplication.translate("QgsWps","Error"),  
+                  QApplication.translate("QgsWps","The process '" + self.processIdentifier + \
+                  "' does not seem to support GML for the parameter '" + inputIdentifier + \
+                  "', which is required by the QGIS WPS client."))
+                return 0 
+              
+              # Store the input format for this parameter (after checking GML version supported)
+              self.inputDataTypeList[inputIdentifier] = complexDataFormat
+              
               # Vector inputs
               layerNamesList = self.tools.getLayerNameList(0)
               if maxOccurs == 1:
@@ -291,6 +308,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               # Text inputs
               self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
             elif self.tools.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
+
+              # Store the input format for this parameter
+              self.inputDataTypeList[inputIdentifier] = complexDataFormat
+              
               # Raster inputs
               layerNamesList = self.tools.getLayerNameList(1)
               if maxOccurs == 1:
@@ -421,7 +442,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
   ##############################################################################
         
 
-          ##############################################################################  
+  ##############################################################################  
     def defineProcess(self):
         """Create the execute request"""
         self.dlgProcess.close()
@@ -471,27 +492,31 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                    
               postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
         
-              # TODO: Check for more types
+              # TODO: Check for more types (e.g. KML, Shapefile, JSON)
               self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
               schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
               encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
               self.myLayer = self.tools.getVLayer(comboBox.currentText())
-              
+                 
               try:
-                  if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-                    postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-                    postString += self.tools.createTmpGML(comboBox.currentText(), useSelected).replace("> <","><")
-                    postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", "xsi:schemaLocation=\"http://schemas.opengis.net/gml/3.1.1/base/ http://schemas.opengis.net/gml/3.1.1/base/gml.xsd\"")
+                  if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
+                      postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
+                      postString += self.tools.createTmpGML(comboBox.currentText(), 
+                        useSelected, self.getSupportedGMLVersion(comboBox.objectName())).replace("> <","><")
+                        
+                      postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
+                          "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
+                    
                   elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-                    postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                    postString += self.tools.createTmpBase64(comboBox.currentText())
+                      postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
+                      postString += self.tools.createTmpBase64(comboBox.currentText())
               except:
                   QApplication.restoreOverrideCursor()
                   QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
                   return
                  
               postString += "</wps:ComplexData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()
+              postString += self.tools.xmlExecuteRequestInputEnd()  
         
             # Multiple raster and vector inputs ########################################
             for listWidgets in self.complexInputListWidgetList:
@@ -513,9 +538,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
                 # TODO: Check for more types
                 if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\" enconding=\"" + encoding + "\">"
-        #          postString += self.createTmpGML(listWidget.text(), useSelected).replace("> <","><").replace("http://ogr.maptools.org/ qt_temp.xsd","http://ogr.maptools.org/qt_temp.xsd")
-                  postString += self.tools.createTmpGML(listWidget.text(), useSelected).replace("> <","><")
+                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
+                  postString += self.tools.createTmpGML(listWidget.text(), 
+                    useSelected, self.getSupportedGMLVersion(listWidgets.objectName())).replace("> <","><")
                 elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                   postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                   postString += self.tools.createTmpBase64(listWidget.text())
@@ -588,7 +613,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             schema = self.outputDataTypeList[outputIdentifier]["Schema"]
             encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
             
-            postString += "<wps:Output asReference=\"true\" mimeType=\"" + self.mimeType + "\" schema=\"" + schema + "\">"
+            postString += "<wps:Output asReference=\"true\" mimeType=\"" + self.mimeType + \
+              (("\" schema=\"" + schema) if schema != "" else "") + "\">"
             postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
             postString += "</wps:Output>\n"
     
@@ -624,7 +650,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         self.thePostHttp.finished.connect(self.resultHandler)                  
         self.request = QNetworkRequest(url)
-        self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" );        
+        self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )        
         self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
         
         if dataInputs.size() > 0:
@@ -679,7 +705,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
-           map layers to the regestry or open an information window to show literal
+           map layers to the registry or open an information window to show literal
            outputs."""
         resultXML = reply.readAll().data()
 # This is for debug purpose only
@@ -829,6 +855,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.outFile.open(QIODevice.WriteOnly)
         self.outFile.write(reply.readAll())
         self.outFile.close()
+        self.outFile.fileName()
         self.loadData(self.outFile.fileName())
         self.setStatusLabel('finished')
         
@@ -874,6 +901,41 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
 
 
+##############################################################################
+
+    def isDataTypeSupportedByServer(self, baseMimeType, name):
+      # Return if the given data type is supported by the WPS server
+      for dataType in self.inputsMetaInfo[name]:
+        if baseMimeType in dataType['MimeType']:
+          return True
+      return False
+
+    def getDataTypeInfo(self, mimeType, name):
+      # Return a dict with mimeType, schema and encoding for the given mimeType
+      for dataType in self.inputsMetaInfo[name]:
+        if mimeType in dataType['MimeType']:
+          return dataType
+      return None  
+        
+    def getSupportedGMLVersion(self, dataIdentifier):
+      # Return GML version, e.g., GML, GML2, GML3 
+      if self.tools.isGML3SupportedByOGR() and self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML3"), dataIdentifier):
+        return "GML3"
+      elif self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML2"), dataIdentifier): 
+        return "GML2"
+      elif self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML"), dataIdentifier): 
+        return "GML"
+      else:
+        return ""
+
+    def getSupportedGMLDataFormat(self, dataIdentifier):
+      # Return mimeType, schema and encoding for the supported GML version 
+      supportedGML = self.getSupportedGMLVersion(dataIdentifier)
+      
+      if supportedGML != "":
+        return self.getDataTypeInfo(self.tools.getBaseMimeType(supportedGML), dataIdentifier) 
+      else:
+        return None
 ##############################################################################
 
     def deleteServer(self,  name):
