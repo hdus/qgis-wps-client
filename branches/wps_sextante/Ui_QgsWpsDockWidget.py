@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/QgsWpsDockWidget.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps_sextante/QgsWpsDockWidget.ui'
 #
-# Created: Thu Apr 12 18:30:20 2012
+# Created: Mon Apr 23 12:18:37 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,7 +34,7 @@ class Ui_QgsWpsDockWidget(object):
         QgsWpsDockWidget.setFloating(False)
         QgsWpsDockWidget.setFeatures(QtGui.QDockWidget.AllDockWidgetFeatures)
         QgsWpsDockWidget.setAllowedAreas(QtCore.Qt.LeftDockWidgetArea)
-        QgsWpsDockWidget.setWindowTitle(QtGui.QApplication.translate("QgsWpsDockWidget", "QGIS WPS-Client", None, QtGui.QApplication.UnicodeUTF8))
+        QgsWpsDockWidget.setWindowTitle(QtGui.QApplication.translate("QgsWpsDockWidget", "QGIS WPS-SEXTANTE Client", None, QtGui.QApplication.UnicodeUTF8))
         self.dockWidgetContents = QtGui.QWidget()
         self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
         self.gridLayout = QtGui.QGridLayout(self.dockWidgetContents)
@@ -50,6 +50,10 @@ class Ui_QgsWpsDockWidget(object):
         self.btnKill.setObjectName(_fromUtf8("btnKill"))
         self.horizontalLayout.addWidget(self.btnKill)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
+        self.progressBar = QtGui.QProgressBar(self.dockWidgetContents)
+        self.progressBar.setProperty("value", 0)
+        self.progressBar.setObjectName(_fromUtf8("progressBar"))
+        self.gridLayout.addWidget(self.progressBar, 2, 0, 1, 1)
         self.lblProcess = QtGui.QLabel(self.dockWidgetContents)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -60,10 +64,6 @@ class Ui_QgsWpsDockWidget(object):
         self.lblProcess.setWordWrap(True)
         self.lblProcess.setObjectName(_fromUtf8("lblProcess"))
         self.gridLayout.addWidget(self.lblProcess, 1, 0, 1, 1)
-        self.progressBar = QtGui.QProgressBar(self.dockWidgetContents)
-        self.progressBar.setProperty("value", 0)
-        self.progressBar.setObjectName(_fromUtf8("progressBar"))
-        self.gridLayout.addWidget(self.progressBar, 2, 0, 1, 1)
         QgsWpsDockWidget.setWidget(self.dockWidgetContents)
 
         self.retranslateUi(QgsWpsDockWidget)
