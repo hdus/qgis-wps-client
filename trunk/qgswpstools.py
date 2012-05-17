@@ -32,26 +32,26 @@ import resources_rc
 
 
 # All supported import raster formats
-RASTER_MIMETYPES =        [{"MIMETYPE":"IMAGE/TIFF", "GDALID":"GTiff"},
-                           {"MIMETYPE":"IMAGE/PNG", "GDALID":"PNG"}, \
-                           {"MIMETYPE":"IMAGE/GIF", "GDALID":"GIF"}, \
-                           {"MIMETYPE":"IMAGE/JPEG", "GDALID":"JPEG"}, \
-                           {"MIMETYPE":"IMAGE/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-ERDAS-HFA", "GDALID":"HFA"}, \
-                           {"MIMETYPE":"APPLICATION/NETCDF", "GDALID":"netCDF"}, \
-                           {"MIMETYPE":"APPLICATION/X-NETCDF", "GDALID":"netCDF"}, \
-                           {"MIMETYPE":"APPLICATION/GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-GEOTIFF", "GDALID":"GTiff"}, \
-                           {"MIMETYPE":"APPLICATION/X-ESRI-ASCII-GRID", "GDALID":"AAIGrid"}, \
-                           {"MIMETYPE":"APPLICATION/IMAGE-ASCII-GRASS", "GDALID":"GRASSASCIIGrid"}]
+RASTER_MIMETYPES =        [{"MIMETYPE":"image/tiff", "GDALID":"GTiff", "EXTENSION":"tif"},
+                           {"MIMETYPE":"image/png", "GDALID":"PNG", "EXTENSION":"png"}, \
+                           {"MIMETYPE":"image/gif", "GDALID":"GIF", "EXTENSION":"gif"}, \
+                           {"MIMETYPE":"image/jpeg", "GDALID":"JPEG", "EXTENSION":"jpg"}, \
+                           {"MIMETYPE":"image/geotiff", "GDALID":"GTiff", "EXTENSION":"tif"}, \
+                           {"MIMETYPE":"application/x-erdas-hfa", "GDALID":"HFA", "EXTENSION":""}, \
+                           {"MIMETYPE":"application/netcdf", "GDALID":"netCDF", "EXTENSION":""}, \
+                           {"MIMETYPE":"application/x-netcdf", "GDALID":"netCDF", "EXTENSION":""}, \
+                           {"MIMETYPE":"application/geotiff", "GDALID":"GTiff", "EXTENSION":"tif"}, \
+                           {"MIMETYPE":"application/x-geotiff", "GDALID":"GTiff", "EXTENSION":"tif"}, \
+                           {"MIMETYPE":"application/x-esri-ascii-grid", "GDALID":"AAIGrid", "EXTENSION":"asc"}, \
+                           {"MIMETYPE":"application/image-ascii-grass", "GDALID":"GRASSASCIIGrid", "EXTENSION":"asc"}]
 # All supported input vector formats [mime type, schema]
-VECTOR_MIMETYPES =        [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", "GDALID":"ESRI Shapefile", "DATATYPE":"SHP"}, \
-                           {"MIMETYPE":"application/vnd.google-earth.kml+xml", "SCHEMA":"KML", "GDALID":"KML", "DATATYPE":"KML"}, \
-                           {"MIMETYPE":"text/xml", "SCHEMA":"GML", "GDALID":"GML", "DATATYPE":"GML"}, \
-                           {"MIMETYPE":"text/xml; subtype=gml/2.", "SCHEMA":"GML2", "GDALID":"GML", "DATATYPE":"GML2"}, \
-                           {"MIMETYPE":"text/xml; subtype=gml/3.", "SCHEMA":"GML3", "GDALID":"GML", "DATATYPE":"GML3"}, \
-                           {"MIMETYPE":"application/json", "SCHEMA":"JSON", "GDALID":"GEOJSON", "DATATYPE":"JSON"}, \
-                           {"MIMETYPE":"application/geojson", "SCHEMA":"GEOJSON", "GDALID":"GEOJSON", "DATATYPE":"GEOJSON"}]
+VECTOR_MIMETYPES =        [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", "GDALID":"ESRI Shapefile", "DATATYPE":"SHP", "EXTENSION":"zip"}, \
+                           {"MIMETYPE":"application/vnd.google-earth.kml+xml", "SCHEMA":"KML", "GDALID":"KML", "DATATYPE":"KML", "EXTENSION":"kml"}, \
+                           {"MIMETYPE":"text/xml", "SCHEMA":"GML", "GDALID":"GML", "DATATYPE":"GML", "EXTENSION":"gml"}, \
+                           {"MIMETYPE":"text/xml; subtype=gml/2.", "SCHEMA":"GML2", "GDALID":"GML", "DATATYPE":"GML2", "EXTENSION":"gml"}, \
+                           {"MIMETYPE":"text/xml; subtype=gml/3.", "SCHEMA":"GML3", "GDALID":"GML", "DATATYPE":"GML3", "EXTENSION":"gml"}, \
+                           {"MIMETYPE":"application/json", "SCHEMA":"JSON", "GDALID":"GEOJSON", "DATATYPE":"JSON", "EXTENSION":"json"}, \
+                           {"MIMETYPE":"application/geojson", "SCHEMA":"GEOJSON", "GDALID":"GEOJSON", "DATATYPE":"GEOJSON", "EXTENSION":"geojson"}]
 
 DEBUG = False
 
@@ -289,19 +289,17 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def decodeBase64(self, infileName,  mimeType="image/tiff"):
+  def decodeBase64(self, infileName,  mimeType=""):
 
-#   This is till untested
-#   TODO: test it
     try:
-        # User project dir
-        #filename = QFileDialog.getSaveFileName(None, "Chose filename for output file", "/home/soeren");
-        filename = tempfile.mktemp(prefix="base64") 
+        filename = tempfile.mktemp(prefix="base64", suffix=self.getFileExtension(mimeType)) 
         infile = open(infileName)
         outfile = open(filename, 'w')
         base64.decode(infile,outfile)
+
         infile.close()
         outfile.close()
+        
     except:
         raise
 
@@ -595,7 +593,7 @@ class QgsWpsTools(QObject):
   def isMimeTypeRaster(self, mimeType):
     """Check for raster input"""
     for rasterType in RASTER_MIMETYPES:
-        if mimeType.upper() == rasterType["MIMETYPE"]:
+        if rasterType["MIMETYPE"] in mimeType.lower():
           return rasterType["GDALID"]
     return None
 
@@ -947,6 +945,22 @@ class QgsWpsTools(QObject):
        return False
     else:
        return True
+  
+  
+  def getFileExtension(self, mimeType):
+    # Return the extension associated to the mime type (e.g. tif)
+    
+    if self.isMimeTypeVector(mimeType):
+      for vectorType in VECTOR_MIMETYPES:
+        if vectorType["MIMETYPE"] in mimeType.lower():
+          return "." + vectorType["EXTENSION"]
+          
+    elif self.isMimeTypeRaster(mimeType):
+      for rasterType in RASTER_MIMETYPES:
+        if rasterType["MIMETYPE"] in mimeType.lower():
+          return "." + rasterType["EXTENSION"]  
+            
+    return ""
   
 ################################################################################
 ################################################################################

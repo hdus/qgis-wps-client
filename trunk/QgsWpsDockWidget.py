@@ -32,6 +32,7 @@ from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
+from functools import partial
 
 import resources_rc,  string
 
@@ -79,16 +80,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0)) 
         
     def getBookmarkDescription(self,  item):
-        QMessageBox.information(None, '', item.text(0))
+        QMessageBox.information(self.iface.mainWindow(), '', item.text(0))
         self.tools.getBookmarkXML(item.text(0))            
         
     def setUpload(self,  bool):
         self.status = 'Upload'
-        QMessageBox.information(None, '', self.status)
+        QMessageBox.information(self.iface.mainWindow(), '', self.status)
         
     def setDownload(self,  bool):
         self.status = 'Download'
-        QMessageBox.information(None, '', self.status)
+        QMessageBox.information(self.iface.mainWindow(), '', self.status)
 
     def showProgressBar(self,  done,  all,  status):
       self.progressBar.setRange(0, all)
@@ -512,7 +513,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                       postString += self.tools.createTmpBase64(comboBox.currentText())
               except:
                   QApplication.restoreOverrideCursor()
-                  QMessageBox.warning(None, QApplication.translate("QgsWps","Error"),  QApplication.translate("QgsWps","Please load or select a vector layer!"))
+                  QMessageBox.warning(self.iface.mainWindow(), 
+                      QApplication.translate("QgsWps","Error"),  
+                      QApplication.translate("QgsWps","Please load or select a vector layer!"))
                   return
                  
               postString += "</wps:ComplexData>\n"
@@ -701,7 +704,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         settings.setValue(mySettings+"/port",  self.processUrl.port())
         settings.setValue(mySettings+"/version", self.processUrl.queryItemValue('version'))
         settings.setValue(mySettings+"/identifier",  self.processUrl.queryItemValue('identifier'))
-        QMessageBox.information(None, QCoreApplication.translate("QgsWps","Bookmark"), QCoreApplication.translate("QgsWps","The creation bookmark was successful."))
+        QMessageBox.information(self.iface.mainWindow(), 
+            QCoreApplication.translate("QgsWps","Bookmark"), 
+            QCoreApplication.translate("QgsWps","The creation bookmark was successful."))
         
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
@@ -736,15 +741,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 if fileLink == '0':
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
                 if fileLink == '0':
-                  QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                      str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
                   return False
     
                 # Get the mime type of the result
                 self.mimeType = str(reference.attribute("mimeType", "0").toLower())
     
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(reference.attribute("encoding", "0").toLower())
+                
                 if fileLink != '0':                            
                   # Set a valid layerName
-                  self.fetchResult(fileLink)
+                  self.fetchResult(encoding, fileLink)
                 
                 QApplication.restoreOverrideCursor()
                 self.setStatusLabel('finished')
@@ -757,7 +766,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 self.progressBar.setMinimum(0)
                 self.progressBar.setMaximum(100)
               else:
-                QMessageBox.warning(None, '', str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
+                QMessageBox.warning(self.iface.mainWindow(), '', 
+                  str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             status = self.doc.elementsByTagName("Status")
             if status.size() == 0:
@@ -773,8 +783,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   
 
     def loadData(self,  resultFile):
-        
-        self.outFile.close()
+        bLoaded = True # For information purposes
         
         layerName = self.tools.uniqueLayerName(self.processIdentifier + "_" + self.identifier)
         # The layername is normally defined in the comboBox
@@ -786,37 +795,35 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         # TODO: Check for schema GML and KML
         if self.tools.isMimeTypeVector(self.mimeType) != None:
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
-#            QMessageBox.information(None, '', self.myLayer.dataProvider().crs().toWkt())
             try:
               vlayer.setCrs(self.myLayer.dataProvider().crs())
             except:
               pass
-            QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+            
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
-       # We can directly attach the new layer
-            try:
-                    imageFile = self.tools.decodeBase64(resultFile)
-            except:
-                    imageFile = resultFile
-            rLayer = QgsRasterLayer(imageFile, layerName)
-            QgsMapLayerRegistry.instance().addMapLayer(rLayer)
-            # Text data
+            # We can directly attach the new layer
+            rLayer = QgsRasterLayer(resultFile, layerName)
+            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+            
+        # Text data
         elif self.tools.isMimeTypeText(self.mimeType) != None:
             #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             QApplication.restoreOverrideCursor()
             text = open(resultFile, 'r').read()
             # TODO: This should be a text dialog with safe option
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
-           # Everything else
+            
+        # Everything else
         elif self.tools.isMimeTypeFile(self.mimeType) != None:
             #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             QApplication.restoreOverrideCursor()
             text = open(resultFile, 'r').read()
             # TODO: This should be a text dialog with safe option
             fileName = QFileDialog().getSaveFileName()
-#            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
-           # Everything else
+            
+        # Everything else
         else:
             # For unsupported mime types we assume text
             QApplication.restoreOverrideCursor()
@@ -824,7 +831,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             # TODO: This should have a safe option
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
 
-    def fetchResult(self,  fileLink):
+        if not bLoaded:
+            QMessageBox.information(self.iface.mainWindow(), 
+                QApplication.translate("QgsWps","Result not loaded to the map"), 
+                QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '") + self.mimeType + QApplication.translate("QgsWps","' type and can be accessed at '") + resultFile + QApplication.translate("QgsWps","'. \n\nYou could ask the service provider to consider changing the default data type of the result."))
+
+    def fetchResult(self, encoding, fileLink):
         url = QUrl(fileLink)
         self.theHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.theHttp.get(QNetworkRequest(url))
@@ -833,32 +845,41 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         except:
             pass
             
-        self.theHttp.finished.connect(self.getResultFile)                
+        # Append encoding to 'finished' signal parameters
+        self.theHttp.finished.connect(partial(self.getResultFile, encoding))  
+        
         QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
-    def getResultFile(self,  reply):
-        myQTempFile = QTemporaryFile()
-        myQTempFile.open()
-        tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
-        myQTempFile.close()
-
-       # Check if there is redirection 
+    def getResultFile(self, encoding, reply):
+        # Check if there is redirection 
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
-           self.fetchResult(reDir)
-           return
-     #may be easier, but there is no guarantee that the Web service returns a unique value of filename (sample: "http://my_geoserver/get_result?id=12221" filename==get_result):
-     #tmpFile = unicode(QDir.tempPath()+"/"+fileInfo.fileName()+".gml",'latin1')
+            self.fetchResult(encoding, reDir)
+            return
+
+        # Get a unique temporary file name
+        myQTempFile = QTemporaryFile()
+        myQTempFile.open()
+        ext = self.tools.getFileExtension(self.mimeType)
+        tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
+        myQTempFile.close()
         
-        self.outFile = QFile(tmpFile)
-        self.outFile.open(QIODevice.WriteOnly)
-        self.outFile.write(reply.readAll())
-        self.outFile.close()
-        self.outFile.fileName()
-        self.loadData(self.outFile.fileName())
+        # Write the data to the temporary file 
+        outFile = QFile(tmpFile)
+        outFile.open(QIODevice.WriteOnly)
+        outFile.write(reply.readAll())
+        outFile.close()
+        
+        # Decode?
+        if encoding == "base64":
+            resultFile = self.tools.decodeBase64(tmpFile, self.mimeType)  
+        else:   
+            resultFile = tmpFile
+            
+        # Finally, load the data
+        self.loadData(resultFile)
         self.setStatusLabel('finished')
-        
 
 
 ##############################################################################
@@ -895,7 +916,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
          if len(exceptionText) > 0:
              print resultXML
-             QMessageBox.about(None, '', resultXML)
+             QMessageBox.about(self.iface.mainWindow(), '', resultXML)
     #         self.popUpMessageBox("WPS Error", resultXML)
          return False
     
