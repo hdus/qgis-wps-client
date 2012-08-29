@@ -21,10 +21,9 @@ Module implementing QgsWpsDockWidget.
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
-from PyQt4 import QtWebKit
-from PyQt4 import QtNetwork
+from PyQt4.QtXmlPatterns import QXmlQuery
+from PyQt4.QtNetwork import *
 from qgis.core import *
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
@@ -34,6 +33,8 @@ from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 from functools import partial
 
+from streaming import Streaming
+
 import resources_rc,  string
 
 DEBUG = False
@@ -42,8 +43,11 @@ from Ui_QgsWpsDockWidget import Ui_QgsWpsDockWidget
 
 class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     """
-    Class documentation goes here.
+    Class documentation goes here. 
     """
+    
+    killed = pyqtSignal()
+    
     def __init__(self, iface):
         """
         Constructor
@@ -58,6 +62,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.status = ''
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
+        self.dataStream = None # Used for streaming
+        
         self.defaultServers = {'Kappasys WPS':'http://www.kappasys.ch/pywps/pywps.cgi', 
             'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
             'zoo project':'http://zoo-project.org/wps-foss4g2011/zoo_loader.cgi',
@@ -74,7 +80,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
         QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-
+        
+        self.killed.connect(self.stopStreaming)
         
     def getDescription(self,  name, item):
         self.tools.getServiceXML(name,"DescribeProcess",item.text(0)) 
@@ -126,7 +133,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         elif status == 'finished':
             self.btnConnect.setEnabled(True)
             self.btnKill.setEnabled(False)
-            text = QApplication.translate("QgsWps", " finished successful")
+            text = QApplication.translate("QgsWps", " finished successfully")
         elif status == 'error':
             self.btnConnect.setEnabled(True)      
             self.btnKill.setEnabled(False)
@@ -319,6 +326,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
               else:
                 self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+            
+            elif self.tools.isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
+              # Store the input format for this parameter
+              self.inputDataTypeList[inputIdentifier] = complexDataFormat
+              
+              # Playlist (text) inputs
+              self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(complexDataFormat))) 
+            
             else:
               # We assume text inputs in case of an unknown mime type
               self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))            
@@ -396,14 +411,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
           outputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
           complexOutput = f_element.elementsByTagName("ComplexOutput")
-    
+          
           # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
           if complexOutput.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexOutputTypeElement = complexOutput.at(0).toElement()
             complexOutputFormat = self.tools.getDefaultMimeType(complexOutputTypeElement)
             supportedcomplexOutputFormat = self.tools.getSupportedMimeTypes(complexOutputTypeElement)
-    
             # Store the input formats
             self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
             self.outputDataTypeList[outputIdentifier] = complexOutputFormat
@@ -480,9 +494,22 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               if textBox == None or str(textBox.document().toPlainText()) == "":
                 continue
         
-              postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
-              postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()
+              # TODO: Check for more types (e.g. KML, Shapefile, JSON)
+              self.mimeType = self.inputDataTypeList[textBox.objectName()]["MimeType"]
+              
+              if self.tools.isMimeTypePlaylist(self.mimeType) != None:
+                schema = self.inputDataTypeList[textBox.objectName()]["Schema"]
+                encoding = self.inputDataTypeList[textBox.objectName()]["Encoding"]
+  
+                # Handle 'as reference' playlist
+                postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName(), False)
+                postString += "<wps:Reference mimeType=\"" + self.mimeType + "\" " + (("schema=\"" + schema + "\"") if schema != "" else "") + (("encoding=\"" + encoding + "\"") if encoding != "" else "") + " xlink:href=\"" + textBox.document().toPlainText() + "\" />"
+                postString += self.tools.xmlExecuteRequestInputEnd(False)
+  
+              else: # It's not a playlist
+                postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
+                postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
+                postString += self.tools.xmlExecuteRequestInputEnd()
         
         
             # Single raster and vector inputs ##########################################
@@ -507,7 +534,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                         
                       postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
                           "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
-                    
                   elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                       postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                       postString += self.tools.createTmpBase64(comboBox.currentText())
@@ -616,8 +642,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             schema = self.outputDataTypeList[outputIdentifier]["Schema"]
             encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
             
-            postString += "<wps:Output asReference=\"true\" mimeType=\"" + self.mimeType + \
-              (("\" schema=\"" + schema) if schema != "" else "") + "\">"
+            postString += "<wps:Output asReference=\"true" + \
+              "\" mimeType=\"" + self.mimeType + "\"" + \
+              ((" schema=\"" + schema + "\"") if schema != "" else "") + \
+              ((" encoding=\"" + encoding + "\"") if encoding != "" else "") + ">"
+            
+            # Playlists can be sent as reference or as complex data 
+            #   For the latter, comment out next lines
+            #postString += "<wps:Output asReference=\"" + \
+            #  ("false" if "playlist" in self.mimeType.lower() else "true") + \
+            #  "\" mimeType=\"" + self.mimeType + \
+            #  (("\" schema=\"" + schema) if schema != "" else "") + "\">"
             postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
             postString += "</wps:Output>\n"
     
@@ -749,15 +784,33 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 self.mimeType = str(reference.attribute("mimeType", "0").toLower())
     
                 # Get the encoding of the result, it can be used decoding base64
-                encoding = str(reference.attribute("encoding", "0").toLower())
+                encoding = str(reference.attribute("encoding", "").toLower())
                 
                 if fileLink != '0':                            
-                  # Set a valid layerName
-                  self.fetchResult(encoding, fileLink)
-                
-                QApplication.restoreOverrideCursor()
-                self.setStatusLabel('finished')
+                  if "playlist" in self.mimeType: # Streaming based process?
+                    self.streamingHandler(encoding, fileLink)
+                  else: # Conventional processes
+                    self.fetchResult(encoding, fileLink)
+                    QApplication.restoreOverrideCursor()
+                    self.setStatusLabel('finished')
                   
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
+                complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
+    
+                # Get the mime type of the result
+                self.mimeType = str(complexData.attribute("mimeType", "0").toLower())
+                
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(complexData.attribute("encoding", "").toLower())
+
+                if "playlist" in self.mimeType:
+                  playlistUrl = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").at(0).toElement().text()
+                  self.streamingHandler(encoding, playlistUrl)
+
+                else: # Other ComplexData are not supported by this WPS client
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + mimeType + "' is not supported by this client")))
+                
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 QApplication.restoreOverrideCursor()
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
@@ -780,7 +833,36 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
  ##############################################################################
 
-                  
+    def streamingHandler(self, encoding, playlistUrl):
+        """ Handle response form streaming based processes """
+        mimeTypePlaylist, self.mimeType = self.mimeType.split("+")
+        print playlistUrl
+        
+        # Get number of chunks (Only for Output streaming based WPSs)
+        chunks=0
+        if self.tools.isMimeTypeVector(self.mimeType) != None:
+            for lineEdit in self.literalInputLineEditList:
+                if lineEdit.objectName() == "NumberOfChunks":
+                    chunks = int(lineEdit.text())
+        elif self.tools.isMimeTypeRaster(self.mimeType) != None:
+            chunks=1
+            for lineEdit in self.literalInputLineEditList:
+                if lineEdit.objectName() == "chunksByRow" or lineEdit.objectName() == "chunksByColumn":
+                    chunks = chunks*int(lineEdit.text())
+        
+        print "No. of chunks:",chunks
+        
+        # Streaming handler
+        self.dataStream = Streaming(self, self.iface, chunks, playlistUrl, self.mimeType, encoding, self.tools)
+        self.dataStream.start()              
+
+    def stopStreaming(self):
+        """ SLOT Stop the timer """   
+        if self.dataStream: 
+            self.dataStream.stop()
+
+ ##############################################################################
+ 
 
     def loadData(self,  resultFile):
         bLoaded = True # For information purposes
@@ -885,42 +967,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 ##############################################################################
 
 
-    def errorHandler(self, resultXML):
-         errorDoc = QtXml.QDomDocument()
-         errorDoc = self.doc
-         
-         myResult = errorDoc.setContent(resultXML.strip(), True)
-         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionReport")
-         exceptionText = ''
-         if not resultExceptionNodeList.isEmpty():
-           for i in range(resultExceptionNodeList.size()):
-             resultElement = resultExceptionNodeList.at(i).toElement()
-             exceptionText += resultElement.text()
-    
-         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ExceptionText")
-         if not resultExceptionNodeList.isEmpty():
-           for i in range(resultExceptionNodeList.size()):
-             resultElement = resultExceptionNodeList.at(i).toElement()
-             exceptionText += resultElement.text()
-      
-         resultExceptionNodeList = errorDoc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","ExceptionText")
-         if not resultExceptionNodeList.isEmpty():
-           for i in range(resultExceptionNodeList.size()):
-             resultElement = resultExceptionNodeList.at(i).toElement()
-             exceptionText += resultElement.text()
-    
-         resultExceptionNodeList = errorDoc.elementsByTagName("Exception")
-         if not resultExceptionNodeList.isEmpty():
-           resultElement = resultExceptionNodeList.at(0).toElement()
-           exceptionText += resultElement.attribute("exceptionCode")
-    
-         if len(exceptionText) > 0:
-             print resultXML
-             QMessageBox.about(self.iface.mainWindow(), '', resultXML)
-    #         self.popUpMessageBox("WPS Error", resultXML)
+    def errorHandler(self, resultXML):    
+         if resultXML:
+           #print resultXML
+           query = QXmlQuery(QXmlQuery.XSLT20)
+           xslFile = QFile(":/plugins/wps/exception.xsl")
+           xslFile.open(QIODevice.ReadOnly)
+           bRead = query.setFocus(resultXML)
+           query.setQuery(xslFile)
+           exceptionHtml = query.evaluateToString()
+           QMessageBox.critical(self.iface.mainWindow(), "Exception report", exceptionHtml)
+           xslFile.close()
          return False
-    
-
+         
 
 ##############################################################################
 
@@ -1010,3 +1069,5 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.progressBar.setValue(0)
         self.thePostReply.abort()
         self.setStatusLabel('error')
+        self.killed.emit()
+        

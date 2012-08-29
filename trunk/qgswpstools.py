@@ -52,6 +52,9 @@ VECTOR_MIMETYPES =        [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", 
                            {"MIMETYPE":"text/xml; subtype=gml/3.", "SCHEMA":"GML3", "GDALID":"GML", "DATATYPE":"GML3", "EXTENSION":"gml"}, \
                            {"MIMETYPE":"application/json", "SCHEMA":"JSON", "GDALID":"GEOJSON", "DATATYPE":"JSON", "EXTENSION":"json"}, \
                            {"MIMETYPE":"application/geojson", "SCHEMA":"GEOJSON", "GDALID":"GEOJSON", "DATATYPE":"GEOJSON", "EXTENSION":"geojson"}]
+# mimeTypes for streaming
+PLAYLIST_MIMETYPES =     [{"MIMETYPE":"application/x-ogc-playlist+", "SCHEMA":"", "GDALID":"", "DATATYPE":"PLAYLIST", "EXTENSION":"txt"}]
+
 
 DEBUG = False
 
@@ -274,27 +277,28 @@ class QgsWpsTools(QObject):
 
   def createTmpBase64(self,  layer):
     try:
-        filename = tempfile.mktemp(prefix="base64")
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64")
         rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
-        outfile = open(filename, 'w')
+        outfile = open(tmpFile.name, 'w')
         base64.encode(infile,outfile)
         outfile.close()
-        outfile =  open(filename, 'r')
+        outfile =  open(tmpFile.name, 'r')
         base64String = outfile.read()
-        os.remove(filename)
+        os.remove(tmpFile.name)
     except:
-        QMessageBox.error(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
+        QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
     return base64String
 
   ##############################################################################
 
-  def decodeBase64(self, infileName,  mimeType=""):
+  def decodeBase64(self, infileName,  mimeType="", tmpDir=None):
 
     try:
-        filename = tempfile.mktemp(prefix="base64", suffix=self.getFileExtension(mimeType)) 
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", 
+            suffix=self.getFileExtension(mimeType), dir=tmpDir, delete=False) 
         infile = open(infileName)
-        outfile = open(filename, 'w')
+        outfile = open(tmpFile.name, 'w')
         base64.decode(infile,outfile)
 
         infile.close()
@@ -303,7 +307,7 @@ class QgsWpsTools(QObject):
     except:
         raise
 
-    return filename
+    return tmpFile.name
 
   ##############################################################################
 
@@ -436,16 +440,15 @@ class QgsWpsTools(QObject):
      if v_range_element.size() > 0:
        min_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MinimumValue").at(0).toElement().text()
        max_val = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","MaximumValue").at(0).toElement().text()
-              
-           
 #       QMessageBox.information(None, '', min_val+' - '+max_val)
+
        try:
-           for n in range(int(min_val),int(max_val)+1):
-               myVal = QString()
-               myVal.append(str(n))
-               valList.append(myVal)
+          for n in range(int(min_val),int(max_val)+1):
+              myVal = QString()
+              myVal.append(str(n))
+              valList.append(myVal)
        except:
-           QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Maximum allowed Value is to large"))
+           QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Maximum allowed Value is too large"))
 
      # Manage a value list defined by single values
      v_element = value_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Value")
@@ -577,26 +580,30 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def xmlExecuteRequestInputStart(self, identifier):
+  def xmlExecuteRequestInputStart(self, identifier, includeData=True):
     string = ""
     string += "<wps:Input>\n"
     string += "<ows:Identifier>"+identifier+"</ows:Identifier>\n"
     string += "<ows:Title>"+identifier+"</ows:Title>\n"
-    string += "<wps:Data>\n"
+    if includeData: string += "<wps:Data>\n"
     return string
 
   ##############################################################################
 
-  def xmlExecuteRequestInputEnd(self):
+  def xmlExecuteRequestInputEnd(self, includeData=True):
     string = ""
-    string += "</wps:Data>\n"
+    if includeData: string += "</wps:Data>\n"
     string += "</wps:Input>\n"
     return string
 
   ############################################################################
 
-  def isMimeTypeRaster(self, mimeType):
+  def isMimeTypeRaster(self, mimeType, ignorePlaylist=False):
     """Check for raster input"""
+    if not ignorePlaylist:
+      if self.isMimeTypePlaylist(mimeType) != None:
+        return None
+          
     for rasterType in RASTER_MIMETYPES:
         if rasterType["MIMETYPE"] in mimeType.lower():
           return rasterType["GDALID"]
@@ -604,8 +611,12 @@ class QgsWpsTools(QObject):
 
   ############################################################################
 
-  def isMimeTypeVector(self, mimeType):
+  def isMimeTypeVector(self, mimeType, ignorePlaylist=False):
     """Check for vector input. Zipped shapefiles must be extracted"""
+    if not ignorePlaylist:
+      if self.isMimeTypePlaylist(mimeType) != None:
+        return None
+ 
     for vectorType in VECTOR_MIMETYPES:
         if vectorType["MIMETYPE"] in mimeType.lower():
           return vectorType["GDALID"]
@@ -630,6 +641,16 @@ class QgsWpsTools(QObject):
           return "ZIP"
     return None
 
+ ##############################################################################
+
+  def isMimeTypePlaylist(self, mimeType):
+    """Check for playlists"""
+    for playlistType in PLAYLIST_MIMETYPES:
+        if playlistType["MIMETYPE"] in mimeType.lower():
+          return playlistType["DATATYPE"]
+    return None
+   
+    
 ##############################################################################
 
   def addComplexInputComboBox(self, title, name, mimeType, namesList, minOccurs,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
@@ -765,7 +786,7 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def addComplexInputTextBox(self, title, name, minOccurs,  dlgProcessScrollAreaWidget, dlgProcessScrollAreaWidgetLayout):
+  def addComplexInputTextBox(self, title, name, minOccurs,  dlgProcessScrollAreaWidget, dlgProcessScrollAreaWidgetLayout, mimeType=None):
       """Adds a widget to insert text as complex inputs to the process tab"""
       groupbox = QGroupBox(dlgProcessScrollAreaWidget)
       #groupbox.setTitle(name)
@@ -783,9 +804,9 @@ class QgsWpsTools(QObject):
 
       if minOccurs > 0:
         string = "[" + name + "] <br>" + title
-        myLabel.setText("<font color='Red'>" + string + "</font>")
+        myLabel.setText("<font color='Red'>" + string + "</font>" + ((" <br>(" + mimeType + ")") if mimeType else ""))
       else:
-        string = "[" + name + "]\n" + title
+        string = "[" + name + "]\n" + title + ((" <br>(" + mimeType + ")") if mimeType else "")
         myLabel.setText(string)
 
       myLabel.setWordWrap(True)
