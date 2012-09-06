@@ -21,6 +21,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
+from wps import version
 from Ui_qgsnewhttpconnectionbase import Ui_QgsNewHttpConnectionBase
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
@@ -34,6 +35,7 @@ class QgsNewHttpConnectionBaseGui(QDialog,  QObject, Ui_QgsNewHttpConnectionBase
     self.parent = parent
     self.flags = fl
     self.setupUi(self)
+    self.setWindowTitle('QGIS WPS-Client '+version())
     
   @pyqtSignature("on_buttonBox_accepted()")       
   def on_buttonBox_accepted(self):

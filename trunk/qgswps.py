@@ -23,6 +23,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
+from wps import version
 
 # initialize Qt resources from file resources.py
 import resources_rc
@@ -72,6 +73,7 @@ class QgsWps:
      self.iface.addPluginToMenu("WPS", self.action)
      
      self.myDockWidget = QgsWpsDockWidget(self.iface)
+     self.myDockWidget.setWindowTitle('QGIS WPS-Client '+version())
      self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
      self.myDockWidget.show()
 

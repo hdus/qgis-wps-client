@@ -25,6 +25,7 @@ from PyQt4 import QtXml
 from PyQt4.QtXmlPatterns import QXmlQuery
 from PyQt4.QtNetwork import *
 from qgis.core import *
+from wps import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
@@ -63,6 +64,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.btnKill.setEnabled(False)
         self.btnConnect.setEnabled(True)
         self.dataStream = None # Used for streaming
+        self.setWindowTitle('QGIS WPS-Client '+version())
         
         self.defaultServers = {'Kappasys WPS':'http://www.kappasys.ch/pywps/pywps.cgi', 
             'geodati.fmach.it':'http://geodati.fmach.it/zoo/',
@@ -180,13 +182,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
            response document. Mandatory inputs are marked as red, default is black"""
            
         self.processUrl = reply.url()
-           
-#        QMessageBox.information(None, '', item.text(0))           
-#        try:
-#          self.processIdentifier = item.text(0)
-#        except:
-#          QMessageBox.warning(None,'',QCoreApplication.translate("QgsWps",'Please select a Process'))
-#          return 0
     
         # Lists which store the inputs and meta information (format, occurs, ...)
         # This list is initialized every time the GUI is created
@@ -264,7 +259,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcessLayout.addWidget(self.dlgProcessTab)
         self.dlgProcess.setLayout(self.dlgProcessLayout)
         self.dlgProcess.setGeometry(QRect(190,100,800,600))
-        
         self.dlgProcess.show()
         
     def generateProcessInputsGUI(self, DataInputs):

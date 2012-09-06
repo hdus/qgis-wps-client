@@ -22,6 +22,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from qgis.core import *
+from wps import version
 from Ui_qgswpsgui import Ui_QgsWps
 from qgswpsbookmarks import Bookmarks
 from doAbout import DlgAbout
@@ -37,6 +38,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     self.setupUi(self)
     self.fl = fl
     self.tools = tools
+    self.setWindowTitle('QGIS WPS-Client '+version())
     self.dlgAbout = DlgAbout(parent)    
    
   def initQgsWpsGui(self):    

@@ -6,6 +6,7 @@ Module implementing Bookmarks.
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
+from wps import version
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
 
@@ -19,7 +20,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         """
         QDialog.__init__(self, parent,  fl)
         self.setupUi(self)
-        
+        self.setWindowTitle('QGIS WPS-Client '+version())
         self.initTreeWPSServices()
         
     def initTreeWPSServices(self):

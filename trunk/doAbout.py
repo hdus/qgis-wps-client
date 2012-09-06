@@ -34,7 +34,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         QDialog.__init__( self )
         self.iface = iface
         self.setupUi( self )
-    
+        self.setWindowTitle('QGIS WPS-Client '+version())
         self.tabWidget.setCurrentIndex( 0 )
     
         # setup labels
