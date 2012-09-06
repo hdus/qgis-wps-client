@@ -1043,17 +1043,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlg.initQgsWpsGui()
 
     def pushDefaultServer(self):
-	settings = QSettings()
-	for k,v in self.defaultServers.iteritems():
-	    myURL = urlparse(str(v))
-	    mySettings = "/WPS/" + k
-	#    settings.setValue("WPS/connections/selected", QVariant(name) )
-	    settings.setValue(mySettings+"/scheme",  QVariant(myURL.scheme))
-	    settings.setValue(mySettings+"/server",  QVariant(myURL.netloc))
-	    settings.setValue(mySettings+"/path", QVariant(myURL.path))
-	    settings.setValue(mySettings+"/method",QVariant("GET"))
-	    settings.setValue(mySettings+"/version",QVariant("1.0.0"))
-	self.dlg.initQgsWpsGui()
+        settings = QSettings()
+        for k,v in self.defaultServers.iteritems():
+            myURL = urlparse(str(v))
+            mySettings = "/WPS/" + k
+#    settings.setValue("WPS/connections/selected", QVariant(name) )
+            settings.setValue(mySettings+"/scheme",  QVariant(myURL.scheme))
+            settings.setValue(mySettings+"/server",  QVariant(myURL.netloc))
+            settings.setValue(mySettings+"/path", QVariant(myURL.path))
+            settings.setValue(mySettings+"/method",QVariant("GET"))
+            settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+            self.dlg.initQgsWpsGui()
+    
     
     @pyqtSignature("")
     def on_btnKill_clicked(self):
