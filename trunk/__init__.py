@@ -18,7 +18,6 @@
   *                                                                         *
   ***************************************************************************
 """
-from qgswps import QgsWps
 def name():
   return "WPS-Client"
   
@@ -31,6 +30,9 @@ def version():
 def qgisMinimumVersion():
   return "1.5"  
 
+def date():
+    return '2012-09-06'
+    
 def authorName():
   return "Dr. Horst Düster"
   
@@ -41,4 +43,5 @@ def homepage():
   return "http://www.kappasys.ch"
   
 def classFactory(iface):
+  from qgswps import QgsWps
   return QgsWps(iface)  
