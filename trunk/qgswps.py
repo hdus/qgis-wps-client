@@ -25,8 +25,21 @@ from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
 from wps import version
 
+import sys,  os,  inspect
+
 # initialize Qt resources from file resources.py
 import resources_rc
+
+#try:
+from sextante.core.Sextante import Sextante
+from sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
+SEXTANTE=True
+#except:
+SEXTANTE=False
+   
+cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
+if cmd_folder not in sys.path:
+    sys.path.insert(0, cmd_folder)   
 
 
 DEBUG = False
@@ -39,6 +52,9 @@ class QgsWps:
     # Save reference to the QGIS interface
     self.iface = iface  
     self.localePath = ""
+    
+    if SEXTANTE:
+        self.provider = WpsAlgorithmProvider()
     
     #Initialise the translation environment    
     userPluginPath = QFileInfo(QgsApplication.qgisUserDbFilePath()).path()+"/python/plugins/wps"  
@@ -64,6 +80,9 @@ class QgsWps:
 
   def initGui(self):
  
+     if SEXTANTE:
+        Sextante.addProvider(self.provider)
+        
     # Create action that will start plugin configuration
      self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
      QObject.connect(self.action, SIGNAL("triggered()"), self.run)
@@ -82,6 +101,10 @@ class QgsWps:
   ##############################################################################
 
   def unload(self):
+      
+    if SEXTANTE:
+        Sextante.removeProvider(self.provider)      
+        
     self.iface.removePluginMenu("WPS", self.action)
     self.iface.removeToolBarIcon(self.action)
     
