@@ -7,8 +7,6 @@
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
 
- Authors              : Dr. Horst Duester, Soeren Gebbert
-
   ***************************************************************************
   *                                                                         *
   *   This program is free software; you can redistribute it and/or modify  *
@@ -32,7 +30,7 @@ import resources_rc
 
 #try:
 from sextante.core.Sextante import Sextante
-from sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
+from wps_sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
 SEXTANTE=True
 #except:
 SEXTANTE=False
