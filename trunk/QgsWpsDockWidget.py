@@ -31,10 +31,20 @@ from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 from functools import partial
-
 from streaming import Streaming
+import resources_rc,  string,  os,  inspect,  sys
 
-import resources_rc,  string
+try:
+    from sextante.core.Sextante import Sextante
+    from wps_sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
+    SEXTANTE=True
+except:
+    SEXTANTE=False
+#   
+cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
+if cmd_folder not in sys.path:
+    sys.path.insert(0, cmd_folder)   
+
 
 DEBUG = False
 

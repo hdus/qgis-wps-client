@@ -22,19 +22,18 @@ from PyQt4.QtGui import *
 from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
 from wps import version
-
 import sys,  os,  inspect
 
 # initialize Qt resources from file resources.py
 import resources_rc
 
-#try:
-from sextante.core.Sextante import Sextante
-from wps_sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
-SEXTANTE=True
-#except:
-SEXTANTE=False
-   
+try:
+    from sextante.core.Sextante import Sextante
+    from wps_sextante.WpsAlgorithmProvider import WpsAlgorithmProvider
+    SEXTANTE=True
+except:
+    SEXTANTE=False
+#   
 cmd_folder = os.path.split(inspect.getfile( inspect.currentframe() ))[0]
 if cmd_folder not in sys.path:
     sys.path.insert(0, cmd_folder)   
@@ -79,7 +78,7 @@ class QgsWps:
   def initGui(self):
  
      if SEXTANTE:
-        Sextante.addProvider(self.provider)
+         Sextante.addProvider(self.provider)
         
     # Create action that will start plugin configuration
      self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
