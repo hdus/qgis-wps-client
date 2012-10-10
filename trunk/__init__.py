@@ -25,13 +25,13 @@ def description():
   return "Client for Web Processing Services"
 
 def version():
-  return "0.9.0"
+  return "0.9.1"
 
 def qgisMinimumVersion():
   return "1.5"  
 
 def date():
-    return '2012-09-06'
+    return '2012-10-11'
     
 def authorName():
   return "Dr. Horst Düster"
