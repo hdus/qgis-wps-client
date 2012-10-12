@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>189</width>
+    <width>285</width>
     <height>190</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>524287</width>
-    <height>524287</height>
+    <height>190</height>
    </size>
   </property>
   <property name="baseSize">
@@ -80,12 +80,6 @@
         <horstretch>0</horstretch>
         <verstretch>30</verstretch>
        </sizepolicy>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>16777215</height>
-       </size>
       </property>
       <property name="font">
        <font>

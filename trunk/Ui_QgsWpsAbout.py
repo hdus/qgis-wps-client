@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/hdus/dev/qgis/wps-plugin/wps/QgsWpsAbout.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis/python/plugins/wps/QgsWpsAbout.ui'
 #
-# Created: Sat Oct  6 12:30:48 2012
-#      by: PyQt4 UI code generator 4.9.1
+# Created: Tue Apr 10 11:36:52 2012
+#      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
- 
+
 from PyQt4 import QtCore, QtGui
 
 try:
@@ -18,6 +18,7 @@ class Ui_dlgAbout(object):
     def setupUi(self, dlgAbout):
         dlgAbout.setObjectName(_fromUtf8("dlgAbout"))
         dlgAbout.resize(686, 477)
+        dlgAbout.setWindowTitle(QtGui.QApplication.translate("dlgAbout", "About QgsWPS", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout = QtGui.QGridLayout(dlgAbout)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.widget = QtGui.QWidget(dlgAbout)
@@ -29,10 +30,12 @@ class Ui_dlgAbout(object):
         self.verticalLayout.setObjectName(_fromUtf8("verticalLayout"))
         self.lblVersion = QtGui.QLabel(self.widget)
         self.lblVersion.setMaximumSize(QtCore.QSize(16777215, 14))
+        self.lblVersion.setText(QtGui.QApplication.translate("dlgAbout", "Version:", None, QtGui.QApplication.UnicodeUTF8))
         self.lblVersion.setObjectName(_fromUtf8("lblVersion"))
         self.verticalLayout.addWidget(self.lblVersion)
         self.lblDate = QtGui.QLabel(self.widget)
         self.lblDate.setMaximumSize(QtCore.QSize(16777215, 14))
+        self.lblDate.setText(QtGui.QApplication.translate("dlgAbout", "Date:", None, QtGui.QApplication.UnicodeUTF8))
         self.lblDate.setObjectName(_fromUtf8("lblDate"))
         self.verticalLayout.addWidget(self.lblDate)
         spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
@@ -100,9 +103,6 @@ class Ui_dlgAbout(object):
         QtCore.QMetaObject.connectSlotsByName(dlgAbout)
 
     def retranslateUi(self, dlgAbout):
-        dlgAbout.setWindowTitle(QtGui.QApplication.translate("dlgAbout", "About QgsWPS", None, QtGui.QApplication.UnicodeUTF8))
-        self.lblVersion.setText(QtGui.QApplication.translate("dlgAbout", "Version:", None, QtGui.QApplication.UnicodeUTF8))
-        self.lblDate.setText(QtGui.QApplication.translate("dlgAbout", "Date:", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("dlgAbout", "About QgsWPS", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3), QtGui.QApplication.translate("dlgAbout", "Contributors", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), QtGui.QApplication.translate("dlgAbout", "Sponsors", None, QtGui.QApplication.UnicodeUTF8))

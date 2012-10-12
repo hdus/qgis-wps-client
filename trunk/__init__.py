@@ -15,7 +15,7 @@
   *   it under the terms of the GNU General Public License as published by  *
   *   the Free Software Foundation; either version 2 of the License, or     *
   *   (at your option) any later version.                                   *
-  *                                                                          *
+  *                                                                         *
   ***************************************************************************
 """
 def name():
@@ -25,13 +25,13 @@ def description():
   return "Client for Web Processing Services"
 
 def version():
-  return "0.9.1"
+  return "0.9.0"
 
 def qgisMinimumVersion():
   return "1.5"  
 
 def date():
-    return '2012-10-11'
+    return '2012-09-06'
     
 def authorName():
   return "Dr. Horst Düster"
