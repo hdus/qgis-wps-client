@@ -101,7 +101,7 @@ class Streaming(QObject):
         
         # GUI
         self.parent.progressBar.setRange(0,0)
-        self.parent.lblProcess.setText("Reading playlist...")
+        self.parent.lblProcess.setText("Reading output playlist...")
     
     
     def start(self):
@@ -274,7 +274,7 @@ class Streaming(QObject):
 
         # Get a unique temporary file name     
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", 
-            suffix=self.tools.getFileExtension(self.mimeType), dir=self.__chunksDir )
+            suffix=self.tools.getFileExtension(self.mimeType), dir=self.__chunksDir, delete=False )
         
         # TODO: Check if the file name already exists!!!
         

@@ -277,7 +277,7 @@ class QgsWpsTools(QObject):
 
   def createTmpBase64(self,  layer):
     try:
-        tmpFile = tempfile.NamedTemporaryFile(prefix="base64")
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
         rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
         outfile = open(tmpFile.name, 'w')
