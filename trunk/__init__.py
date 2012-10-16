@@ -31,7 +31,10 @@ def qgisMinimumVersion():
 def date():
     return '2012-10-16'
     
-def authorName():
+def email():
+    return 'horst.duester@kappasys.ch'
+    
+def author():
   return "Dr. Horst Düster"
   
 def icon():
