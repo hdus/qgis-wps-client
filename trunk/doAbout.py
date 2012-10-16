@@ -1,13 +1,11 @@
 # -*- coding: latin1 -*-
 """
  /***************************************************************************
-   doAbout.py QGIS Web Processing Service Plugin
+   QGIS Web Processing Service Plugin
   -------------------------------------------------------------------
  Date                 : 09 November 2009
  Copyright            : (C) 2009 by Dr. Horst Duester
  email                : horst dot duester at kappasys dot ch
-
- Authors              : Alexander Bruy
 
   ***************************************************************************
   *                                                                         *
