@@ -279,11 +279,13 @@ class QgsWpsTools(QObject):
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
         rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
-        outfile = open(tmpFile.name, 'w')
+        tmpFileName = tmpFile.name
+        outfile = open(tmpFileName, 'w')
         base64.encode(infile,outfile)
         outfile.close()
-        outfile =  open(tmpFile.name, 'r')
+        outfile =  open(tmpFileName, 'r')
         base64String = outfile.read()
+        outfile.close()
         os.remove(tmpFile.name)
     except:
         QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
