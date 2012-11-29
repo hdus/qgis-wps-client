@@ -35,7 +35,7 @@ def email():
     return 'horst.duester@kappasys.ch'
     
 def author():
-  return "Dr. Horst Düster"
+  return "Dr. Horst Duester"
   
 def icon():
 	return "images/wps-add.png"   
