@@ -28,7 +28,7 @@ import webbrowser, os
 from Ui_QgsWpsAbout import Ui_dlgAbout
 
 class DlgAbout( QDialog, Ui_dlgAbout ):
-    def __init__( self, iface ):
+    def __init__( self, iface=None ):
         QDialog.__init__( self )
         self.iface = iface
         self.setupUi( self )

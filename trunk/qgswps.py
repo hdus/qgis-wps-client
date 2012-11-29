@@ -22,6 +22,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
 from wps import version
+from doAbout import DlgAbout
 
 # initialize Qt resources from file resources.py
 import resources_rc
@@ -63,12 +64,22 @@ class QgsWps:
   def initGui(self):
  
     # Create action that will start plugin configuration
-     self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS Client", self.iface.mainWindow())
+     self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS-Client", self.iface.mainWindow())
      QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+     
+     self.actionAbout = QAction("About", self.iface.mainWindow())
+     QObject.connect(self.actionAbout, SIGNAL("triggered()"), self.doAbout)
          
     # Add toolbar button and menu item
      self.iface.addToolBarIcon(self.action)
-     self.iface.addPluginToMenu("WPS", self.action)
+     
+     if hasattr(self.iface,  "addPluginToWebMenu"):
+         self.iface.addPluginToWebMenu("WPS-Client", self.action)
+         self.iface.addPluginToWebMenu("WPS-Client", self.actionAbout)
+     else:
+         self.iface.addPluginToMenu("WPS", self.action)
+         self.iface.addPluginToWebMenu("WPS", self.action)
+
      
      self.myDockWidget = QgsWpsDockWidget(self.iface)
      self.myDockWidget.setWindowTitle('QGIS WPS-Client '+version())
@@ -80,13 +91,19 @@ class QgsWps:
   ##############################################################################
 
   def unload(self):
-    self.iface.removePluginMenu("WPS", self.action)
-    self.iface.removeToolBarIcon(self.action)
+     if hasattr(self.iface,  "addPluginToWebMenu"):
+         self.iface.removePluginWebMenu("WPS-Client", self.action)
+         self.iface.removePluginWebMenu("WPS-Client", self.actionAbout)
+     else:
+         self.iface.removePluginToMenu("WPS", self.action)      
+         self.iface.removePluginToMenu("WPS", self.actionAbout)
+         
+     self.iface.removeToolBarIcon(self.action)
     
-    if self.myDockWidget:
-        self.myDockWidget.close()
+     if self.myDockWidget:
+         self.myDockWidget.close()
         
-    self.myDockWidget = None
+     self.myDockWidget = None
 
 ##############################################################################
 
@@ -95,4 +112,8 @@ class QgsWps:
         self.myDockWidget.hide()
     else:
         self.myDockWidget.show()
+        
+  def doAbout(self):
+      self.dlgAbout = DlgAbout()
+      self.dlgAbout.show()
 
