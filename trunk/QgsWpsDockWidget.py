@@ -873,13 +873,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               vlayer.setCrs(self.myLayer.dataProvider().crs())
             except:
               pass
-            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+            if QGis.QGIS_VERSION_INT >= 10900:
+              bLoaded = QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+            else:
+              bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
             
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
             # We can directly attach the new layer
             rLayer = QgsRasterLayer(resultFile, layerName)
-            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(rLayer)
+            if QGis.QGIS_VERSION_INT >= 10900:
+              bLoaded = QgsMapLayerRegistry.instance().addMapLayers([vlayer])
+            else:
+              bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)            
             
         # Text data
         elif self.tools.isMimeTypeText(self.mimeType) != None:
