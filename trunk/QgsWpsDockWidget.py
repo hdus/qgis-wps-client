@@ -678,7 +678,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             pass
             
             
-        self.thePostHttp.finished.connect(self.resultHandler)                  
+        self.thePostHttp.finished.connect(self.resultHandler)                 
         self.request = QNetworkRequest(url)
         self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )        
         self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
@@ -927,16 +927,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             pass
             
         # Append encoding to 'finished' signal parameters
-        self.myHttp.finished.connect(partial(self.getResultFile, encoding))  
+        self.encoding = encoding
+#        self.myHttp.finished.connect(partial(self.getResultFile, encoding))  
+        self.myHttp.finished.connect(self.getResultFile)  
         
         QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
-    def getResultFile(self, encoding, reply):
-        # Check if there is redirection 
+#    def getResultFile(self, encoding, reply):
+    def getResultFile(self, reply):   
+    # Check if there is redirection 
+        self.myHttp.finished.disconnect(self.getResultFile)  
+
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
-            self.fetchResult(encoding, reDir)
+            self.fetchResult(self.encoding, reDir)
             return
 
         # Get a unique temporary file name
@@ -953,7 +958,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         outFile.close()
         
         # Decode?
-        if encoding == "base64":
+        if self.encoding == "base64":
             resultFile = self.tools.decodeBase64(tmpFile, self.mimeType)  
         else:   
             resultFile = tmpFile
