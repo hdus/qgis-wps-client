@@ -127,10 +127,10 @@ class QgsWpsTools(QObject):
     identifier = settings.value(mySettings+"/identifier").toString()
     version = settings.value(mySettings+"/version").toString()    
     requestFinished = False
-    self.theHttp = QgsNetworkAccessManager.instance()     
+    self.myHttp = QgsNetworkAccessManager.instance()     
 
     try:
-      self.theHttp.finished.disconnect()       
+      self.myHttp.finished.disconnect()       
     except:
       pass
 
@@ -138,8 +138,8 @@ class QgsWpsTools(QObject):
     myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version="+version
     url.setUrl(scheme+"://"+server+path+myRequest)
     url.setPort(port)
-    theReply = self.theHttp.get(QNetworkRequest(url))                        
-    self.theHttp.finished.connect(self.serviceRequestFinished)      
+    theReply = self.myHttp.get(QNetworkRequest(url))                        
+    self.myHttp.finished.connect(self.serviceRequestFinished)      
       
       
   ##############################################################################
@@ -155,10 +155,10 @@ class QgsWpsTools(QObject):
     version = result["version"]
     scheme = result["scheme"]
     requestFinished = False
-    self.theHttp = QgsNetworkAccessManager.instance()     
+    self.myHttp = QgsNetworkAccessManager.instance()     
 
     try:
-      self.theHttp.finished.disconnect()       
+      self.myHttp.finished.disconnect()       
     except:
       pass
 
@@ -166,22 +166,24 @@ class QgsWpsTools(QObject):
       url = QUrl()        
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
       url.setUrl(scheme+"://"+server+path+myRequest)
-      theReply = self.theHttp.get(QNetworkRequest(url))                        
-      self.theHttp.finished.connect(self.serviceRequestFinished)      
+      theReply = self.myHttp.get(QNetworkRequest(url))                        
+      self.myHttp.finished.connect(self.serviceRequestFinished)      
     else:
       url = QUrl()        
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
       url.setUrl(scheme+"://"+server+path+myRequest)
-      theReply = self.theHttp.get(QNetworkRequest(url))      
-      self.theHttp.finished.connect(self.capabilitiesRequestFinished)
+      theReply = self.myHttp.get(QNetworkRequest(url))      
+      self.myHttp.finished.connect(self.capabilitiesRequestFinished)
 
 
   def capabilitiesRequestFinished(self,  reply):
-       self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
+        self.myHttp.finished.disconnect(self.capabilitiesRequestFinished)      
+        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
 
 
   def serviceRequestFinished(self,  reply):
-       self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
+        self.myHttp.finished.disconnect(self.serviceRequestFinished)      
+        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
 
   ##############################################################################
 

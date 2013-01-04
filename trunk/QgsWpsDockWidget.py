@@ -739,6 +739,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the registry or open an information window to show literal
            outputs."""
+        self.thePostHttp.finished.disconnect(self.resultHandler)                  
         resultXML = reply.readAll().data()
 # This is for debug purpose only
         if DEBUG == True:
@@ -918,15 +919,15 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
     def fetchResult(self, encoding, fileLink):
         url = QUrl(fileLink)
-        self.theHttp = QgsNetworkAccessManager.instance()
-        self.theReply = self.theHttp.get(QNetworkRequest(url))
+        self.myHttp = QgsNetworkAccessManager.instance()
+        self.theReply = self.myHttp.get(QNetworkRequest(url))
         try:
-            self.theHttp.finished.disconnect()
+            self.myHttp.finished.disconnect()
         except:
             pass
             
         # Append encoding to 'finished' signal parameters
-        self.theHttp.finished.connect(partial(self.getResultFile, encoding))  
+        self.myHttp.finished.connect(partial(self.getResultFile, encoding))  
         
         QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
