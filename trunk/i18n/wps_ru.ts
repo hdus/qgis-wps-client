@@ -1,10 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="ru">
+<!DOCTYPE TS><TS version="2.0" language="ru" sourcelanguage="">
+<context>
+    <name>Bookmarks</name>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="21"/>
+        <source>WPS-Bookmarks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="30"/>
+        <source>Service</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="31"/>
+        <source>Identifier</source>
+        <translation type="unfinished">Идентификатор</translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="32"/>
+        <source>URL</source>
+        <translation type="unfinished">URL</translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="40"/>
+        <source>Remove</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="44"/>
+        <source>Close</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsbookmarks.py" line="48"/>
+        <source>Run</source>
+        <translation type="unfinished">Запустить</translation>
+    </message>
+</context>
 <context>
     <name>Dialog</name>
     <message>
-        <location filename="Ui_qgswpserrormsggui.py" line="30"/>
+        <location filename="Ui_qgswpserrorgui.py" line="33"/>
         <source>Dialog</source>
         <translation>Диалог</translation>
     </message>
@@ -63,164 +100,206 @@
 <context>
     <name>QgsWps</name>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="111"/>
+        <location filename="QgsWpsDockWidget.py" line="124"/>
         <source> upload data ...</source>
         <translation> загрузка данных на сервер ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="115"/>
+        <location filename="QgsWpsDockWidget.py" line="128"/>
         <source> is running ...</source>
         <translation> выполняется ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="119"/>
+        <location filename="QgsWpsDockWidget.py" line="132"/>
         <source> download data ...</source>
         <translation> получение данных ...</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="123"/>
-        <source> finished successful</source>
-        <translation> успешно завершился</translation>
-    </message>
-    <message>
-        <location filename="QgsWpsDockWidget.py" line="129"/>
+        <location filename="QgsWpsDockWidget.py" line="142"/>
         <source> terminated with errors!</source>
         <translation> завершился с ошибками!</translation>
     </message>
     <message>
-        <location filename="QgsWpsServer.py" line="161"/>
-        <source>Please select a Process</source>
-        <translation>Пожалуйста выберете процесс обработки</translation>
-    </message>
-    <message>
-        <location filename="QgsWpsServer.py" line="330"/>
+        <location filename="QgsWpsDockWidget.py" line="384"/>
         <source>Process selected objects only</source>
         <translation>Обрабатывать только выбранные объекты</translation>
     </message>
     <message>
-        <location filename="QgsWpsServer.py" line="330"/>
+        <location filename="QgsWpsDockWidget.py" line="384"/>
         <source>Selected</source>
         <translation>Выбранные</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="219"/>
+        <location filename="QgsWpsDockWidget.py" line="532"/>
         <source>Error</source>
         <translation>Ошибка</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="483"/>
+        <location filename="QgsWpsDockWidget.py" line="532"/>
         <source>Please load or select a vector layer!</source>
         <translation>Пожалуйста загрузите или выберете векторный слой!</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="609"/>
+        <location filename="QgsWpsDockWidget.py" line="696"/>
         <source>Run</source>
         <translation>Запустить</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="614"/>
+        <location filename="QgsWpsDockWidget.py" line="701"/>
         <source>Back</source>
         <translation>Назад</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="661"/>
+        <location filename="QgsWpsDockWidget.py" line="769"/>
         <source>WPS Error: Unable to download the result of reference: </source>
         <translation>Ошибка WPS: Не удается загрузить результат:</translation>
     </message>
     <message>
-        <location filename="QgsWpsServer.py" line="977"/>
+        <location filename="QgsWpsDockWidget.py" line="807"/>
         <source>Result</source>
         <translation>Результат</translation>
     </message>
     <message>
-        <location filename="QgsWpsDockWidget.py" line="679"/>
+        <location filename="QgsWpsDockWidget.py" line="812"/>
         <source>WPS Error: Missing reference or literal data in response</source>
         <translation>Ошибка WPS: В ответе сервера отсутсвуют данные или ссылка на них</translation>
     </message>
     <message>
-        <location filename="QgsWpsServer.py" line="965"/>
+        <location filename="QgsWpsDockWidget.py" line="894"/>
         <source>Process result (text/plain)</source>
         <translation>Результат обработки (text/plain)</translation>
     </message>
     <message>
-        <location filename="QgsWpsServer.py" line="972"/>
+        <location filename="QgsWpsDockWidget.py" line="910"/>
         <source>Process result (unsupported mime type)</source>
         <translation>Результат обработки (неподдерживаемый тип mime)</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="71"/>
+        <location filename="qgswpstools.py" line="95"/>
         <source>Web Connection Failed</source>
         <translation>Не удалось соединиться с сервером</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="122"/>
-        <source>Only WPS Version 1.0.0 is supprted</source>
-        <translation>Поддерживается только WPS версии 1.0.0</translation>
-    </message>
-    <message>
-        <location filename="qgswpstools.py" line="219"/>
+        <location filename="qgswpstools.py" line="293"/>
         <source>Unable to create temporal file: </source>
         <translation>Не удалось создать временный файл</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="219"/>
+        <location filename="qgswpstools.py" line="293"/>
         <source> for base64 encoding</source>
         <translation> для base64 кодирования</translation>
     </message>
     <message>
-        <location filename="qgswpstools.py" line="279"/>
+        <location filename="qgswpstools.py" line="349"/>
         <source>File open problem</source>
         <translation>Проблема при открытии файла</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="71"/>
+        <location filename="Ui_qgswpsgui.py" line="23"/>
         <source>Note: this plugin not considered stable yet. Use it on your own risk</source>
         <translation>ВНИМАНИЕ: этот плагин наданный момент не является стабильным. Используйте его на свой ​​страх и риск</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="72"/>
+        <location filename="Ui_qgswpsgui.py" line="50"/>
         <source>Server Connections</source>
         <translation>Соединения с серверами</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="73"/>
+        <location filename="Ui_qgswpsgui.py" line="57"/>
         <source>&amp;New</source>
         <translation>&amp;Создать</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="74"/>
+        <location filename="Ui_qgswpsgui.py" line="62"/>
         <source>Edit</source>
         <translation>Изменить</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="75"/>
+        <location filename="Ui_qgswpsgui.py" line="69"/>
         <source>C&amp;onnect</source>
         <translation>&amp;Подключиться</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="76"/>
+        <location filename="Ui_qgswpsgui.py" line="77"/>
         <source>Delete</source>
         <translation>Удалить</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="77"/>
+        <location filename="Ui_qgswpsgui.py" line="31"/>
         <source>about</source>
         <translation>О модуле</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="79"/>
+        <location filename="Ui_qgswpsgui.py" line="45"/>
         <source>Identifier</source>
         <translation>Идентификатор</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="80"/>
+        <location filename="Ui_qgswpsgui.py" line="46"/>
         <source>Title</source>
         <translation>Наименование</translation>
     </message>
     <message>
-        <location filename="Ui_qgswpsgui.py" line="81"/>
+        <location filename="Ui_qgswpsgui.py" line="47"/>
         <source>Abstract</source>
         <translation>Описание</translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsgui.py" line="81"/>
+        <source>Add default server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="Ui_qgswpsgui.py" line="85"/>
+        <source>Bookmarks</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="qgswpstools.py" line="193"/>
+        <source>Only WPS Version 1.0.0 is supported</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="qgswpstools.py" line="454"/>
+        <source>Maximum allowed Value is too large</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="136"/>
+        <source> finished successfully</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="292"/>
+        <source>The process &apos;%1&apos; does not seem to support GML for the parameter &apos;%2&apos;, which is required by the QGIS WPS client.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="706"/>
+        <source>Add Bookmark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="731"/>
+        <source>Bookmark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="731"/>
+        <source>The creation bookmark was successful.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="913"/>
+        <source>Result not loaded to the map</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="QgsWpsDockWidget.py" line="913"/>
+        <source>It seems QGIS cannot load the result of the process. The result has a &apos;%1&apos; type and can be accessed at &apos;%2&apos;. 
+
+You could ask the service provider to consider changing the default data type of the result.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -255,54 +334,44 @@
     </message>
 </context>
 <context>
-    <name>QgsWpsServerThreadDialog</name>
+    <name>QgsWpsGui</name>
     <message>
-        <location filename="Ui_QgsWpsServerThreadDialog.py" line="43"/>
-        <source>Dialog</source>
-        <translation>Диалог</translation>
-    </message>
-    <message>
-        <location filename="Ui_QgsWpsServerThreadDialog.py" line="44"/>
-        <source>Process:</source>
-        <translation>Процесс:</translation>
-    </message>
-    <message>
-        <location filename="Ui_QgsWpsServerThreadDialog.py" line="45"/>
-        <source>Status:</source>
-        <translation>Состояние:</translation>
-    </message>
-    <message>
-        <location filename="Ui_QgsWpsServerThreadDialog.py" line="46"/>
-        <source>cancel</source>
-        <translation>Отменить</translation>
+        <location filename="qgswpsgui.py" line="145"/>
+        <source>Connection Refused. Please check your Proxy-Settings</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>dlgAbout</name>
     <message>
-        <location filename="Ui_QgsWpsAbout.py" line="89"/>
+        <location filename="Ui_QgsWpsAbout.py" line="106"/>
         <source>About QgsWPS</source>
         <translation>О модуле QgsWPS</translation>
     </message>
     <message>
-        <location filename="Ui_QgsWpsAbout.py" line="87"/>
+        <location filename="Ui_QgsWpsAbout.py" line="33"/>
         <source>Version:</source>
         <translation>Версия:</translation>
     </message>
     <message>
-        <location filename="Ui_QgsWpsAbout.py" line="88"/>
+        <location filename="Ui_QgsWpsAbout.py" line="38"/>
         <source>Date:</source>
         <translation>Дата:</translation>
     </message>
     <message>
-        <location filename="Ui_QgsWpsAbout.py" line="90"/>
+        <location filename="Ui_QgsWpsAbout.py" line="107"/>
         <source>Contributors</source>
         <translation>Участники</translation>
     </message>
     <message>
-        <location filename="Ui_QgsWpsAbout.py" line="91"/>
+        <location filename="Ui_QgsWpsAbout.py" line="109"/>
         <source>License</source>
         <translation>Лицензия</translation>
+    </message>
+    <message>
+        <location filename="Ui_QgsWpsAbout.py" line="108"/>
+        <source>Sponsors</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
