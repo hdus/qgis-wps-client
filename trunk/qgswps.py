@@ -82,7 +82,7 @@ class QgsWps:
 
      
      self.myDockWidget = QgsWpsDockWidget(self.iface)
-     self.myDockWidget.setWindowTitle('QGIS WPS-Client '+version())
+     self.myDockWidget.setWindowTitle('WPS')
      self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
      self.myDockWidget.show()
 
