@@ -36,7 +36,7 @@ from streaming import Streaming
 
 import resources_rc,  string
 
-DEBUG = False
+DEBUG = True
 
 from Ui_QgsWpsDockWidget import Ui_QgsWpsDockWidget
 
@@ -101,6 +101,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def showProgressBar(self,  done,  all,  status):
       self.progressBar.setRange(0, all)
       self.progressBar.setValue(done)
+
       if done < all:
           self.setStatusLabel(status)
       else:
@@ -110,9 +111,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setMaximum(0)
          else:
             self.setStatusLabel('finished') 
-            #print 'finished'
-      
-      
+        
       return
       
     def setStatusLabel(self,  status,  myBool=None):
@@ -290,9 +289,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               
               if complexDataFormat == None :
                 QMessageBox.warning(self.iface.mainWindow(), QApplication.translate("QgsWps","Error"),  
-                  QApplication.translate("QgsWps","The process '" + self.processIdentifier + \
-                  "' does not seem to support GML for the parameter '" + inputIdentifier + \
-                  "', which is required by the QGIS WPS client."))
+                  QApplication.translate("QgsWps","The process '%1' does not seem to support GML for the parameter '%2', which is required by the QGIS WPS client.").arg(self.processIdentifier).arg(inputIdentifier))
                 return 0 
               
               # Store the input format for this parameter (after checking GML version supported)
@@ -672,23 +669,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.thePostHttp = QgsNetworkAccessManager.instance() 
         url = QUrl(wpsConnection)
         url.setPort(port)
-        try:
-            self.thePostHttp.finished.disconnect()    
-        except:
-            pass
             
             
-        self.thePostHttp.finished.connect(self.resultHandler)                 
+#        self.thePostHttp.finished.connect(self.resultHandler)                 
         self.request = QNetworkRequest(url)
         self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )        
         self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
+        self.thePostReply.finished.connect(partial(self.resultHandler,  self.thePostReply) )        
         
         if dataInputs.size() > 0:
           QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
-
-
   ##############################################################################
+
 
     def addOkCancelButtons(self,  dlgProcess,  dlgProcessTabFrameLayout):
 
@@ -739,7 +732,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the registry or open an information window to show literal
            outputs."""
-        self.thePostHttp.finished.disconnect(self.resultHandler)                  
         resultXML = reply.readAll().data()
 # This is for debug purpose only
         if DEBUG == True:
@@ -915,29 +907,22 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if not bLoaded:
             QMessageBox.information(self.iface.mainWindow(), 
                 QApplication.translate("QgsWps","Result not loaded to the map"), 
-                QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '") + self.mimeType + QApplication.translate("QgsWps","' type and can be accessed at '") + resultFile + QApplication.translate("QgsWps","'. \n\nYou could ask the service provider to consider changing the default data type of the result."))
+                QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '%1' type and can be accessed at '%2'. \n\nYou could ask the service provider to consider changing the default data type of the result.").arg(self.mimeType ).arg(resultFile))
 
     def fetchResult(self, encoding, fileLink):
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.myHttp.get(QNetworkRequest(url))
-        try:
-            self.myHttp.finished.disconnect()
-        except:
-            pass
             
         # Append encoding to 'finished' signal parameters
         self.encoding = encoding
-#        self.myHttp.finished.connect(partial(self.getResultFile, encoding))  
-        self.myHttp.finished.connect(self.getResultFile)  
+        self.theReply.finished.connect(partial(self.getResultFile, encoding,  self.theReply))  
         
         QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
         
-#    def getResultFile(self, encoding, reply):
-    def getResultFile(self, reply):   
+    def getResultFile(self, encoding, reply):
     # Check if there is redirection 
-        self.myHttp.finished.disconnect(self.getResultFile)  
 
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():

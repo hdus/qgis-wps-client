@@ -129,17 +129,12 @@ class QgsWpsTools(QObject):
     requestFinished = False
     self.myHttp = QgsNetworkAccessManager.instance()     
 
-    try:
-      self.myHttp.finished.disconnect()       
-    except:
-      pass
-
     url = QUrl()        
     myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version="+version
     url.setUrl(scheme+"://"+server+path+myRequest)
     url.setPort(port)
-    theReply = self.myHttp.get(QNetworkRequest(url))                        
-    self.myHttp.finished.connect(self.serviceRequestFinished)      
+    self.theReply = self.myHttp.get(QNetworkRequest(url))                        
+    self.theReply.finished.connect(self.serviceRequestFinished)      
       
       
   ##############################################################################
@@ -157,33 +152,28 @@ class QgsWpsTools(QObject):
     requestFinished = False
     self.myHttp = QgsNetworkAccessManager.instance()     
 
-    try:
-      self.myHttp.finished.disconnect()       
-    except:
-      pass
-
     if identifier <> '':
       url = QUrl()        
       myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
       url.setUrl(scheme+"://"+server+path+myRequest)
-      theReply = self.myHttp.get(QNetworkRequest(url))                        
-      self.myHttp.finished.connect(self.serviceRequestFinished)      
+      self.theReply = self.myHttp.get(QNetworkRequest(url))                        
+      self.theReply.finished.connect(self.serviceRequestFinished)      
     else:
       url = QUrl()        
       myRequest = "?Request="+request+"&Service=WPS&Version="+version
       url.setUrl(scheme+"://"+server+path+myRequest)
-      theReply = self.myHttp.get(QNetworkRequest(url))      
-      self.myHttp.finished.connect(self.capabilitiesRequestFinished)
+      self.theReply = self.myHttp.get(QNetworkRequest(url))      
+      self.theReply.finished.connect(self.capabilitiesRequestFinished)
 
 
-  def capabilitiesRequestFinished(self,  reply):
-        self.myHttp.finished.disconnect(self.capabilitiesRequestFinished)      
-        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), reply) 
+  def capabilitiesRequestFinished(self):
+#        self.myHttp.finished.disconnect(self.capabilitiesRequestFinished)      
+        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), self.theReply) 
 
 
-  def serviceRequestFinished(self,  reply):
-        self.myHttp.finished.disconnect(self.serviceRequestFinished)      
-        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), reply) 
+  def serviceRequestFinished(self):
+#        self.myHttp.finished.disconnect(self.serviceRequestFinished)      
+        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.theReply) 
 
   ##############################################################################
 
