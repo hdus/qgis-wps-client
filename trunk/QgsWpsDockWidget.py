@@ -36,7 +36,7 @@ from streaming import Streaming
 
 import resources_rc,  string
 
-DEBUG = True
+DEBUG = False
 
 from Ui_QgsWpsDockWidget import Ui_QgsWpsDockWidget
 

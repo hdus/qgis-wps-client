@@ -23,13 +23,13 @@ def description():
   return "Client for Web Processing Services"
 
 def version():
-  return "0.9.6"
+  return "0.9.7"
 
 def qgisMinimumVersion():
   return "1.5"  
 
 def date():
-    return '2013-01-09'
+    return '2013-01-15'
     
 def email():
     return 'horst.duester@kappasys.ch'

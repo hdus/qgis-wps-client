@@ -56,9 +56,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     return 1    
         
         
-  def getDescription(self,  name, item):
-        QMessageBox.information(None, '', name)
-        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
+#  def getDescription(self,  name, item):
+#        QMessageBox.information(None, '', name)
+#        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
     
   def getBookmark(self, item):
         self.tools.getServiceXML(item.text(0),"DescribeProcess",item.text(1))    
