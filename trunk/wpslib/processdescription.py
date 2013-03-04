@@ -16,17 +16,91 @@
   *                                                                         *
   ***************************************************************************/
 """
-# Import the PyQt and the QGIS libraries
+
 from PyQt4.QtCore import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
-from PyQt4.QtSql import *
-from PyQt4.QtWebKit import QWebView
-from qgis.core import *
-import os, sys, string, tempfile, base64
+from qgis.core import QgsNetworkAccessManager
 from collections import namedtuple
-from functools import partial
 
+
+# Process description example:
+#
+#<?xml version="1.0" encoding="utf-8"?>
+#<wps:ProcessDescriptions xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd" service="WPS" version="1.0.0" xml:lang="eng">
+#    <ProcessDescription wps:processVersion="1.0" storeSupported="true" statusSupported="true">
+#        <ows:Identifier>returner</ows:Identifier>
+#        <ows:Title>Return process</ows:Title>
+#        <ows:Abstract>This is demonstration process of PyWPS, returns the same file, it gets on input, as the output.</ows:Abstract>
+#        <DataInputs>
+#            <Input minOccurs="1" maxOccurs="1">
+#                <ows:Identifier>text</ows:Identifier>
+#                <ows:Title>Some width</ows:Title>
+#                <LiteralData>
+#                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
+#                    <ows:AnyValue />
+#                </LiteralData>
+#            </Input>
+#            <Input minOccurs="1" maxOccurs="1">
+#                <ows:Identifier>data</ows:Identifier>
+#                <ows:Title>Input vector data</ows:Title>
+#                <ComplexData>
+#                    <Default>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Default>
+#                    <Supported>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Supported>
+#                </ComplexData>
+#            </Input>
+#        </DataInputs>
+#        <ProcessOutputs>
+#            <Output>
+#                <ows:Identifier>output2</ows:Identifier>
+#                <ows:Title>Output vector data</ows:Title>
+#                <ComplexOutput>
+#                    <Default>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Default>
+#                    <Supported>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Supported>
+#                </ComplexOutput>
+#            </Output>
+#            <Output>
+#                <ows:Identifier>text</ows:Identifier>
+#                <ows:Title>Output literal data</ows:Title>
+#                <LiteralOutput>
+#                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#integer">integer</ows:DataType>
+#                </LiteralOutput>
+#            </Output>
+#            <Output>
+#                <ows:Identifier>output1</ows:Identifier>
+#                <ows:Title>Output vector data</ows:Title>
+#                <ComplexOutput>
+#                    <Default>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Default>
+#                    <Supported>
+#                        <Format>
+#                            <ows:MimeType>text/xml</ows:MimeType>
+#                        </Format>
+#                    </Supported>
+#                </ComplexOutput>
+#            </Output>
+#        </ProcessOutputs>
+#    </ProcessDescription>
+#</wps:ProcessDescriptions>
 
 # All supported import raster formats
 RASTER_MIMETYPES = [{"MIMETYPE":"image/tiff", "GDALID":"GTiff", "EXTENSION":"tif"},
@@ -53,6 +127,8 @@ VECTOR_MIMETYPES = [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", "GDALID
 PLAYLIST_MIMETYPES = [{"MIMETYPE":"application/x-ogc-playlist+", "SCHEMA":"", "GDALID":"", "DATATYPE":"PLAYLIST", "EXTENSION":"txt"}]
 
 
+# Helper methods for reading WPS XML
+
 def getOwsElement(element, name):
     return element.elementsByTagNameNS("http://www.opengis.net/ows/1.1", name)
 
@@ -64,7 +140,7 @@ def getIdentifierTitleAbstractFromElement(element):
 
 def getDefaultMimeType(inElement):
     myElement = inElement.elementsByTagName("Default").at(0).toElement()
-    return _getMimeTypeSchemaEncoding(myElement)
+    return getMimeTypeSchemaEncoding(myElement)
 
 def getSupportedMimeTypes(inElement):
     mimeTypes = []
@@ -72,10 +148,10 @@ def getSupportedMimeTypes(inElement):
     myFormats = myElements.elementsByTagName('Format')
     for i in range(myFormats.size()):
       myElement = myFormats.at(i).toElement()
-      mimeTypes.append(_getMimeTypeSchemaEncoding(myElement))
+      mimeTypes.append(getMimeTypeSchemaEncoding(myElement))
     return mimeTypes
 
-def _getMimeTypeSchemaEncoding(element):
+def getMimeTypeSchemaEncoding(element):
     mimeType = ""
     schema = ""
     encoding = ""
@@ -182,6 +258,7 @@ def allowedValues(aValues):
 
      return valList
 
+
 StringInput = namedtuple('StringInput', 'identifier title minOccurs')
 SelectionInput = namedtuple('SelectionInput', 'identifier title valList')
 VectorInput = namedtuple('VectorInput', 'identifier title minOccurs complexDataFormat')
@@ -194,11 +271,17 @@ VectorOutput = namedtuple('VectorOutput', 'identifier title complexDataFormat')
 
 
 class ProcessDescription(QObject):
+    """
+    Request and parse a WPS process description
+    """
 
     def __init__(self):
         QObject.__init__(self)
 
     def requestDescribeProcess(self, baseUrl, identifier, version):
+        """
+        Request process description
+        """
         self.doc = None
         self.inputs = []
         self.outputs = []
@@ -207,27 +290,29 @@ class ProcessDescription(QObject):
         myRequest = "?Request=DescribeProcess&identifier=" + identifier + "&Service=WPS&Version=" + version
         url.setUrl(baseUrl + myRequest)
         myHttp = QgsNetworkAccessManager.instance()
-        self.theReply = myHttp.get(QNetworkRequest(url))
-        self.theReply.finished.connect(self.describeProcessFinished)
-
+        self._theReply = myHttp.get(QNetworkRequest(url))
+        self._theReply.finished.connect(self._describeProcessFinished)
 
     @pyqtSlot()
-    def describeProcessFinished(self):
-        self.processUrl = self.theReply.url()
-        self.processXML = self.theReply.readAll().data()
+    def _describeProcessFinished(self):
         # Receive the XML process description
+        self.processUrl = self._theReply.url()
+        self.processXML = self._theReply.readAll().data()
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(self.processXML, True)
 
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
-        self.parseProcessInputs()
-        self.parseProcessOutputs()
+        self._parseProcessInputs()
+        self._parseProcessOutputs()
 
         self.emit(SIGNAL("describeProcessFinished"))
 
-    def parseProcessInputs(self):
+    def _parseProcessInputs(self):
+        """
+        Populate self.inputs and self.outputs arrays from process description
+        """
+        self._inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
         dataInputs = self.doc.elementsByTagName("Input")
-        self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
 
         # Create the complex inputs at first
         for i in range(dataInputs.size()):
@@ -247,7 +332,7 @@ class ProcessDescription(QObject):
             complexDataFormat = getDefaultMimeType(complexDataTypeElement)
 
             # Store the input formats
-            self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
+            self._inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
 
             # Attach the selected vector or raster maps
             if isMimeTypeVector(complexDataFormat["MimeType"]) != None:
@@ -334,7 +419,7 @@ class ProcessDescription(QObject):
 
             self.inputs.append(CrsInput(inputIdentifier, title, minOccurs, crsListe))
 
-    def parseProcessOutputs(self):
+    def _parseProcessOutputs(self):
         dataOutputs = self.doc.elementsByTagName("Output")
         if dataOutputs.size() < 1:
             return
@@ -357,14 +442,14 @@ class ProcessDescription(QObject):
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
-      for dataType in self.inputsMetaInfo[name]:
+      for dataType in self._inputsMetaInfo[name]:
         if baseMimeType in dataType['MimeType']:
           return True
       return False
 
     def getDataTypeInfo(self, mimeType, name):
       # Return a dict with mimeType, schema and encoding for the given mimeType
-      for dataType in self.inputsMetaInfo[name]:
+      for dataType in self._inputsMetaInfo[name]:
         if mimeType in dataType['MimeType']:
           return dataType
       return None
