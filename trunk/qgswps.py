@@ -24,6 +24,14 @@ from QgsWpsDockWidget import QgsWpsDockWidget
 from wps import version
 from doAbout import DlgAbout
 
+SEXTANTE_SUPPORT = False
+try:
+    from sextante.core.Sextante import Sextante
+    from wps.sextantewps.qgswpsalgorithmprovider import QgsWpsAlgorithmProvider
+    SEXTANTE_SUPPORT = True
+except ImportError:
+    pass
+
 # initialize Qt resources from file resources.py
 import resources_rc
 
@@ -57,7 +65,7 @@ class QgsWps:
       
       if qVersion() > '4.3.3':        
         QCoreApplication.installTranslator(self.translator)  
-        
+
 
   ##############################################################################
 
@@ -86,6 +94,14 @@ class QgsWps:
      self.iface.addDockWidget(Qt.LeftDockWidgetArea, self.myDockWidget)
      self.myDockWidget.show()
 
+     if SEXTANTE_SUPPORT:
+         self.provider = QgsWpsAlgorithmProvider(self.myDockWidget)
+     else:
+         self.provider = None
+
+     if self.provider:
+        Sextante.addProvider(self.provider)
+
 
 
   ##############################################################################
@@ -104,6 +120,9 @@ class QgsWps:
          self.myDockWidget.close()
         
      self.myDockWidget = None
+
+     if self.provider:
+        Sextante.removeProvider(self.provider)
 
 ##############################################################################
 
