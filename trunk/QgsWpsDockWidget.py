@@ -27,7 +27,7 @@ from wps import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
-from qgswpstools import QgsWpsTools
+from qgswpstools import QgsWpsGuiTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 from functools import partial
@@ -54,7 +54,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QDockWidget.__init__(self, iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
-        self.tools = QgsWpsTools(self.iface)
+        self.tools = QgsWpsGuiTools(self.iface)
         self.doc = QtXml.QDomDocument()
         self.tmpPath = QDir.tempPath()        
         self.uploadFinished = False

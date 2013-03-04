@@ -57,14 +57,13 @@ PLAYLIST_MIMETYPES =     [{"MIMETYPE":"application/x-ogc-playlist+", "SCHEMA":""
 
 DEBUG = False
 
-# Our help class for the plugin
+
+# Main helper class, without GUI dependency
 class QgsWpsTools(QObject):
 
-  def __init__(self, iface,  dlg=None):
+  def __init__(self):
     QObject.__init__(self)
-    self.iface = iface
     self.doc = QtXml.QDomDocument()
-    self.dlg = dlg
 
 
 
@@ -355,74 +354,6 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def getVLayer(self,name):
-  #   Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
-        # get the map canvas
-    mc=self.iface.mapCanvas()
-
-     # how many layers are there?
-    nLayers=mc.layerCount()
-
-    for l in range(nLayers):
-      layer = mc.layer(l)
-      if layer.name() == name:
-        return layer  
-
-  ##############################################################################
-
-  def getProviderName(self, name):
-    mc=self.iface.mapCanvas()
-
-     # how many layers are there?
-    nLayers=mc.layerCount()
-
-    for l in range(nLayers):
-      layer = mc.layer(l)
-      if layer.name() == name:    
-       layerProvider = layer.dataProvider()
-       providerName = layerProvider.name()    
-
-    return providerName
-
-  ##############################################################################
-
-  def getTableName(self, name):
-    #  Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
-    # get the map canvas
-    mc=self.iface.mapCanvas()
-
-     # how many layers are there?
-    nLayers=mc.layerCount()
-
-    for l in range(nLayers):
-      layer = mc.layer(l)
-      if layer.name() == name:
-        dataSource = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
-        theTableName = dataSource.quotedTablename()
-        theTableName.replace('"','')
-        return theTableName 
-
-  ##############################################################################
-
-  def getLayerSourceList(self):
-    # get the map canvas
-    mc=self.iface.mapCanvas()
-
-    # how many layers are there?
-    nLayers=mc.layerCount()
-
-    # loopage:
-    layerSourceList = []
-
-    for l in range(nLayers):
-       layer = mc.layer(l)
-       layerSource = unicode(layer.publicSource(),'latin1').lower()
-       layerSourceList.append(layerSource)
-
-    return layerSourceList
-
-  ##############################################################################
-
   def allowedValues(self, aValues):
      valList = []
 
@@ -563,16 +494,6 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def popUpMessageBox(self, title, detailedText):
-    """A message box used for debugging"""
-    mbox = WPSMessageBox()
-    mbox.setText(title)
-    mbox.setDetailedText(detailedText)
-    mbox.exec_()
-    pass
-
-  ##############################################################################
-
   def xmlExecuteRequestInputStart(self, identifier, includeData=True):
     string = ""
     string += "<wps:Input>\n"
@@ -644,7 +565,139 @@ class QgsWpsTools(QObject):
     return None
    
     
-##############################################################################
+  ##############################################################################
+
+  def getBaseMimeType(self, dataType):
+    # Return a base mimeType (might not be completed) from a data type (e.g.GML2)
+    for vectorType in VECTOR_MIMETYPES:
+      if vectorType["DATATYPE"] == dataType.upper():
+        return vectorType["MIMETYPE"]
+    return None
+
+
+  def getOGRVersion(self):
+    # Data conversion options might vary according to the OGR version
+    try:
+      import osgeo.gdal
+      return int(osgeo.gdal.VersionInfo())
+    except:
+      return 0 # If not accessible, assume it is 0
+
+
+  def isGML3SupportedByOGR(self):
+    # GDAL/OGR versions <= 1800 don't support the FORMAT=GML3 option
+    version = self.getOGRVersion()
+    if version < 1800: # OGR < 1.8.0
+       return False
+    else:
+       return True
+  
+  
+  def getFileExtension(self, mimeType):
+    # Return the extension associated to the mime type (e.g. tif)
+    
+    if self.isMimeTypeVector(mimeType):
+      for vectorType in VECTOR_MIMETYPES:
+        if vectorType["MIMETYPE"] in mimeType.lower():
+          return "." + vectorType["EXTENSION"]
+          
+    elif self.isMimeTypeRaster(mimeType):
+      for rasterType in RASTER_MIMETYPES:
+        if rasterType["MIMETYPE"] in mimeType.lower():
+          return "." + rasterType["EXTENSION"]  
+            
+    return ""
+  
+################################################################################
+################################################################################
+################################################################################
+
+# Helper class for native QGIS GUI
+class QgsWpsGuiTools(QgsWpsTools):
+  def __init__(self, iface,  dlg=None):
+    QgsWpsTools.__init__(self)
+    self.iface = iface
+    self.dlg = dlg
+
+  ##############################################################################
+
+  def getVLayer(self,name):
+  #   Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
+        # get the map canvas
+    mc=self.iface.mapCanvas()
+
+     # how many layers are there?
+    nLayers=mc.layerCount()
+
+    for l in range(nLayers):
+      layer = mc.layer(l)
+      if layer.name() == name:
+        return layer  
+
+  ##############################################################################
+
+  def getProviderName(self, name):
+    mc=self.iface.mapCanvas()
+
+     # how many layers are there?
+    nLayers=mc.layerCount()
+
+    for l in range(nLayers):
+      layer = mc.layer(l)
+      if layer.name() == name:    
+       layerProvider = layer.dataProvider()
+       providerName = layerProvider.name()    
+
+    return providerName
+
+  ##############################################################################
+
+  def getTableName(self, name):
+    #  Die sichtbaren Layer der Legende zur weiteren Bearbeitung holen
+    # get the map canvas
+    mc=self.iface.mapCanvas()
+
+     # how many layers are there?
+    nLayers=mc.layerCount()
+
+    for l in range(nLayers):
+      layer = mc.layer(l)
+      if layer.name() == name:
+        dataSource = QgsDataSourceURI(layer.dataProvider().dataSourceUri())
+        theTableName = dataSource.quotedTablename()
+        theTableName.replace('"','')
+        return theTableName 
+
+  ##############################################################################
+
+  def getLayerSourceList(self):
+    # get the map canvas
+    mc=self.iface.mapCanvas()
+
+    # how many layers are there?
+    nLayers=mc.layerCount()
+
+    # loopage:
+    layerSourceList = []
+
+    for l in range(nLayers):
+       layer = mc.layer(l)
+       layerSource = unicode(layer.publicSource(),'latin1').lower()
+       layerSourceList.append(layerSource)
+
+    return layerSourceList
+
+  ##############################################################################
+
+  def popUpMessageBox(self, title, detailedText):
+    """A message box used for debugging"""
+    mbox = WPSMessageBox()
+    mbox.setText(title)
+    mbox.setDetailedText(detailedText)
+    mbox.exec_()
+    pass
+
+  ##############################################################################
 
   def addComplexInputComboBox(self, title, name, mimeType, namesList, minOccurs,  dlgProcessScrollAreaWidget,  dlgProcessScrollAreaWidgetLayout):
       """Adds a combobox to select a raster or vector map as input to the process tab"""
@@ -938,49 +991,7 @@ class QgsWpsTools(QObject):
 
     dlgProcessTab.addTab(textBox, "Documentation")
 
-  ##############################################################################
 
-  def getBaseMimeType(self, dataType):
-    # Return a base mimeType (might not be completed) from a data type (e.g.GML2)
-    for vectorType in VECTOR_MIMETYPES:
-      if vectorType["DATATYPE"] == dataType.upper():
-        return vectorType["MIMETYPE"]
-    return None
-
-
-  def getOGRVersion(self):
-    # Data conversion options might vary according to the OGR version
-    try:
-      import osgeo.gdal
-      return int(osgeo.gdal.VersionInfo())
-    except:
-      return 0 # If not accessible, assume it is 0
-
-
-  def isGML3SupportedByOGR(self):
-    # GDAL/OGR versions <= 1800 don't support the FORMAT=GML3 option
-    version = self.getOGRVersion()
-    if version < 1800: # OGR < 1.8.0
-       return False
-    else:
-       return True
-  
-  
-  def getFileExtension(self, mimeType):
-    # Return the extension associated to the mime type (e.g. tif)
-    
-    if self.isMimeTypeVector(mimeType):
-      for vectorType in VECTOR_MIMETYPES:
-        if vectorType["MIMETYPE"] in mimeType.lower():
-          return "." + vectorType["EXTENSION"]
-          
-    elif self.isMimeTypeRaster(mimeType):
-      for rasterType in RASTER_MIMETYPES:
-        if rasterType["MIMETYPE"] in mimeType.lower():
-          return "." + rasterType["EXTENSION"]  
-            
-    return ""
-  
 ################################################################################
 ################################################################################
 ################################################################################
