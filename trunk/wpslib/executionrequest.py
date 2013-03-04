@@ -116,7 +116,7 @@ def createTmpBase64(self, rLayer):
   return base64String
 
 
-class ExecuteRequest(QObject):
+class ExecutionRequest(QObject):
     """
     Compose request XML for WPS execution
     """

@@ -1,0 +1,229 @@
+# -*- coding: latin1 -*-  
+"""
+ /***************************************************************************
+   QGIS Web Processing Service Plugin
+  -------------------------------------------------------------------
+ Date                 : 09 November 2009
+ Copyright            : (C) 2009 by Dr. Horst Duester
+ email                : horst dot duester at kappasys dot ch
+
+  ***************************************************************************
+  *                                                                         *
+  *   This program is free software; you can redistribute it and/or modify  *
+  *   it under the terms of the GNU General Public License as published by  *
+  *   the Free Software Foundation; either version 2 of the License, or     *
+  *   (at your option) any later version.                                   *
+  *                                                                         *
+  ***************************************************************************/
+"""
+
+from PyQt4.QtCore import *
+from PyQt4.QtNetwork import *
+from PyQt4 import QtXml
+from qgis.core import QgsNetworkAccessManager
+from functools import partial
+from wps.wpslib.processdescription import getFileExtension
+
+
+# Execute result example:
+#
+#<?xml version="1.0" encoding="utf-8"?>
+#<wps:ExecuteResponse xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd" service="WPS" version="1.0.0" xml:lang="eng" serviceInstance="http://www.kappasys.ch/pywps?service=WPS&amp;request=GetCapabilities&amp;version=1.0.0" statusLocation="http://www.kappasys.ch/pywps/wpsoutputs/pywps-136243739626.xml">
+#    <wps:Process wps:processVersion="1.0">
+#        <ows:Identifier>returner</ows:Identifier>
+#        <ows:Title>Return process</ows:Title>
+#        <ows:Abstract>This is demonstration process of PyWPS, returns the same file, it gets on input, as the output.</ows:Abstract>
+#    </wps:Process>
+#    <wps:Status creationTime="2013-03-04T23:49:56Z">
+#        <wps:ProcessSucceeded>PyWPS Process returner successfully calculated</wps:ProcessSucceeded>
+#    </wps:Status>
+#    <wps:ProcessOutputs>
+#        <wps:Output>
+#            <ows:Identifier>output2</ows:Identifier>
+#            <ows:Title>Output vector data</ows:Title>
+#            <wps:Reference xlink:href="http://www.kappasys.ch/pywps/wpsoutputs/output2-30429" mimeType="text/xml"/>
+#        </wps:Output>
+#        <wps:Output>
+#            <ows:Identifier>text</ows:Identifier>
+#            <ows:Title>Output literal data</ows:Title>
+#            <wps:Data>
+#                <wps:LiteralData dataType="integer">33</wps:LiteralData>
+#            </wps:Data>
+#        </wps:Output>
+#        <wps:Output>
+#            <ows:Identifier>output1</ows:Identifier>
+#            <ows:Title>Output vector data</ows:Title>
+#            <wps:Reference xlink:href="http://www.kappasys.ch/pywps/wpsoutputs/output1-30429" mimeType="text/xml"/>
+#        </wps:Output>
+#    </wps:ProcessOutputs>
+#</wps:ExecuteResponse>
+
+def decodeBase64(self, infileName,  mimeType="", tmpDir=None):
+    try:
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", 
+            suffix=getFileExtension(mimeType), dir=tmpDir, delete=False) 
+        infile = open(infileName)
+        outfile = open(tmpFile.name, 'w')
+        base64.decode(infile,outfile)
+
+        infile.close()
+        outfile.close()
+        
+    except:
+        raise
+
+    return tmpFile.name
+
+class ExecutionResult(QObject):
+    """
+    Send request XML and process result
+    """
+
+    def __init__(self, literalResultReciever, resultFileReciever):
+        QObject.__init__(self)
+        self.getLiteralResult = literalResultReciever
+        self.getResultFile = resultFileReciever
+
+    def executeProcess(self, processUrl, requestXml):
+        self.processExecuted = False
+        self.noFilesToFetch = 0
+
+        postData = QByteArray()
+        postData.append(requestXml)
+    
+        scheme = processUrl.scheme()
+        path = processUrl.path()
+        server = processUrl.host()
+        port = processUrl.port()
+    
+        wpsConnection = scheme+'://'+server+path
+    
+        thePostHttp = QgsNetworkAccessManager.instance()
+        url = QUrl(wpsConnection)
+        url.setPort(port)
+        qDebug("Post URL=" + str(url))
+    
+    #        thePostHttp.finished.connect(self.resultHandler)
+        request = QNetworkRequest(url)
+        request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )
+        self.thePostReply = thePostHttp.post(request, postData)
+        self.thePostReply.finished.connect(partial(self.resultHandler, self.thePostReply) )
+
+    def resultHandler(self, reply):
+        """Handle the result of the WPS Execute request and add the outputs as new
+           map layers to the registry or open an information window to show literal
+           outputs."""
+        resultXML = reply.readAll().data()
+        qDebug(resultXML)
+        self.parseResult(resultXML)
+        self.processExecuted = True
+        return True
+
+    def parseResult(self, resultXML):
+        self.doc = QtXml.QDomDocument()
+        self.doc.setContent(resultXML,  True)
+        resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")
+
+        # TODO: Check if the process does not run correctly before
+        if resultNodeList.size() > 0:
+            for i in range(resultNodeList.size()):
+              f_element = resultNodeList.at(i).toElement()
+
+              # Fetch the referenced complex data
+              if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
+                identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+                reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
+
+                # Get the reference
+                fileLink = reference.attribute("href", "0")
+
+                # Try with namespace if not successful
+                if fileLink == '0':
+                  fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
+                if fileLink == '0':
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                      str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+                  return False
+
+                # Get the mime type of the result
+                self.mimeType = str(reference.attribute("mimeType", "0").toLower())
+
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(reference.attribute("encoding", "").toLower())
+
+                if fileLink != '0':
+                  if "playlist" in self.mimeType: # Streaming based process?
+                    self.streamingHandler(encoding, fileLink) #FIXME: not supported yet
+                  else: # Conventional processes
+                    self.fetchResult(encoding, fileLink, identifier)
+                    #self.setStatusLabel('finished')
+
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
+                complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
+
+                # Get the mime type of the result
+                self.mimeType = str(complexData.attribute("mimeType", "0").toLower())
+
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(complexData.attribute("encoding", "").toLower())
+
+                if "playlist" in self.mimeType:
+                  playlistUrl = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").at(0).toElement().text()
+                  self.streamingHandler(encoding, playlistUrl) #FIXME: not supported yet
+
+                else: # Other ComplexData are not supported by this WPS client
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + mimeType + "' is not supported by this client")))
+
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
+                literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
+                self.getLiteralResult(identifier, literalText)
+                #self.setStatusLabel('finished')
+              else:
+                QMessageBox.warning(self.iface.mainWindow(), '', 
+                  str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
+        else:
+            status = self.doc.elementsByTagName("Status")
+            if status.size() == 0:
+              #self.setStatusLabel('error')
+              return self.errorHandler(resultXML)
+
+    def fetchResult(self, encoding, fileLink, identifier):
+        self.noFilesToFetch += 1
+        url = QUrl(fileLink)
+        self.myHttp = QgsNetworkAccessManager.instance()
+        self.theReply = self.myHttp.get(QNetworkRequest(url))
+
+        # Append encoding to 'finished' signal parameters
+        self.encoding = encoding
+        self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, self.theReply))
+
+        #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+
+    def handleRedirection(self, identifier, encoding, reply):
+        # Check if there is redirection
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
+        if not reDir.isEmpty():
+            self.fetchResult(encoding, reDir, identifier)
+            return True
+        return False
+
+    def handleEncoded(self, file, mimeType, encoding):
+        # Decode?
+        if encoding == "base64":
+            return decodeBase64(file, mimeType)
+        else:
+            return file
+
+    def errorHandler(self, resultXML):
+         if resultXML:
+           #print resultXML
+           query = QXmlQuery(QXmlQuery.XSLT20)
+           xslFile = QFile(":/plugins/wps/exception.xsl")
+           xslFile.open(QIODevice.ReadOnly)
+           bRead = query.setFocus(resultXML)
+           query.setQuery(xslFile)
+           exceptionHtml = query.evaluateToString()
+           QMessageBox.critical(self.iface.mainWindow(), "Exception report", exceptionHtml)
+           xslFile.close()
+         return False

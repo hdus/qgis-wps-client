@@ -214,6 +214,21 @@ def getBaseMimeType(dataType):
         return vectorType["MIMETYPE"]
     return None
 
+def getFileExtension(mimeType):
+    # Return the extension associated to the mime type (e.g. tif)
+
+    if isMimeTypeVector(mimeType):
+      for vectorType in VECTOR_MIMETYPES:
+        if vectorType["MIMETYPE"] in mimeType.lower():
+          return "." + vectorType["EXTENSION"]
+
+    elif isMimeTypeRaster(mimeType):
+      for rasterType in RASTER_MIMETYPES:
+        if rasterType["MIMETYPE"] in mimeType.lower():
+          return "." + rasterType["EXTENSION"]
+
+    return ""
+
 def getOGRVersion():
   # Data conversion options might vary according to the OGR version
   try:
