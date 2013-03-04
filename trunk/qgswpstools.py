@@ -66,7 +66,6 @@ class QgsWpsTools(QObject):
     self.doc = QtXml.QDomDocument()
 
 
-
 ##############################################################################
 
   def getProxy(self):
@@ -476,26 +475,6 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def getLayerNameList(self, dataType=0, all=False):
-    myLayerList = []    
-
-    if all:
-      mapLayers = QgsMapLayerRegistry.instance().mapLayers()      
-      for (k, layer) in mapLayers.iteritems():
-        myLayerList.append(layer.name())
-    else:
-      mc=self.iface.mapCanvas()
-      nLayers=mc.layerCount()
-
-      for l in range(nLayers):
-        # Nur die Layer des gew�nschten Datentypes ausw�hlen 0=Vectorlayer 1=Rasterlayer
-        if mc.layer(l).type() == dataType:
-          myLayerList.append(mc.layer(l).name())
-
-    return myLayerList
-
-  ##############################################################################
-
   def getDBEncoding(self, layerProvider):
     dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())
     db = QSqlDatabase.addDatabase("QPSQL","WPSClient")    
@@ -643,6 +622,26 @@ class QgsWpsGuiTools(QgsWpsTools):
     QgsWpsTools.__init__(self)
     self.iface = iface
     self.dlg = dlg
+
+  ##############################################################################
+
+  def getLayerNameList(self, dataType=0, all=False):
+    myLayerList = []    
+
+    if all:
+      mapLayers = QgsMapLayerRegistry.instance().mapLayers()      
+      for (k, layer) in mapLayers.iteritems():
+        myLayerList.append(layer.name())
+    else:
+      mc=self.iface.mapCanvas()
+      nLayers=mc.layerCount()
+
+      for l in range(nLayers):
+        # Nur die Layer des gew�nschten Datentypes ausw�hlen 0=Vectorlayer 1=Rasterlayer
+        if mc.layer(l).type() == dataType:
+          myLayerList.append(mc.layer(l).name())
+
+    return myLayerList
 
   ##############################################################################
 
