@@ -261,13 +261,13 @@ def allowedValues(aValues):
 
 StringInput = namedtuple('StringInput', 'identifier title minOccurs')
 SelectionInput = namedtuple('SelectionInput', 'identifier title valList')
-VectorInput = namedtuple('VectorInput', 'identifier title minOccurs complexDataFormat')
-MultipleVectorInput = namedtuple('MultipleVectorInput', 'identifier title minOccurs complexDataFormat')
-RasterInput = namedtuple('RasterInput', 'identifier title minOccurs complexDataFormat')
-MultipleRasterInput = namedtuple('MultipleRasterInput', 'identifier title minOccurs complexDataFormat')
+VectorInput = namedtuple('VectorInput', 'identifier title minOccurs dataFormat')
+MultipleVectorInput = namedtuple('MultipleVectorInput', 'identifier title minOccurs dataFormat')
+RasterInput = namedtuple('RasterInput', 'identifier title minOccurs dataFormat')
+MultipleRasterInput = namedtuple('MultipleRasterInput', 'identifier title minOccurs dataFormat')
 ExtentInput = namedtuple('ExtentInput', 'identifier title minOccurs')
 CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsListe')
-VectorOutput = namedtuple('VectorOutput', 'identifier title complexDataFormat')
+VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat')
 
 
 class ProcessDescription(QObject):
@@ -347,9 +347,9 @@ class ProcessDescription(QObject):
 
               # Vector inputs
               if maxOccurs == 1:
-                self.inputs.append(VectorInput(inputIdentifier, title, minOccurs, str(complexDataFormat)))
+                self.inputs.append(VectorInput(inputIdentifier, title, minOccurs, complexDataFormat))
               else:
-                self.inputs.append(MultipleVectorInput(inputIdentifier, title, minOccurs, str(complexDataFormat)))
+                self.inputs.append(MultipleVectorInput(inputIdentifier, title, minOccurs, complexDataFormat))
             elif isMimeTypeText(complexDataFormat["MimeType"]) != None:
               # Text inputs
               self.inputs.append(StringInput(inputIdentifier, title))
@@ -357,9 +357,9 @@ class ProcessDescription(QObject):
 
               # Raster inputs
               if maxOccurs == 1:
-                self.inputs.append(RasterInput(inputIdentifier, title, minOccurs, str(complexDataFormat)))
+                self.inputs.append(RasterInput(inputIdentifier, title, minOccurs, complexDataFormat))
               else:
-                self.inputs.append(MultipleRasterInput(inputIdentifier, title, minOccurs, str(complexDataFormat)))
+                self.inputs.append(MultipleRasterInput(inputIdentifier, title, minOccurs, complexDataFormat))
 
             elif isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
               # Playlist (text) inputs
@@ -438,7 +438,7 @@ class ProcessDescription(QObject):
             complexOutputFormat = getDefaultMimeType(complexOutputTypeElement)
             supportedcomplexOutputFormat = getSupportedMimeTypes(complexOutputTypeElement)
             # Store the input formats
-            self.outputs.append(VectorOutput(outputIdentifier, title, str(complexOutputFormat)))
+            self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat))
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server

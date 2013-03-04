@@ -16,6 +16,7 @@ from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
 from sextante.outputs.OutputFactory import OutputFactory
 from wps.wpslib.processdescription import ProcessDescription
+from wps.wpslib.executerequest import ExecuteRequest
 from wps.qgswpstools import QgsWpsTools
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -96,194 +97,60 @@ class BookmarksAlgorithm(GeoAlgorithm):
             outputType = type(output).__name__
             if outputType == 'VectorOutput':
                 self.addOutput(OutputVector(output.identifier, output.title))
-        
 
     def defineProcess(self):
         """Create the execute request"""
-        #self.doc.setContent(self.processXML)
-        dataInputs = self.process.doc.elementsByTagName("Input")
-        dataOutputs = self.process.doc.elementsByTagName("Output")
+        request = ExecuteRequest(self.process)
+        request.addExecuteRequestHeader(self.processIdentifier, self.tools.getServiceVersion(self.process.doc))
 
-        postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-        postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion(self.process.doc) + "\"" + \
-                       " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
-                       " xmlns:ows=\"http://www.opengis.net/ows/1.1\"" +\
-                       " xmlns:xlink=\"http://www.w3.org/1999/xlink\"" +\
-                       " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""\
-                       " xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0" +\
-                       " http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">"
-
-        postString += "<ows:Identifier>"+self.processIdentifier+"</ows:Identifier>\n"
-        postString += self.defineProcessInputs(dataInputs)
-        postString += self.defineProcessOutputs(dataOutputs)
-
-        postString += "</wps:Execute>"
-        return postString
-
-    def defineProcessInputs(self, dataInputs):
-        postString = "<wps:DataInputs>"
-
+        # inputs
         useSelected = False
-        #if len(checkBoxes) > 0:
-        #  useSelected = checkBoxes[0].isChecked()
+        request.addDataInputsStart()
+        for input in self.process.inputs:
+            inputType = type(input).__name__
+            value = self.getParameterValue(input.identifier)
+            if inputType == 'VectorInput':
+                layer = QGisLayers.getObjectFromUri(value, False)
+                mimeType = input.dataFormat["MimeType"]
+                data = self.tools.createTmpGML(layer, useSelected, mimeType)
+                request.addGeometryInput(input.identifier, mimeType, input.dataFormat["Schema"], input.dataFormat["Encoding"], data, useSelected)
+            elif inputType == 'MultipleVectorInput':
+                #ParameterMultipleInput(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
+                pass
+            elif inputType == 'StringInput':
+                request.addLiteralDataInput(input.identifier, str(value))
+                pass
+            elif inputType == 'RasterInput':
+                #ParameterRaster(input.identifier, input.title, input.minOccurs == 0))
+                pass
+            elif inputType == 'MultipleRasterInput':
+                #ParameterMultipleInput(input.identifier, input.title, ParameterVector.TYPE_RASTER, input.minOccurs == 0))
+                pass
+            elif inputType == 'SelectionInput':
+                #ParameterSelection(input.identifier, input.title, input.valList)) 
+                pass
+            elif inputType == 'ExtentInput':
+                #myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
+                #ParameterExtent("EXTENT","EXTENT"))
+                pass
+            elif inputType == 'CrsInput':
+                #ParameterCrs("CRS", "CRS"))
+                pass
+        request.addDataInputsEnd()
 
-        for i in range(dataInputs.size()):
-          f_element = dataInputs.at(i).toElement()
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
+        # outputs
+        request.addResponseFormStart()
+        for output in self.process.outputs:
+            outputType = type(output).__name__
+            mimeType = output.dataFormat["MimeType"]
+            schema = output.dataFormat["Schema"]
+            encoding = output.dataFormat["Encoding"]
+            if outputType == 'VectorOutput':
+                request.addReferenceOutput(output.identifier, mimeType, schema, encoding)
+        request.addResponseFormEnd()
 
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-
-          complexData = f_element.elementsByTagName("ComplexData")
-
-          # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
-          if complexData.size() > 0:
-            # Das i-te ComplexData Objekt auswerten
-            complexDataTypeElement = complexData.at(0).toElement()
-            supportedComplexDataFormat = self.tools.getSupportedMimeTypes(complexDataTypeElement)
-            complexDataFormat = self.tools.getDefaultMimeType(complexDataTypeElement)
-
-            # Attach the selected vector or raster maps
-            if self.tools.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
-
-              # Since it is a vector, choose an appropriate GML version
-              complexDataFormat = self.process.getSupportedGMLDataFormat(inputIdentifier) 
-
-              postString += self.tools.xmlExecuteRequestInputStart(inputIdentifier)
-
-              mimeType = complexDataFormat["MimeType"]
-              schema = complexDataFormat["Schema"]
-              encoding = complexDataFormat["Encoding"]
-              self.myLayer = QGisLayers.getObjectFromUri(self.getParameterFromName(inputIdentifier).value, False)
-
-              # Vector inputs
-              if maxOccurs == 1:
-                #ParameterVector
-                #if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
-                val = self.getParameterValue(inputIdentifier)
-                postString += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-                postString += self.tools.createTmpGML(self.myLayer, 
-                  useSelected, mimeType).replace("> <","><")
-
-                postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
-                  "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
-                postString += "</wps:ComplexData>\n"
-              else:
-                self.addParameter(ParameterMultipleInput(inputIdentifier, title, ParameterVector.VECTOR_TYPE_ANY, minOccurs == 0))
-              postString += self.tools.xmlExecuteRequestInputEnd()  
-
-            elif self.tools.isMimeTypeText(complexDataFormat["MimeType"]) != None:
-              # Text inputs
-              self.addParameter(ParameterString(inputIdentifier, title))
-            elif self.tools.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
-
-              # Raster inputs
-              if maxOccurs == 1:
-                  #if self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                  postString += self.tools.createTmpBase64(self.myLayer)
-              else:
-                self.addParameter(ParameterMultipleInput(inputIdentifier, title, ParameterVector.TYPE_RASTER, minOccurs == 0))
-
-            elif self.tools.isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
-              # Playlist (text) inputs
-              self.addParameter(ParameterString(inputIdentifier, title))
-
-            else:
-              # We assume text inputs in case of an unknown mime type
-              self.addParameter(ParameterString(inputIdentifier, title))
-
-        # literal inputs
-        for i in range(dataInputs.size()):
-          f_element = dataInputs.at(i).toElement()
-
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-
-          literalData = f_element.elementsByTagName("LiteralData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-
-          if literalData.size() > 0:
-            #ParameterString or ParameterSelection
-            val = self.getParameterValue(inputIdentifier)
-            postString += self.tools.xmlExecuteRequestInputStart(inputIdentifier)
-            postString += "<wps:ComplexData>" + str(val) + "</wps:ComplexData>\n"
-            postString += self.tools.xmlExecuteRequestInputEnd()
-
-        # bounding box inputs
-        for i in range(dataInputs.size()):
-          f_element = dataInputs.at(i).toElement()
-
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-          bBoxData = f_element.elementsByTagName("BoundingBoxData")
-
-          if bBoxData.size() > 0:
-            crsListe = []
-            bBoxElement = bBoxData.at(0).toElement()
-            defaultCrsElement = bBoxElement.elementsByTagName("Default").at(0).toElement()
-
-            #self.addParameter(ParameterExtent("EXTENT","EXTENT"))
-            #bboxArray = bbox.text().split(',')
-            #postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
-            #postString += '<wps:BoundingBoxData ows:dimensions="2">'
-            #postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
-            #postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
-            #postString += "</wps:BoundingBoxData>\n"
-            #postString += self.tools.xmlExecuteRequestInputEnd()
-
-            #self.addParameter(ParameterCrs("CRS", "CRS"))
-
-        postString += "</wps:DataInputs>\n"
-        return postString
-
-    def defineProcessOutputs(self, dataOutputs):
-        postString = ""
-        if dataOutputs.size() < 1:
-            return postString
-
-        postString += "<wps:ResponseForm>\n"
-        # The server should store the result. No lineage should be returned or status
-        postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"false\" status=\"false\">\n"
-
-        # complex outputs
-        for i in range(dataOutputs.size()):
-          f_element = dataOutputs.at(i).toElement()
-
-          outputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-          complexOutput = f_element.elementsByTagName("ComplexOutput")
-
-          if complexOutput.size() > 0:
-            # Complex data is always requested as reference
-            postString += "<wps:Output>\n"
-            postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
-            postString += "</wps:Output>\n"
-
-            # Das i-te ComplexData Objekt auswerten
-            complexOutputTypeElement = complexOutput.at(0).toElement()
-            complexOutputFormat = self.tools.getDefaultMimeType(complexOutputTypeElement)
-            supportedcomplexOutputFormat = self.tools.getSupportedMimeTypes(complexOutputTypeElement)
-
-            #OutputVector
-            mimeType = complexOutputFormat["MimeType"]
-            schema = complexOutputFormat["Schema"]
-            encoding = complexOutputFormat["Encoding"]
-            postString += "<wps:Output asReference=\"true" + \
-              "\" mimeType=\"" + mimeType + "\"" + \
-              ((" schema=\"" + schema + "\"") if schema != "" else "") + \
-              ((" encoding=\"" + encoding + "\"") if encoding != "" else "") + ">"
-
-            # Playlists can be sent as reference or as complex data 
-            #   For the latter, comment out next lines
-            #postString += "<wps:Output asReference=\"" + \
-            #  ("false" if "playlist" in mimeType.lower() else "true") + \
-            #  "\" mimeType=\"" + mimeType + \
-            #  (("\" schema=\"" + schema) if schema != "" else "") + "\">"
-            postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
-            postString += "</wps:Output>\n"
-
-        postString += "</wps:ResponseDocument>\n"
-        postString  += "</wps:ResponseForm>\n"
-        return postString
+        request.addExecuteRequestEnd()
+        return request.request
 
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
