@@ -533,7 +533,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
                   if "playlist" in self.mimeType: # Streaming based process?
                     self.streamingHandler(encoding, fileLink) #FIXME: not supported yet
                   else: # Conventional processes
-                    self.fetchResult(encoding, fileLink)
+                    self.fetchResult(encoding, fileLink, identifier)
                     #self.setStatusLabel('finished')
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
@@ -555,7 +555,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
-                #self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
+                self.setOutputValue(identifier, literalText)
                 #self.setStatusLabel('finished')
               else:
                 QMessageBox.warning(self.iface.mainWindow(), '', 
@@ -570,29 +570,24 @@ class BookmarksAlgorithm(GeoAlgorithm):
  ##############################################################################
 
 
-    def loadData(self, resultFile):
+    def loadData(self, resultFile, identifier):
         # Vector data 
         # TODO: Check for schema GML and KML
         if self.tools.isMimeTypeVector(self.mimeType) != None:
-            output = self.outputs[-1] #HACK - FIXME: setOutputValue(self, outputName, value)
-            output.setValue(resultFile)
+            self.setOutputValue(identifier, resultFile)
        # Raster data
         elif self.tools.isMimeTypeRaster(self.mimeType) != None:
-            pass
+            self.setOutputValue(identifier, resultFile)
 
         # Text data
         elif self.tools.isMimeTypeText(self.mimeType) != None:
-            #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             text = open(resultFile, 'r').read()
-            # TODO: This should be a text dialog with safe option
-            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
+            self.setOutputValue(identifier, text)
 
         # Everything else
         elif self.tools.isMimeTypeFile(self.mimeType) != None:
-            #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             text = open(resultFile, 'r').read()
-            # TODO: This should be a text dialog with safe option
-            fileName = QFileDialog().getSaveFileName()
+            self.setOutputValue(identifier, text)
 
         # Everything else
         else:
@@ -601,24 +596,25 @@ class BookmarksAlgorithm(GeoAlgorithm):
             # TODO: This should have a safe option
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
 
-    def fetchResult(self, encoding, fileLink):
+    def fetchResult(self, encoding, fileLink, identifier):
+        self.noFilesToFetch += 1
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.myHttp.get(QNetworkRequest(url))
 
         # Append encoding to 'finished' signal parameters
         self.encoding = encoding
-        self.theReply.finished.connect(partial(self.getResultFile, encoding,  self.theReply))  
+        self.theReply.finished.connect(partial(self.getResultFile, identifier, encoding,  self.theReply))  
 
         #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
 
-    def getResultFile(self, encoding, reply):
+    def getResultFile(self, identifier, encoding, reply):
     # Check if there is redirection 
 
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
-            self.fetchResult(self.encoding, reDir)
+            self.fetchResult(self.encoding, reDir, identifier)
             return
 
         # Get a unique temporary file name
@@ -641,7 +637,8 @@ class BookmarksAlgorithm(GeoAlgorithm):
             resultFile = tmpFile
 
         # Finally, load the data
-        self.loadData(resultFile)
+        self.loadData(resultFile, identifier)
+        self.noFilesToFetch -= 1
         #self.setStatusLabel('finished')
 
 
@@ -664,9 +661,10 @@ class BookmarksAlgorithm(GeoAlgorithm):
         postString = self.defineProcess()
         qDebug(postString)
         self.processExecuted = False
+        self.noFilesToFetch = 0
         self.tools.executeProcess(self.processUrl, postString, self.resultHandler)
         #if dataInputs.size() > 0:
         #  QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
         #Wait for answer
-        while not self.processExecuted:
+        while (not self.processExecuted) or (self.noFilesToFetch > 0):
              qApp.processEvents()
