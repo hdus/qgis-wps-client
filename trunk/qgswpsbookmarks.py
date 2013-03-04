@@ -20,6 +20,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from wps import version
+from qgswpstools import QgsWpsTools
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
 
@@ -37,36 +38,17 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         self.initTreeWPSServices()
         
     def initTreeWPSServices(self):
-        settings = QSettings()
-        settings.beginGroup("WPS-Bookmarks")
-        bookmarks = settings.childGroups()        
         self.treeWidget.clear()
         self.treeWidget.setColumnCount(self.treeWidget.columnCount())
         itemList = []
-        
+        for item in QgsWpsTools.getBookmarks():
+           myItem = QTreeWidgetItem()
+           myItem.setText(0, item['service'])
+           myItem.setText(1,item['identifier'])
+           myItem.setText(2,item['server'])
+           itemList.append(myItem)
+        self.myItem = itemList[-1] #FIXME: makes no sense
         self.btnOK.setEnabled(False)
-                
-        for myBookmark in bookmarks:
-           settings = QSettings()
-           self.myItem = QTreeWidgetItem()
-           
-           mySettings = "/WPS-Bookmarks/"+myBookmark
-           scheme = settings.value(mySettings+"/scheme").toString()
-           server = settings.value(mySettings+"/server").toString()
-           path = settings.value(mySettings+"/path").toString()
-           port = settings.value(mySettings+"/port").toString()
-
-           myBookmarkArray = myBookmark.split("@@")
-           service = myBookmarkArray[0]
-           version = settings.value(mySettings+"/version").toString()
-           identifier = settings.value(mySettings+"/identifier").toString()
-           self.myItem.setText(0, service)  
-           self.myItem.setText(1,identifier)  
-           self.myItem.setText(2,server)
-           itemList.append(self.myItem)
-           self.btnOK.setEnabled(True)
-           
-    
         self.treeWidget.addTopLevelItems(itemList)        
 
 

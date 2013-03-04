@@ -113,6 +113,31 @@ class QgsWpsTools(QObject):
     return result    
 
 
+  @staticmethod
+  def getBookmarks():
+    settings = QSettings()
+    settings.beginGroup("WPS-Bookmarks")
+    bookmarks = settings.childGroups()
+    itemList = []
+    for myBookmark in bookmarks:
+      settings = QSettings()
+      myItem = {}
+
+      mySettings = "/WPS-Bookmarks/"+myBookmark
+      myItem['scheme'] = settings.value(mySettings+"/scheme").toString()
+      myItem['server'] = settings.value(mySettings+"/server").toString()
+      myItem['path'] = settings.value(mySettings+"/path").toString()
+      myItem['port'] = settings.value(mySettings+"/port").toString()
+
+      myBookmarkArray = myBookmark.split("@@")
+      myItem['service'] = myBookmarkArray[0]
+      myItem['version'] = settings.value(mySettings+"/version").toString()
+      myItem['identifier'] = settings.value(mySettings+"/identifier").toString()
+      itemList.append(myItem)
+    #settings.endGroup()
+    return itemList
+
+
   # Gets Server and Connection Info from Stored Server Connections
   # Param: String ConnectionName
   # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)

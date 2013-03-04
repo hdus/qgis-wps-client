@@ -2,6 +2,7 @@ from sextante.core.AlgorithmProvider import AlgorithmProvider
 from sextante.core.SextanteConfig import Setting, SextanteConfig
 from BookmarksAlgorithm import BookmarksAlgorithm
 from AddNewWpsAction import AddNewWpsAction
+from wps.qgswpstools import QgsWpsTools
 
 class QgsWpsAlgorithmProvider(AlgorithmProvider):
 
@@ -10,7 +11,6 @@ class QgsWpsAlgorithmProvider(AlgorithmProvider):
     def __init__(self, wpsDockWidget):
         AlgorithmProvider.__init__(self)
         self.actions.append(AddNewWpsAction(wpsDockWidget))
-        self.alglist = [BookmarksAlgorithm()]
 
     def initializeSettings(self):
         '''In this method we add settings needed to configure our provider.
@@ -41,6 +41,11 @@ class QgsWpsAlgorithmProvider(AlgorithmProvider):
         '''We return the default icon'''
         return AlgorithmProvider.getIcon(self)
 
+    def _bookmarkAlgsList(self):
+        bookmarkAlgs = []
+        for item in QgsWpsTools.getBookmarks():
+            bookmarkAlgs.append( BookmarksAlgorithm(item) )
+        return bookmarkAlgs
 
     def _loadAlgorithms(self):
         '''Here we fill the list of algorithms in self.algs.
@@ -48,8 +53,5 @@ class QgsWpsAlgorithmProvider(AlgorithmProvider):
         If the list of algorithms can change while executing SEXTANTE for QGIS
         (for instance, if it contains algorithms from user-defined scripts and
         a new script might have been added), you should create the list again
-        here.
-        In this case, since the list is always the same, we assign from the pre-made list.
-        This assignment has to be done in this method even if the list does not change,
-        since the self.algs list is cleared before calling this method'''
-        self.algs = self.alglist
+        here.'''
+        self.algs = self._bookmarkAlgsList()
