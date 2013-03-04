@@ -6,7 +6,7 @@ from PyQt4 import QtGui
 class AddNewWpsAction(ToolboxAction):
 
     def __init__(self, wpsDockWidget):
-        self.name="Add new WPS"
+        self.name="Connect to WPS servers"
         self.group="Tools"
         self.wpsDockWidget = wpsDockWidget
 

@@ -456,10 +456,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dataOutputs = self.doc.elementsByTagName("Output")
     
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        scheme = self.processUrl.scheme()
-        path = self.processUrl.path()
-        server = self.processUrl.host()
-        port = self.processUrl.port()
             
         checkBoxes = self.dlgProcess.findChildren(QCheckBox)
         if len(checkBoxes) > 0:
@@ -518,14 +514,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               try:
                   if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
                       postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-                      postString += self.tools.createTmpGML(comboBox.currentText(), 
+                      postString += self.tools.createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
                         useSelected, self.getSupportedGMLVersion(comboBox.objectName())).replace("> <","><")
                         
                       postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
                           "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
                   elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                       postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                      postString += self.tools.createTmpBase64(comboBox.currentText())
+                      postString += self.tools.createTmpBase64(self.tools.getVLayer(comboBox.currentText()))
               except:
                   QApplication.restoreOverrideCursor()
                   QMessageBox.warning(self.iface.mainWindow(), 
@@ -557,11 +553,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 # TODO: Check for more types
                 if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
                   postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-                  postString += self.tools.createTmpGML(listWidget.text(), 
+                  postString += self.tools.createTmpGML(self.tools.getVLayer(listWidget.text()), 
                     useSelected, self.getSupportedGMLVersion(listWidgets.objectName())).replace("> <","><")
                 elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                   postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                  postString += self.tools.createTmpBase64(listWidget.text())
+                  postString += self.tools.createTmpBase64(self.tools.getVLayer(listWidget.text()))
         
                 postString += "</wps:ComplexData>\n"
                 postString += self.tools.xmlExecuteRequestInputEnd()
@@ -660,25 +656,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             outFile.close()
             
         QApplication.restoreOverrideCursor()
-        self.setProcessStarted()        
-        self.postData = QByteArray()
-        self.postData.append(postString) 
-        
-        wpsConnection = scheme+'://'+server+path
-            
-        self.thePostHttp = QgsNetworkAccessManager.instance() 
-        url = QUrl(wpsConnection)
-        url.setPort(port)
-            
-            
-#        self.thePostHttp.finished.connect(self.resultHandler)                 
-        self.request = QNetworkRequest(url)
-        self.request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )        
-        self.thePostReply = self.thePostHttp.post(self.request, self.postData)      
-        self.thePostReply.finished.connect(partial(self.resultHandler,  self.thePostReply) )        
-        
+        self.setProcessStarted()
+        qDebug(postString)
+        self.tools.executeProcess(self.processUrl, postString, self.resultHandler)
         if dataInputs.size() > 0:
-          QObject.connect(self.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
+          QObject.connect(self.tools.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
   ##############################################################################
 
@@ -1057,7 +1039,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.progressBar.setMaximum(100)
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
-        self.thePostReply.abort()
+        self.tools.thePostReply.abort()
         self.setStatusLabel('error')
         self.killed.emit()
         

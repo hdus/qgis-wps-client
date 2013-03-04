@@ -24,7 +24,8 @@ from PyQt4 import QtXml
 from PyQt4.QtSql import * 
 from PyQt4.QtWebKit import QWebView
 from qgis.core import *
-import os, sys, string, tempfile,  base64
+import os, sys, string, tempfile, base64
+from functools import partial
 
 # initialize Qt resources from file resources.py
 import resources_rc
@@ -188,6 +189,27 @@ class QgsWpsTools(QObject):
       self.theReply = self.myHttp.get(QNetworkRequest(url))      
       self.theReply.finished.connect(self.capabilitiesRequestFinished)
 
+  def executeProcess(self, processUrl, postString, resultHandler):
+    postData = QByteArray()
+    postData.append(postString)
+
+    scheme = processUrl.scheme()
+    path = processUrl.path()
+    server = processUrl.host()
+    port = processUrl.port()
+
+    wpsConnection = scheme+'://'+server+path
+
+    thePostHttp = QgsNetworkAccessManager.instance()
+    url = QUrl(wpsConnection)
+    url.setPort(port)
+    qDebug("Post URL=" + str(url))
+
+#        thePostHttp.finished.connect(self.resultHandler)
+    request = QNetworkRequest(url)
+    request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )
+    self.thePostReply = thePostHttp.post(request, postData)
+    self.thePostReply.finished.connect(partial(resultHandler, self.thePostReply) )
 
   def capabilitiesRequestFinished(self):
 #        self.myHttp.finished.disconnect(self.capabilitiesRequestFinished)      
@@ -289,10 +311,9 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def createTmpBase64(self,  layer):
+  def createTmpBase64(self, rLayer):
     try:
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
-        rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
         tmpFileName = tmpFile.name
         outfile = open(tmpFileName, 'w')
@@ -327,7 +348,7 @@ class QgsWpsTools(QObject):
 
   ##############################################################################
 
-  def createTmpGML(self, layer, processSelection="False", supportedGML="GML2"):
+  def createTmpGML(self, vLayer, processSelection="False", supportedGML="GML2"):
     if supportedGML == "": # Neither GML, GML2 or GML3 are supported!
       return 0
       
@@ -335,8 +356,6 @@ class QgsWpsTools(QObject):
     myQTempFile.open()
     tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
     myQTempFile.close()
-
-    vLayer = self.getVLayer(layer)    
 
     if vLayer.dataProvider().name() == "postgres":
       encoding = self.getDBEncoding(vLayer.dataProvider())
