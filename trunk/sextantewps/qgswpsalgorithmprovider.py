@@ -37,6 +37,9 @@ class QgsWpsAlgorithmProvider(AlgorithmProvider):
         '''This is the name that will appear on the toolbox group.'''
         return "WPS"
 
+    def getSupportedOutputVectorLayerExtensions(self):
+        return ["gml"] #TODO: rasters?
+
     def getIcon(self):
         '''We return the default icon'''
         return AlgorithmProvider.getIcon(self)

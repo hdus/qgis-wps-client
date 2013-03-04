@@ -19,6 +19,10 @@ from wps.qgswpstools import QgsWpsTools
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4 import QtXml
+#http communication:
+from qgis.core import *
+from PyQt4.QtNetwork import *
+from functools import partial
 
 
 class BookmarksAlgorithm(GeoAlgorithm):
@@ -489,8 +493,172 @@ class BookmarksAlgorithm(GeoAlgorithm):
            outputs."""
         resultXML = reply.readAll().data()
         qDebug(resultXML)
+        self.parseResult(resultXML)
         self.processExecuted = True
         return True
+
+    def parseResult(self, resultXML):
+        self.doc = QtXml.QDomDocument()
+        self.doc.setContent(resultXML,  True)
+        resultNodeList = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Output")
+
+        # TODO: Check if the process does not run correctly before
+        if resultNodeList.size() > 0:
+            for i in range(resultNodeList.size()):
+              f_element = resultNodeList.at(i).toElement()
+
+              # Fetch the referenced complex data
+              if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
+                identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+                reference = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Reference").at(0).toElement()
+
+                # Get the reference
+                fileLink = reference.attribute("href", "0")
+
+                # Try with namespace if not successful
+                if fileLink == '0':
+                  fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
+                if fileLink == '0':
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                      str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+                  return False
+
+                # Get the mime type of the result
+                self.mimeType = str(reference.attribute("mimeType", "0").toLower())
+
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(reference.attribute("encoding", "").toLower())
+
+                if fileLink != '0':
+                  if "playlist" in self.mimeType: # Streaming based process?
+                    self.streamingHandler(encoding, fileLink) #FIXME: not supported yet
+                  else: # Conventional processes
+                    self.fetchResult(encoding, fileLink)
+                    #self.setStatusLabel('finished')
+
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
+                complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
+
+                # Get the mime type of the result
+                self.mimeType = str(complexData.attribute("mimeType", "0").toLower())
+
+                # Get the encoding of the result, it can be used decoding base64
+                encoding = str(complexData.attribute("encoding", "").toLower())
+
+                if "playlist" in self.mimeType:
+                  playlistUrl = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").at(0).toElement().text()
+                  self.streamingHandler(encoding, playlistUrl) #FIXME: not supported yet
+
+                else: # Other ComplexData are not supported by this WPS client
+                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + mimeType + "' is not supported by this client")))
+
+              elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
+                literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
+                #self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
+                #self.setStatusLabel('finished')
+              else:
+                QMessageBox.warning(self.iface.mainWindow(), '', 
+                  str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
+        else:
+            status = self.doc.elementsByTagName("Status")
+            if status.size() == 0:
+              #self.setStatusLabel('error')
+              return self.errorHandler(resultXML)
+
+
+ ##############################################################################
+
+
+    def loadData(self, resultFile):
+        # Vector data 
+        # TODO: Check for schema GML and KML
+        if self.tools.isMimeTypeVector(self.mimeType) != None:
+            output = self.outputs[-1] #HACK - FIXME: setOutputValue(self, outputName, value)
+            output.setValue(resultFile)
+       # Raster data
+        elif self.tools.isMimeTypeRaster(self.mimeType) != None:
+            pass
+
+        # Text data
+        elif self.tools.isMimeTypeText(self.mimeType) != None:
+            #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
+            text = open(resultFile, 'r').read()
+            # TODO: This should be a text dialog with safe option
+            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
+
+        # Everything else
+        elif self.tools.isMimeTypeFile(self.mimeType) != None:
+            #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
+            text = open(resultFile, 'r').read()
+            # TODO: This should be a text dialog with safe option
+            fileName = QFileDialog().getSaveFileName()
+
+        # Everything else
+        else:
+            # For unsupported mime types we assume text
+            content = open(resultFile, 'r').read()
+            # TODO: This should have a safe option
+            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
+
+    def fetchResult(self, encoding, fileLink):
+        url = QUrl(fileLink)
+        self.myHttp = QgsNetworkAccessManager.instance()
+        self.theReply = self.myHttp.get(QNetworkRequest(url))
+
+        # Append encoding to 'finished' signal parameters
+        self.encoding = encoding
+        self.theReply.finished.connect(partial(self.getResultFile, encoding,  self.theReply))  
+
+        #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+
+
+    def getResultFile(self, encoding, reply):
+    # Check if there is redirection 
+
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
+        if not reDir.isEmpty():
+            self.fetchResult(self.encoding, reDir)
+            return
+
+        # Get a unique temporary file name
+        myQTempFile = QTemporaryFile()
+        myQTempFile.open()
+        ext = self.tools.getFileExtension(self.mimeType)
+        tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
+        myQTempFile.close()
+
+        # Write the data to the temporary file 
+        outFile = QFile(tmpFile)
+        outFile.open(QIODevice.WriteOnly)
+        outFile.write(reply.readAll())
+        outFile.close()
+
+        # Decode?
+        if self.encoding == "base64":
+            resultFile = self.tools.decodeBase64(tmpFile, self.mimeType)
+        else:
+            resultFile = tmpFile
+
+        # Finally, load the data
+        self.loadData(resultFile)
+        #self.setStatusLabel('finished')
+
+
+##############################################################################
+
+    def errorHandler(self, resultXML):
+         if resultXML:
+           #print resultXML
+           query = QXmlQuery(QXmlQuery.XSLT20)
+           xslFile = QFile(":/plugins/wps/exception.xsl")
+           xslFile.open(QIODevice.ReadOnly)
+           bRead = query.setFocus(resultXML)
+           query.setQuery(xslFile)
+           exceptionHtml = query.evaluateToString()
+           QMessageBox.critical(self.iface.mainWindow(), "Exception report", exceptionHtml)
+           xslFile.close()
+         return False
 
     def processAlgorithm(self, progress):
         postString = self.defineProcess()
