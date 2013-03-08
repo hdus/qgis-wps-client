@@ -332,7 +332,7 @@ class ProcessDescription(QObject):
         """
         Populate self.inputs and self.outputs arrays from process description
         """
-        self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
+        self._inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
         dataInputs = self.doc.elementsByTagName("Input")
 
         # Create the complex inputs at first
@@ -353,7 +353,7 @@ class ProcessDescription(QObject):
             complexDataFormat = getDefaultMimeType(complexDataTypeElement)
 
             # Store the input formats
-            self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
+            self._inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
 
             # Attach the selected vector or raster maps
             if isMimeTypeVector(complexDataFormat["MimeType"]) != None:
@@ -466,14 +466,14 @@ class ProcessDescription(QObject):
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
-      for dataType in self.inputsMetaInfo[name]:
+      for dataType in self._inputsMetaInfo[name]:
         if baseMimeType in dataType['MimeType']:
           return True
       return False
 
     def getDataTypeInfo(self, mimeType, name):
       # Return a dict with mimeType, schema and encoding for the given mimeType
-      for dataType in self.inputsMetaInfo[name]:
+      for dataType in self._inputsMetaInfo[name]:
         if mimeType in dataType['MimeType']:
           return dataType
       return None
