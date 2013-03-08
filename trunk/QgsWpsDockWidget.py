@@ -96,7 +96,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         scheme = result["scheme"]
         baseUrl = scheme+"://"+server+path
 
-        #QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)
         self.process = ProcessDescription()
         QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
         self.process.requestDescribeProcess(baseUrl, processIdentifier, version)
@@ -203,8 +202,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.bboxInputLineEditList = [] # bbox value list with single text line input
         self.complexOutputComboBoxList = [] # list combo box
         self.inputDataTypeList = {}
-        self.inputsMetaInfo = self.process.inputsMetaInfo # dictionary for input metainfo, key is the input identifier
-        self.outputsMetaInfo = {} # dictionary for output metainfo, key is the output identifier
         self.outputDataTypeList = {}
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
@@ -330,9 +327,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             title = output.title
             if outputType == 'VectorOutput' or outputType == 'RasterOutput':
                 complexOutputFormat = output.dataFormat
-                supportedcomplexOutputFormat = output.supportedMimeTypes
                 # Store the input formats
-                self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
                 self.outputDataTypeList[outputIdentifier] = complexOutputFormat
             
                 widget, comboBox = self.tools.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat),  self.processIdentifier)
@@ -439,7 +434,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
                       postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
                       postString += self.tools.createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
-                        useSelected, self.getSupportedGMLVersion(comboBox.objectName())).replace("> <","><")
+                        useSelected, self.process.getSupportedGMLVersion(comboBox.objectName())).replace("> <","><")
                         
                       postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
                           "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
@@ -478,7 +473,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
                   postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
                   postString += self.tools.createTmpGML(self.tools.getVLayer(listWidget.text()), 
-                    useSelected, self.getSupportedGMLVersion(listWidgets.objectName())).replace("> <","><")
+                    useSelected, self.process.getSupportedGMLVersion(listWidgets.objectName())).replace("> <","><")
                 elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
                   postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
                   postString += self.tools.createTmpBase64(self.tools.getVLayer(listWidget.text()))
@@ -874,44 +869,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
            QMessageBox.critical(self.iface.mainWindow(), "Exception report", exceptionHtml)
            xslFile.close()
          return False
-         
 
-##############################################################################
 
-    def isDataTypeSupportedByServer(self, baseMimeType, name):
-      # Return if the given data type is supported by the WPS server
-      for dataType in self.inputsMetaInfo[name]:
-        if baseMimeType in dataType['MimeType']:
-          return True
-      return False
-
-    def getDataTypeInfo(self, mimeType, name):
-      # Return a dict with mimeType, schema and encoding for the given mimeType
-      for dataType in self.inputsMetaInfo[name]:
-        if mimeType in dataType['MimeType']:
-          return dataType
-      return None  
-        
-    def getSupportedGMLVersion(self, dataIdentifier):
-      # Return GML version, e.g., GML, GML2, GML3 
-      if self.tools.isGML3SupportedByOGR() and self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML3"), dataIdentifier):
-        return "GML3"
-      elif self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML2"), dataIdentifier): 
-        return "GML2"
-      elif self.isDataTypeSupportedByServer(self.tools.getBaseMimeType("GML"), dataIdentifier): 
-        return "GML"
-      else:
-        return ""
-
-    def getSupportedGMLDataFormat(self, dataIdentifier):
-      # Return mimeType, schema and encoding for the supported GML version 
-      supportedGML = self.getSupportedGMLVersion(dataIdentifier)
-      
-      if supportedGML != "":
-        return self.getDataTypeInfo(self.tools.getBaseMimeType(supportedGML), dataIdentifier) 
-      else:
-        return None
-##############################################################################
+  ##############################################################################
 
     def deleteServer(self,  name):
         settings = QSettings()
@@ -920,8 +880,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         settings.endGroup()
         self.dlg.initQgsWpsGui() 
 
-  ##############################################################################   
- 
 
   ##############################################################################
 

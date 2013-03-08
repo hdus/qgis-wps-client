@@ -283,8 +283,8 @@ RasterInput = namedtuple('RasterInput', 'identifier title minOccurs dataFormat')
 MultipleRasterInput = namedtuple('MultipleRasterInput', 'identifier title minOccurs dataFormat')
 ExtentInput = namedtuple('ExtentInput', 'identifier title minOccurs')
 CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsList')
-VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat supportedMimeTypes')
-RasterOutput = namedtuple('RasterOutput', 'identifier title dataFormat supportedMimeTypes')
+VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat')
+RasterOutput = namedtuple('RasterOutput', 'identifier title dataFormat')
 
 
 class ProcessDescription(QObject):
@@ -460,9 +460,9 @@ class ProcessDescription(QObject):
             supportedcomplexOutputFormat = getSupportedMimeTypes(complexOutputTypeElement)
             # Store the input formats
             if isMimeTypeVector(complexOutputFormat["MimeType"]) != None:
-                self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat, supportedcomplexOutputFormat))
+                self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat))
             else:
-                self.outputs.append(RasterOutput(outputIdentifier, title, complexOutputFormat, supportedcomplexOutputFormat))
+                self.outputs.append(RasterOutput(outputIdentifier, title, complexOutputFormat))
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
