@@ -61,7 +61,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
 #        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
     
   def getBookmark(self, item):
-        self.tools.getServiceXML(item.text(0),"DescribeProcess",item.text(1))    
+      self.emit(SIGNAL("requestDescribeProcess(QString, QString)"), item.text(0), item.text(1))
         
   def on_buttonBox_rejected(self):
     self.close()

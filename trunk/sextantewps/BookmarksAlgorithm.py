@@ -82,6 +82,8 @@ class BookmarksAlgorithm(GeoAlgorithm):
                 self.addParameter(ParameterMultipleInput(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
             elif inputType == 'StringInput':
                 self.addParameter(ParameterString(input.identifier, input.title))
+            elif inputType == 'TextInput':
+                self.addParameter(ParameterString(input.identifier, input.title))
             elif inputType == 'RasterInput':
                 self.addParameter(ParameterRaster(input.identifier, input.title, input.minOccurs == 0))
             elif inputType == 'MultipleRasterInput':
@@ -120,7 +122,8 @@ class BookmarksAlgorithm(GeoAlgorithm):
                 pass
             elif inputType == 'StringInput':
                 request.addLiteralDataInput(input.identifier, str(value))
-                pass
+            elif inputType == 'TextInput':
+                request.addLiteralDataInput(input.identifier, str(value))
             elif inputType == 'RasterInput':
                 #ParameterRaster(input.identifier, input.title, input.minOccurs == 0))
                 pass
@@ -137,6 +140,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
             elif inputType == 'CrsInput':
                 #ParameterCrs("CRS", "CRS"))
                 pass
+        #TODO: "selcetion only" checkbox
         request.addDataInputsEnd()
 
         # outputs

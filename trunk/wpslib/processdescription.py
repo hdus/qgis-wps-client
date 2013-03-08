@@ -274,15 +274,17 @@ def allowedValues(aValues):
      return valList
 
 
-StringInput = namedtuple('StringInput', 'identifier title minOccurs')
-SelectionInput = namedtuple('SelectionInput', 'identifier title valList')
+StringInput = namedtuple('StringInput', 'identifier title minOccurs defaultValue')
+TextInput = namedtuple('TextInput', 'identifier title minOccurs')
+SelectionInput = namedtuple('SelectionInput', 'identifier title, minOccurs valList')
 VectorInput = namedtuple('VectorInput', 'identifier title minOccurs dataFormat')
 MultipleVectorInput = namedtuple('MultipleVectorInput', 'identifier title minOccurs dataFormat')
 RasterInput = namedtuple('RasterInput', 'identifier title minOccurs dataFormat')
 MultipleRasterInput = namedtuple('MultipleRasterInput', 'identifier title minOccurs dataFormat')
 ExtentInput = namedtuple('ExtentInput', 'identifier title minOccurs')
-CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsListe')
-VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat')
+CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsList')
+VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat supportedMimeTypes')
+RasterOutput = namedtuple('RasterOutput', 'identifier title dataFormat supportedMimeTypes')
 
 
 class ProcessDescription(QObject):
@@ -316,6 +318,10 @@ class ProcessDescription(QObject):
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(self.processXML, True)
 
+        processDescription = self.doc.elementsByTagName("ProcessDescription")
+        self.processIdentifier = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+        self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
+
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
         self._parseProcessInputs()
         self._parseProcessOutputs()
@@ -326,7 +332,7 @@ class ProcessDescription(QObject):
         """
         Populate self.inputs and self.outputs arrays from process description
         """
-        self._inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
+        self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
         dataInputs = self.doc.elementsByTagName("Input")
 
         # Create the complex inputs at first
@@ -347,7 +353,7 @@ class ProcessDescription(QObject):
             complexDataFormat = getDefaultMimeType(complexDataTypeElement)
 
             # Store the input formats
-            self._inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
+            self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
 
             # Attach the selected vector or raster maps
             if isMimeTypeVector(complexDataFormat["MimeType"]) != None:
@@ -367,7 +373,7 @@ class ProcessDescription(QObject):
                 self.inputs.append(MultipleVectorInput(inputIdentifier, title, minOccurs, complexDataFormat))
             elif isMimeTypeText(complexDataFormat["MimeType"]) != None:
               # Text inputs
-              self.inputs.append(StringInput(inputIdentifier, title))
+              self.inputs.append(TextInput(inputIdentifier, title))
             elif isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
 
               # Raster inputs
@@ -378,11 +384,11 @@ class ProcessDescription(QObject):
 
             elif isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
               # Playlist (text) inputs
-              self.inputs.append(StringInput(inputIdentifier, title, minOccurs, complexDataFormat))
+              self.inputs.append(TextInput(inputIdentifier, title, minOccurs, complexDataFormat))
 
             else:
               # We assume text inputs in case of an unknown mime type
-              self.inputs.append(StringInput(inputIdentifier, title, minOccurs))
+              self.inputs.append(TextInput(inputIdentifier, title, minOccurs))
 
         # Create the literal inputs as second
         for i in range(dataInputs.size()):
@@ -402,11 +408,11 @@ class ProcessDescription(QObject):
               valList = allowedValues(aValues)
               if len(valList) > 0:
                 if len(valList[0]) > 0:
-                    self.inputs.append(SelectionInput(inputIdentifier, title, valList))
+                    self.inputs.append(SelectionInput(inputIdentifier, title, minOccurs, valList))
                 else:
-                    self.inputs.append(StringInput(inputIdentifier, title, minOccurs))
+                    self.inputs.append(StringInput(inputIdentifier, title, minOccurs, str(valList)))
             else:
-                self.inputs.append(StringInput(inputIdentifier, title, minOccurs))
+                self.inputs.append(StringInput(inputIdentifier, title, minOccurs, dValue))
 
         # At last, create the bounding box inputs
         for i in range(dataInputs.size()):
@@ -453,18 +459,21 @@ class ProcessDescription(QObject):
             complexOutputFormat = getDefaultMimeType(complexOutputTypeElement)
             supportedcomplexOutputFormat = getSupportedMimeTypes(complexOutputTypeElement)
             # Store the input formats
-            self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat))
+            if isMimeTypeVector(complexOutputFormat["MimeType"]) != None:
+                self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat, supportedcomplexOutputFormat))
+            else:
+                self.outputs.append(RasterOutput(outputIdentifier, title, complexOutputFormat, supportedcomplexOutputFormat))
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
-      for dataType in self._inputsMetaInfo[name]:
+      for dataType in self.inputsMetaInfo[name]:
         if baseMimeType in dataType['MimeType']:
           return True
       return False
 
     def getDataTypeInfo(self, mimeType, name):
       # Return a dict with mimeType, schema and encoding for the given mimeType
-      for dataType in self._inputsMetaInfo[name]:
+      for dataType in self.inputsMetaInfo[name]:
         if mimeType in dataType['MimeType']:
           return dataType
       return None

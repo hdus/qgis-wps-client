@@ -27,6 +27,7 @@ from wps import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
+from wpslib.processdescription import ProcessDescription
 from qgswpstools import QgsWpsGuiTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
@@ -74,17 +75,31 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-        QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)            
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
         QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
         QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-        
+        QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
+
         self.killed.connect(self.stopStreaming)
         
-    def getDescription(self,  name, item):
-        self.tools.getServiceXML(name,"DescribeProcess",item.text(0)) 
+    def getDescription(self, name, item):
+        self.requestDescribeProcess(name, item.text(0))
+
+    def requestDescribeProcess(self, serverName, processIdentifier):
+        result = self.tools.getServer(serverName)
+        path = result["path"]
+        server = result["server"]
+        method = result["method"]
+        version = result["version"]
+        scheme = result["scheme"]
+        baseUrl = scheme+"://"+server+path
+
+        #QObject.connect(self.tools, SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.createProcessGUI)
+        self.process = ProcessDescription()
+        QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
+        self.process.requestDescribeProcess(baseUrl, processIdentifier, version)
         
     def getBookmarkDescription(self,  item):
         QMessageBox.information(self.iface.mainWindow(), '', item.text(0))
@@ -174,12 +189,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
       self.close()
          
 
-    def createProcessGUI(self,reply):
+    def createProcessGUI(self):
         """Create the GUI for a selected WPS process based on the DescribeProcess
            response document. Mandatory inputs are marked as red, default is black"""
            
-        self.processUrl = reply.url()
-    
         # Lists which store the inputs and meta information (format, occurs, ...)
         # This list is initialized every time the GUI is created
         self.complexInputComboBoxList = [] # complex input for single raster and vector maps
@@ -190,23 +203,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.bboxInputLineEditList = [] # bbox value list with single text line input
         self.complexOutputComboBoxList = [] # list combo box
         self.inputDataTypeList = {}
-        self.inputsMetaInfo = {} # dictionary for input metainfo, key is the input identifier
+        self.inputsMetaInfo = self.process.inputsMetaInfo # dictionary for input metainfo, key is the input identifier
         self.outputsMetaInfo = {} # dictionary for output metainfo, key is the output identifier
         self.outputDataTypeList = {}
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-        # Receive the XML process description
-        self.processXML = reply.readAll().data()
-        self.doc.setContent(self.processXML,  True)
-        ProcessDescription = self.doc.elementsByTagName("ProcessDescription")
-        self.processIdentifier = ProcessDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
-        self.processName = ProcessDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
 
-# Create the complex inputs at first
+        self.processUrl = self.process.processUrl
+        self.processIdentifier = self.process.processIdentifier
+        self.processName = self.process.processName
 
-        DataInputs = self.doc.elementsByTagName("Input")
-        DataOutputs = self.doc.elementsByTagName("Output")
-    
         # Create the layouts and the scroll area
         self.dlgProcess = QgsWpsDescribeProcessGui(self.dlg, flags)
         self.dlgProcessLayout = QGridLayout()
@@ -222,22 +228,24 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcessScrollAreaWidgetLayout = QGridLayout()
     
         # First part of the gui is a short overview about the process
-        self.identifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(self.doc)
+        self.identifier = self.process.identifier
+        title = self.process.title
+        abstract = self.process.abstract
         self.addIntroduction(self.identifier, title)
         
         # If no Input Data  are requested
-        if DataInputs.size()==0:
+        if len(self.process.inputs)==0:
           self.defineProcess()
           return 0
       
         # Generate the input GUI buttons and widgets
         
-        res = self.generateProcessInputsGUI(DataInputs)
+        res = self.generateProcessInputsGUI()
         if res == 0:
            return 0
 
         # Generate the editable outpt widgets, you can set the output to none if it is not requested
-        self.generateProcessOutputsGUI(DataOutputs)
+        self.generateProcessOutputsGUI()
         
         self.dlgProcessScrollAreaWidgetLayout.setSpacing(10)
         self.dlgProcessScrollAreaWidget.setLayout(self.dlgProcessScrollAreaWidgetLayout)
@@ -258,162 +266,78 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcess.setGeometry(QRect(190,100,800,600))
         self.dlgProcess.show()
         
-    def generateProcessInputsGUI(self, DataInputs):
+    def generateProcessInputsGUI(self):
         """Generate the GUI for all Inputs defined in the process description XML file"""
-    
-        # Create the complex inputs at first
-        for i in range(DataInputs.size()):
-          f_element = DataInputs.at(i).toElement()
-    
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-    
-          complexData = f_element.elementsByTagName("ComplexData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-    
-          # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
-          if complexData.size() > 0:
-            # Das i-te ComplexData Objekt auswerten
-            complexDataTypeElement = complexData.at(0).toElement()
-            supportedComplexDataFormat = self.tools.getSupportedMimeTypes(complexDataTypeElement)
-            complexDataFormat = self.tools.getDefaultMimeType(complexDataTypeElement)
-    
-            # Store the input formats
-            self.inputsMetaInfo[inputIdentifier] = supportedComplexDataFormat
-      
-            # Attach the selected vector or raster maps
-            if self.tools.isMimeTypeVector(complexDataFormat["MimeType"]) != None:
-            
-              # Since it is a vector, choose an appropriate GML version
-              complexDataFormat = self.getSupportedGMLDataFormat(inputIdentifier) 
-              
-              if complexDataFormat == None :
-                QMessageBox.warning(self.iface.mainWindow(), QApplication.translate("QgsWps","Error"),  
-                  QApplication.translate("QgsWps","The process '%1' does not seem to support GML for the parameter '%2', which is required by the QGIS WPS client.").arg(self.processIdentifier).arg(inputIdentifier))
-                return 0 
-              
-              # Store the input format for this parameter (after checking GML version supported)
-              self.inputDataTypeList[inputIdentifier] = complexDataFormat
-              
-              # Vector inputs
-              layerNamesList = self.tools.getLayerNameList(0)
-              if maxOccurs == 1:
-                self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-              else:
-                self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            elif self.tools.isMimeTypeText(complexDataFormat["MimeType"]) != None:
-              # Text inputs
-              self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            elif self.tools.isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
-
-              # Store the input format for this parameter
-              self.inputDataTypeList[inputIdentifier] = complexDataFormat
-              
-              # Raster inputs
-              layerNamesList = self.tools.getLayerNameList(1)
-              if maxOccurs == 1:
-                self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-              else:
-                self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            
-            elif self.tools.isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
-              # Store the input format for this parameter
-              self.inputDataTypeList[inputIdentifier] = complexDataFormat
-              
-              # Playlist (text) inputs
-              self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(complexDataFormat))) 
-            
-            else:
-              # We assume text inputs in case of an unknown mime type
-              self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))            
-    
-        # Create the literal inputs as second
-        for i in range(DataInputs.size()):
-          f_element = DataInputs.at(i).toElement()
-    
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-    
-          literalData = f_element.elementsByTagName("LiteralData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-    
-          if literalData.size() > 0:
-            allowedValuesElement = literalData.at(0).toElement()
-            aValues = allowedValuesElement.elementsByTagNameNS("http://www.opengis.net/ows/1.1","AllowedValues")
-            dValue = str(allowedValuesElement.elementsByTagName("DefaultValue").at(0).toElement().text())
-    #        print "Checking allowed values " + str(aValues.size())
-            if aValues.size() > 0:
-              valList = self.tools.allowedValues(aValues)
-              if len(valList) > 0:
-                if len(valList[0]) > 0:
-                  self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+        for input in self.process.inputs:
+            inputType = type(input).__name__
+            inputIdentifier = input.identifier
+            title = input.title
+            minOccurs = input.minOccurs
+            if inputType == 'VectorInput' or inputType == 'MultipleVectorInput':
+                complexDataFormat = input.dataFormat
+                self.inputDataTypeList[inputIdentifier] = complexDataFormat
+                layerNamesList = self.tools.getLayerNameList(0)
+                if inputType == 'VectorInput':
+                    self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
                 else:
-                  self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(valList)))
-            else:
-              self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, dValue))
-    
-        # At last, create the bounding box inputs
-        for i in range(DataInputs.size()):
-          f_element = DataInputs.at(i).toElement()
-    
-          inputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-          
-          bBoxData = f_element.elementsByTagName("BoundingBoxData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-    
-          if bBoxData.size() > 0:
-            crsListe = []
-            bBoxElement = bBoxData.at(0).toElement()
-            defaultCrsElement = bBoxElement.elementsByTagName("Default").at(0).toElement()
-            defaultCrs = defaultCrsElement.elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href")
-            crsListe.append(defaultCrs)
-            myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
-            
-            self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
-    
-            supportedCrsElements = bBoxElement.elementsByTagName("Supported")
-    
-            for i in range(supportedCrsElements.size()):
-              crsListe.append(supportedCrsElements.at(i).toElement().elementsByTagName("CRS").at(0).toElement().attributeNS("http://www.w3.org/1999/xlink", "href"))
-    
-#            self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-    
+                    self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))              
+            elif inputType == 'StringInput':
+                dValue =  input.defaultValue
+                self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, dValue))
+            elif inputType == 'TextInput':
+                complexDataFormat = input.dataFormat
+                if self.tools.isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
+                    self.inputDataTypeList[inputIdentifier] = complexDataFormat
+                    # Playlist (text) inputs
+                    self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(complexDataFormat))) 
+                else:
+                    self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+            elif inputType == 'RasterInput' or inputType == 'MultipleRasterInput':
+                complexDataFormat = input.dataFormat
+                self.inputDataTypeList[inputIdentifier] = complexDataFormat
+                layerNamesList = self.tools.getLayerNameList(1)
+                if inputType == 'RasterInput':
+                    self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+                else:
+                    self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+            elif inputType == 'SelectionInput':
+                valList = input.valList
+                self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
+            elif inputType == 'ExtentInput':
+                myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')                
+                self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
+            elif inputType == 'CrsInput':
+                crsListe = input.crsList
+#                self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
     
         self.tools.addCheckBox(QCoreApplication.translate("QgsWps","Process selected objects only"), QCoreApplication.translate("QgsWps","Selected"),  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout)
         
   ##############################################################################
 
-    def generateProcessOutputsGUI(self, DataOutputs):
+    def generateProcessOutputsGUI(self):
         """Generate the GUI for all complex ouputs defined in the process description XML file"""
     
-        if DataOutputs.size() < 1:
+        if len(self.process.outputs) < 1:
             return
     
         groupbox = QGroupBox(self.dlgProcessScrollAreaWidget)
         groupbox.setTitle("Complex output(s)")
         layout = QVBoxLayout()
     
-        # Add all complex outputs
-        for i in range(DataOutputs.size()):
-          f_element = DataOutputs.at(i).toElement()
-    
-          outputIdentifier, title, abstract = self.tools.getIdentifierTitleAbstractFromElement(f_element)
-          complexOutput = f_element.elementsByTagName("ComplexOutput")
-          
-          # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
-          if complexOutput.size() > 0:
-            # Das i-te ComplexData Objekt auswerten
-            complexOutputTypeElement = complexOutput.at(0).toElement()
-            complexOutputFormat = self.tools.getDefaultMimeType(complexOutputTypeElement)
-            supportedcomplexOutputFormat = self.tools.getSupportedMimeTypes(complexOutputTypeElement)
-            # Store the input formats
-            self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
-            self.outputDataTypeList[outputIdentifier] = complexOutputFormat
+        for output in self.process.outputs:
+            outputType = type(output).__name__
+            outputIdentifier = output.identifier
+            title = output.title
+            if outputType == 'VectorOutput' or outputType == 'RasterOutput':
+                complexOutputFormat = output.dataFormat
+                supportedcomplexOutputFormat = output.supportedMimeTypes
+                # Store the input formats
+                self.outputsMetaInfo[outputIdentifier] = supportedcomplexOutputFormat
+                self.outputDataTypeList[outputIdentifier] = complexOutputFormat
             
-            widget, comboBox = self.tools.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat),  self.processIdentifier)
-            self.complexOutputComboBoxList.append(comboBox)
-            layout.addWidget(widget)
+                widget, comboBox = self.tools.addComplexOutputComboBox(groupbox, outputIdentifier, title, str(complexOutputFormat),  self.processIdentifier)
+                self.complexOutputComboBoxList.append(comboBox)
+                layout.addWidget(widget)
         
         # Set the layout
         groupbox.setLayout(layout)
@@ -451,7 +375,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         """Create the execute request"""
         self.dlgProcess.close()
         self.dlg.close()
-        self.doc.setContent(self.processXML)
+        self.doc.setContent(self.process.processXML)
         dataInputs = self.doc.elementsByTagName("Input")
         dataOutputs = self.doc.elementsByTagName("Output")
     
