@@ -27,6 +27,9 @@ from qgis.core import (QgsNetworkAccessManager, QgsVectorLayer, QgsRasterLayer,
                         QgsMapLayerRegistry, QgsFeature, QgsGeometry)
 from qgis.gui import QgsRubberBand, QgsVertexMarker
 
+from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster
+from wpslib.executionresult import decodeBase64
+
 from functools import partial
 import tempfile
 import os, platform 
@@ -42,7 +45,7 @@ class Streaming(QObject):
     urlReady = pyqtSignal('QString', int, 'QString')
     dataReady = pyqtSignal('QString', int)
     
-    def __init__(self, parent, iface, chunks, playlistUrl, mimeType, encoding, tools):
+    def __init__(self, parent, iface, chunks, playlistUrl, mimeType, encoding):
         super(Streaming, self).__init__()
         
         self.DEBUG = True
@@ -54,7 +57,6 @@ class Streaming(QObject):
         self.playlistUrl = playlistUrl
         self.mimeType = mimeType
         self.encoding = encoding
-        self.tools = tools
         
         # Internal variables
         self.__endTag = "#PLAYLIST-END" 
@@ -77,7 +79,7 @@ class Streaming(QObject):
         self.__groupIndex = 0 
         self.__chunksDir = None
         self.__virtualFile = ""  # Virtual raster file path
-        if self.tools.isMimeTypeRaster(self.mimeType, True) != None: 
+        if isMimeTypeRaster(self.mimeType, True) != None: 
             self.__chunksDir = tempfile.mkdtemp(prefix="tmpChunks") 
     
         # Other objects
@@ -274,7 +276,7 @@ class Streaming(QObject):
 
         # Get a unique temporary file name     
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", 
-            suffix=self.tools.getFileExtension(self.mimeType), dir=self.__chunksDir, delete=False )
+            suffix=getFileExtension(self.mimeType), dir=self.__chunksDir, delete=False )
         
         # TODO: Check if the file name already exists!!!
         
@@ -286,7 +288,7 @@ class Streaming(QObject):
         
         # Decode?
         if encoding == "base64":
-            resultFile = self.tools.decodeBase64(tmpFile.name, self.mimeType, self.__chunksDir)  
+            resultFile = decodeBase64(tmpFile.name, self.mimeType, self.__chunksDir)  
         else:   
             resultFile = tmpFile.name
             
@@ -298,7 +300,7 @@ class Streaming(QObject):
     def loadData(self, resultFile, chunkId):
         """ Load data to the map """
         
-        if self.tools.isMimeTypeVector(self.mimeType, True) != None:                 
+        if isMimeTypeVector(self.mimeType, True) != None:                 
             # Memory layer:
             geometryTypes = ["Point","LineString","Polygon","Unknown", "NoGeometry"]
             vlayer = QgsVectorLayer(resultFile, "chunk", "ogr")
@@ -334,7 +336,7 @@ class Streaming(QObject):
                 self.finishLoading()
                                 
         # Raster data
-        elif self.tools.isMimeTypeRaster(self.mimeType, True) != None:
+        elif isMimeTypeRaster(self.mimeType, True) != None:
             # We can directly attach the new layer
             if self.__bFirstChunk:    
                 self.__bFirstChunk = False
@@ -356,11 +358,11 @@ class Streaming(QObject):
         if self.DEBUG: print "DONE!"
             
         if not self.__bFirstChunk:
-            if self.tools.isMimeTypeVector(self.mimeType, True) != None:
+            if isMimeTypeVector(self.mimeType, True) != None:
                 self.removeTempGeometry(self.__geometryType)   
                 QgsMapLayerRegistry.instance().addMapLayer(self.__memoryLayer)    
             
-            elif self.tools.isMimeTypeRaster(self.mimeType, True) != None:
+            elif isMimeTypeRaster(self.mimeType, True) != None:
                 self.parent.lblProcess.setText("All tiles are loaded. Merging them...")
 
                 # Generate gdal virtual raster 
@@ -381,7 +383,7 @@ class Streaming(QObject):
                 self.__virtualFile = tmpFile.name
                 arguments.append(self.__virtualFile)
                 rasters = self.getRasterFiles(self.__chunksDir, 
-                    self.tools.getFileExtension(self.mimeType))
+                    getFileExtension(self.mimeType))
                 for raster in rasters:
                     arguments.append(raster)
                 self.process.start(command, arguments, QIODevice.ReadOnly)

@@ -20,6 +20,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
+from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import QgsNetworkAccessManager
 from functools import partial
 from wps.wpslib.processdescription import getFileExtension
@@ -79,10 +80,12 @@ class ExecutionResult(QObject):
     Send request XML and process result
     """
 
-    def __init__(self, literalResultCallback, resultFileCallback):
+    def __init__(self, literalResultCallback, resultFileCallback, errorResultCallback, streamingHandler):
         QObject.__init__(self)
         self._getLiteralResult = literalResultCallback
         self._resultFileCallback = resultFileCallback
+        self._errorResultCallback = errorResultCallback
+        self._streamingHandler = streamingHandler
 
     def executeProcess(self, processUrl, requestXml):
         self._processExecuted = False
@@ -156,10 +159,9 @@ class ExecutionResult(QObject):
 
                 if fileLink != '0':
                   if "playlist" in self.mimeType: # Streaming based process?
-                    self.streamingHandler(encoding, fileLink) #FIXME: not supported yet
+                    self._streamingHandler(encoding, fileLink)
                   else: # Conventional processes
                     self.fetchResult(encoding, fileLink, identifier)
-                    #self.setStatusLabel('finished')
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
                 complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
@@ -172,7 +174,7 @@ class ExecutionResult(QObject):
 
                 if "playlist" in self.mimeType:
                   playlistUrl = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").at(0).toElement().text()
-                  self.streamingHandler(encoding, playlistUrl) #FIXME: not supported yet
+                  self._streamingHandler(encoding, playlistUrl)
 
                 else: # Other ComplexData are not supported by this WPS client
                   QMessageBox.warning(self.iface.mainWindow(), '', 
@@ -181,14 +183,12 @@ class ExecutionResult(QObject):
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
                 self._getLiteralResult(identifier, literalText)
-                #self.setStatusLabel('finished')
               else:
                 QMessageBox.warning(self.iface.mainWindow(), '', 
                   str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             status = self.doc.elementsByTagName("Status")
             if status.size() == 0:
-              #self.setStatusLabel('error')
               return self.errorHandler(resultXML)
 
     def fetchResult(self, encoding, fileLink, identifier):
@@ -196,6 +196,7 @@ class ExecutionResult(QObject):
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.myHttp.get(QNetworkRequest(url))
+        self.emit(SIGNAL("fetchingResult(int)"), self.noFilesToFetch)
 
         # Append encoding to 'finished' signal parameters
         self.encoding = encoding
@@ -211,7 +212,6 @@ class ExecutionResult(QObject):
             return
         self._resultFileCallback(identifier, mimeType, encoding, reply)
         self.noFilesToFetch -= 1
-        #self.setStatusLabel('finished')
 
     def handleEncoded(self, file, mimeType, encoding):
         # Decode?
@@ -229,6 +229,6 @@ class ExecutionResult(QObject):
            bRead = query.setFocus(resultXML)
            query.setQuery(xslFile)
            exceptionHtml = query.evaluateToString()
-           QMessageBox.critical(self.iface.mainWindow(), "Exception report", exceptionHtml)
+           self._errorResultCallback(exceptionHtml)
            xslFile.close()
          return False

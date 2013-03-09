@@ -160,7 +160,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
     def processAlgorithm(self, progress):
         postString = self.defineProcess()
         qDebug(postString)
-        self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile)
+        self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile, self.errorResult, None)
         self.wps.executeProcess(self.process.processUrl, postString)
         #Wait for answer
         while not self.wps.finished():
@@ -212,4 +212,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
             # For unsupported mime types we assume text
             content = open(resultFile, 'r').read()
             # TODO: This should have a safe option
-            self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
+            QMessageBox.information(None, QCoreApplication.translate("QgsWps", 'Process result (unsupported mime type)'), content)
+
+    def errorResult(self, exceptionHtml):
+        QMessageBox.critical(None, "Exception report", exceptionHtml)
