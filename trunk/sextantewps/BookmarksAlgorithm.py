@@ -150,7 +150,7 @@ class BookmarksAlgorithm(GeoAlgorithm):
             mimeType = output.dataFormat["MimeType"]
             schema = output.dataFormat["Schema"]
             encoding = output.dataFormat["Encoding"]
-            if outputType == 'VectorOutput':
+            if outputType == 'VectorOutput' or outputType == 'RasterOutput':
                 request.addReferenceOutput(output.identifier, mimeType, schema, encoding)
         request.addResponseFormEnd()
 
@@ -161,20 +161,15 @@ class BookmarksAlgorithm(GeoAlgorithm):
         postString = self.defineProcess()
         qDebug(postString)
         self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile)
-        self.noFilesFetched = 0
         self.wps.executeProcess(self.process.processUrl, postString)
         #Wait for answer
-        while (not self.wps.processExecuted) or (self.noFilesFetched < self.wps.noFilesToFetch):
+        while not self.wps.finished():
              qApp.processEvents()
 
     def getLiteralResult(self, identifier, literalText):
         self.setOutputValue(identifier, literalText)
 
     def getResultFile(self, identifier, mimeType, encoding, reply):
-        # Check if there is redirection
-        if self.wps.handleRedirection(identifier, encoding, reply):
-            return
-
         # Get a unique temporary file name
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
@@ -192,8 +187,6 @@ class BookmarksAlgorithm(GeoAlgorithm):
 
         # Finally, load the data
         self.loadData(resultFile, mimeType, identifier)
-        self.noFilesFetched += 1
-        #self.setStatusLabel('finished')
 
     def loadData(self, resultFile, mimeType, identifier):
         # Vector data 

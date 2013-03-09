@@ -79,13 +79,13 @@ class ExecutionResult(QObject):
     Send request XML and process result
     """
 
-    def __init__(self, literalResultReciever, resultFileReciever):
+    def __init__(self, literalResultCallback, resultFileCallback):
         QObject.__init__(self)
-        self.getLiteralResult = literalResultReciever
-        self.getResultFile = resultFileReciever
+        self._getLiteralResult = literalResultCallback
+        self._resultFileCallback = resultFileCallback
 
     def executeProcess(self, processUrl, requestXml):
-        self.processExecuted = False
+        self._processExecuted = False
         self.noFilesToFetch = 0
 
         postData = QByteArray()
@@ -109,6 +109,9 @@ class ExecutionResult(QObject):
         self.thePostReply = thePostHttp.post(request, postData)
         self.thePostReply.finished.connect(partial(self.resultHandler, self.thePostReply) )
 
+    def finished(self):
+        return self._processExecuted and (self.noFilesToFetch == 0)
+
     def resultHandler(self, reply):
         """Handle the result of the WPS Execute request and add the outputs as new
            map layers to the registry or open an information window to show literal
@@ -116,7 +119,7 @@ class ExecutionResult(QObject):
         resultXML = reply.readAll().data()
         qDebug(resultXML)
         self.parseResult(resultXML)
-        self.processExecuted = True
+        self._processExecuted = True
         return True
 
     def parseResult(self, resultXML):
@@ -177,7 +180,7 @@ class ExecutionResult(QObject):
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
-                self.getLiteralResult(identifier, literalText)
+                self._getLiteralResult(identifier, literalText)
                 #self.setStatusLabel('finished')
               else:
                 QMessageBox.warning(self.iface.mainWindow(), '', 
@@ -200,13 +203,15 @@ class ExecutionResult(QObject):
 
         #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
-    def handleRedirection(self, identifier, encoding, reply):
+    def getResultFile(self, identifier, mimeType, encoding, reply):
         # Check if there is redirection
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
             self.fetchResult(encoding, reDir, identifier)
-            return True
-        return False
+            return
+        self._resultFileCallback(identifier, mimeType, encoding, reply)
+        self.noFilesToFetch -= 1
+        #self.setStatusLabel('finished')
 
     def handleEncoded(self, file, mimeType, encoding):
         # Decode?
