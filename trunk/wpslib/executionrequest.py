@@ -156,18 +156,6 @@ class ExecutionRequest(QObject):
         if includeData: self.request += "</wps:Data>\n"
         self.request += "</wps:Input>\n"
 
-    def addResponseFormStart(self):
-        self.request += "<wps:DataInputs>\n"
-
-    def addResponseFormStart(self):
-        self.request += "<wps:ResponseForm>\n"
-        # The server should store the result. No lineage should be returned or status
-        self.request += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"false\" status=\"false\">\n"
-
-    def addResponseFormEnd(self):
-        self.request += "</wps:ResponseDocument>\n"
-        self.request  += "</wps:ResponseForm>\n"
-
     def addReferenceInput(self, identifier, mimeType, schema, encoding, ref):
         # text/plain inputs ########################################################
         # Handle 'as reference' playlist
@@ -241,6 +229,15 @@ class ExecutionRequest(QObject):
         self.request += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
         self.request += "</wps:BoundingBoxData>\n"
         self.addExecuteRequestInputEnd()
+
+    def addResponseFormStart(self):
+        self.request += "<wps:ResponseForm>\n"
+        # The server should store the result. No lineage should be returned or status
+        self.request += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"false\" status=\"false\">\n"
+
+    def addResponseFormEnd(self):
+        self.request += "</wps:ResponseDocument>\n"
+        self.request  += "</wps:ResponseForm>\n"
 
     def addLiteralDataOutput(self, identifier):
         # Attach ALL literal outputs #############################################        

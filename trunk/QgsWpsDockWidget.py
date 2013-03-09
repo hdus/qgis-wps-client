@@ -28,6 +28,7 @@ from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from wpslib.processdescription import ProcessDescription
+from wpslib.executionrequest import ExecutionRequest
 from qgswpstools import QgsWpsGuiTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
@@ -371,8 +372,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlgProcess.close()
         self.dlg.close()
         self.doc.setContent(self.process.processXML)
-        dataInputs = self.doc.elementsByTagName("Input")
-        dataOutputs = self.doc.elementsByTagName("Output")
     
         QApplication.setOverrideCursor(Qt.WaitCursor)
             
@@ -380,18 +379,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if len(checkBoxes) > 0:
           useSelected = checkBoxes[0].isChecked()
 
-        postString = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
-        postString += "<wps:Execute service=\"WPS\" version=\""+ self.tools.getServiceVersion(self.doc) + "\"" + \
-                       " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
-                       " xmlns:ows=\"http://www.opengis.net/ows/1.1\"" +\
-                       " xmlns:xlink=\"http://www.w3.org/1999/xlink\"" +\
-                       " xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""\
-                       " xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0" +\
-                       " http://schemas.opengis.net/wps/1.0.0/wpsExecute_request.xsd\">"
-                       
-        postString += "<ows:Identifier>"+self.processIdentifier+"</ows:Identifier>\n"
-        postString += "<wps:DataInputs>"
-        if dataInputs.size() > 0:
+        request = ExecutionRequest(self.process)
+        request.addExecuteRequestHeader(self.processIdentifier, self.tools.getServiceVersion(self.doc))
+
+        request.addDataInputsStart()
+        if len(self.process.inputs) > 0:
             # text/plain inputs ########################################################
             for textBox in self.complexInputTextBoxList:
               # Do not add undefined inputs
@@ -406,14 +398,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 encoding = self.inputDataTypeList[textBox.objectName()]["Encoding"]
   
                 # Handle 'as reference' playlist
-                postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName(), False)
-                postString += "<wps:Reference mimeType=\"" + self.mimeType + "\" " + (("schema=\"" + schema + "\"") if schema != "" else "") + (("encoding=\"" + encoding + "\"") if encoding != "" else "") + " xlink:href=\"" + textBox.document().toPlainText() + "\" />"
-                postString += self.tools.xmlExecuteRequestInputEnd(False)
+                request.addReferenceInput(textBox.objectName(), self.mimeType, schema, encoding, textBox.document().toPlainText())
   
               else: # It's not a playlist
-                postString += self.tools.xmlExecuteRequestInputStart(textBox.objectName())
-                postString += "<wps:ComplexData>" + textBox.document().toPlainText() + "</wps:ComplexData>\n"
-                postString += self.tools.xmlExecuteRequestInputEnd()
+                request.addPlainTextInput(textBox.objectName(), textBox.document().toPlainText())
         
         
             # Single raster and vector inputs ##########################################
@@ -422,8 +410,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
                 continue
                    
-              postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
-        
               # TODO: Check for more types (e.g. KML, Shapefile, JSON)
               self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
               schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
@@ -432,24 +418,17 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                  
               try:
                   if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
-                      postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-                      postString += self.tools.createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
-                        useSelected, self.process.getSupportedGMLVersion(comboBox.objectName())).replace("> <","><")
-                        
-                      postString = postString.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
-                          "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
+                      gmldata = self.tools.createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
+                                                        useSelected, self.process.getSupportedGMLVersion(comboBox.objectName()))
+                      request.addGeometryInput(comboBox.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
                   elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-                      postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                      postString += self.tools.createTmpBase64(self.tools.getVLayer(comboBox.currentText()))
+                      request.addGeometryBase64Input(comboBox.objectName(), self.mimeType, self.tools.getVLayer(comboBox.currentText()))
               except:
                   QApplication.restoreOverrideCursor()
                   QMessageBox.warning(self.iface.mainWindow(), 
                       QApplication.translate("QgsWps","Error"),  
                       QApplication.translate("QgsWps","Please load or select a vector layer!"))
                   return
-                 
-              postString += "</wps:ComplexData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()  
         
             # Multiple raster and vector inputs ########################################
             for listWidgets in self.complexInputListWidgetList:
@@ -466,39 +445,30 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 listWidget = listWidgets.item(i)
                 if listWidget == None or listWidget.isSelected() == False or str(listWidget.text()) == "<None>":
                   continue
-                  
-                postString += self.tools.xmlExecuteRequestInputStart(listWidgets.objectName())
-        
+
                 # TODO: Check for more types
                 if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-                  postString += self.tools.createTmpGML(self.tools.getVLayer(listWidget.text()), 
-                    useSelected, self.process.getSupportedGMLVersion(listWidgets.objectName())).replace("> <","><")
+                  gmldata = self.tools.createTmpGML(self.tools.getVLayer(listWidget.text()), 
+                    useSelected, self.process.getSupportedGMLVersion(listWidgets.objectName()))
+                  request.addMultipleGeometryInput(listWidgets.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
                 elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
-                  postString += "<wps:ComplexData mimeType=\"" + self.mimeType + "\" encoding=\"base64\">\n"
-                  postString += self.tools.createTmpBase64(self.tools.getVLayer(listWidget.text()))
-        
-                postString += "</wps:ComplexData>\n"
-                postString += self.tools.xmlExecuteRequestInputEnd()
-        
+                  addMultipleGeometryBase64Input(listWidgets.objectName(), self.mimeType, self.tools.getVLayer(listWidget.text()))
+
+
             # Literal data as combo box choice #########################################
             for comboBox in self.literalInputComboBoxList:
               if comboBox == None or comboBox.currentText() == "":
                   continue
-        
-              postString += self.tools.xmlExecuteRequestInputStart(comboBox.objectName())
-              postString += "<wps:LiteralData>"+comboBox.currentText()+"</wps:LiteralData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()
-        
+
+              request.addLiteralDataInput(comboBox.objectName(), comboBox.currentText())
+
            # Literal data as combo box choice #########################################
             for lineEdit in self.literalInputLineEditList:
               if lineEdit == None or lineEdit.text() == "":
                   continue
-        
-              postString += self.tools.xmlExecuteRequestInputStart(lineEdit.objectName())
-              postString += "<wps:LiteralData>"+lineEdit.text()+"</wps:LiteralData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()
-            
+
+              request.addLiteralDataInput(lineEdit.objectName(), lineEdit.text())
+
            # BBOX data as lineEdit #########################################
             for bbox in self.bboxInputLineEditList:
               if bbox == None or bbox.text() == "":
@@ -506,22 +476,16 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
               bboxArray = bbox.text().split(',')
               
-              postString += self.tools.xmlExecuteRequestInputStart(bbox.objectName())
-              postString += '<wps:BoundingBoxData ows:dimensions="2">'
-              postString += '<ows:LowerCorner>'+bboxArray[0]+' '+bboxArray[1]+'</ows:LowerCorner>'
-              postString += '<ows:UpperCorner>'+bboxArray[2]+' '+bboxArray[3]+'</ows:UpperCorner>'          
-              postString += "</wps:BoundingBoxData>\n"
-              postString += self.tools.xmlExecuteRequestInputEnd()
-            
-            
-        postString += "</wps:DataInputs>\n"
-        
-        
+              request.addBoundingBoxInput(bbox.objectName(), bboxArray)
+
+
+        request.addDataInputsEnd()
+
+
         # Attach only defined outputs
+        dataOutputs = self.doc.elementsByTagName("Output")
         if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
-          postString += "<wps:ResponseForm>\n"
-          # The server should store the result. No lineage should be returned or status
-          postString += "<wps:ResponseDocument lineage=\"false\" storeExecuteResponse=\"false\" status=\"false\">\n"
+          request.addResponseFormStart()
     
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
@@ -531,9 +495,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     
             # Complex data is always requested as reference
             if literalOutputType.size() != 0:
-              postString += "<wps:Output>\n"
-              postString += "<ows:Identifier>"+outputIdentifier+"</ows:Identifier>\n"
-              postString += "</wps:Output>\n"
+              request.addLiteralDataOutput(outputIdentifier)
     
           # Attach selected complex outputs ########################################
           for comboBox in self.complexOutputComboBoxList:
@@ -546,25 +508,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             schema = self.outputDataTypeList[outputIdentifier]["Schema"]
             encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
             
-            postString += "<wps:Output asReference=\"true" + \
-              "\" mimeType=\"" + self.mimeType + "\"" + \
-              ((" schema=\"" + schema + "\"") if schema != "" else "") + \
-              ((" encoding=\"" + encoding + "\"") if encoding != "" else "") + ">"
-            
-            # Playlists can be sent as reference or as complex data 
-            #   For the latter, comment out next lines
-            #postString += "<wps:Output asReference=\"" + \
-            #  ("false" if "playlist" in self.mimeType.lower() else "true") + \
-            #  "\" mimeType=\"" + self.mimeType + \
-            #  (("\" schema=\"" + schema) if schema != "" else "") + "\">"
-            postString += "<ows:Identifier>" + outputIdentifier + "</ows:Identifier>\n"
-            postString += "</wps:Output>\n"
-    
-          postString += "</wps:ResponseDocument>\n"
-          postString  += "</wps:ResponseForm>\n"
-          
-        postString += "</wps:Execute>"
+            request.addReferenceOutput(outputIdentifier, self.mimeType, schema, encoding)
 
+          request.addResponseFormEnd()
+
+        request.addExecuteRequestEnd()
+        postString = request.request
 
         # This is for debug purpose only
         if DEBUG == True:
@@ -576,9 +525,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             
         QApplication.restoreOverrideCursor()
         self.setProcessStarted()
-        qDebug(postString)
         self.tools.executeProcess(self.processUrl, postString, self.resultHandler)
-        if dataInputs.size() > 0:
+        if len(self.process.inputs) > 0:
           QObject.connect(self.tools.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status)) 
 
   ##############################################################################
