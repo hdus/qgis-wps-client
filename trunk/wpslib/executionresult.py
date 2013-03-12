@@ -86,6 +86,8 @@ class ExecutionResult(QObject):
         self._resultFileCallback = resultFileCallback
         self._errorResultCallback = errorResultCallback
         self._streamingHandler = streamingHandler
+        self._processExecuted = False
+        self.noFilesToFetch = 0
 
     def executeProcess(self, processUrl, requestXml):
         self._processExecuted = False

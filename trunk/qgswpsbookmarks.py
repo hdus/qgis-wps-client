@@ -20,7 +20,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from wps import version
-from qgswpstools import QgsWpsTools
+from wpslib.processdescription import ProcessDescription
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
 
@@ -41,11 +41,11 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         self.treeWidget.clear()
         self.treeWidget.setColumnCount(self.treeWidget.columnCount())
         itemList = []
-        for item in QgsWpsTools.getBookmarks():
+        for process in ProcessDescription.getBookmarks():
            myItem = QTreeWidgetItem()
-           myItem.setText(0, item['service'])
-           myItem.setText(1,item['identifier'])
-           myItem.setText(2,item['server'])
+           myItem.setText(0, process.server.connectionName)
+           myItem.setText(1,process.identifier)
+           myItem.setText(2,process.server.server)
            itemList.append(myItem)
         self.myItem = itemList[-1] #FIXME: makes no sense
         self.btnOK.setEnabled(False)

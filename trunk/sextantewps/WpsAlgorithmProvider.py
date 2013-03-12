@@ -2,7 +2,7 @@ from sextante.core.AlgorithmProvider import AlgorithmProvider
 from sextante.core.SextanteConfig import Setting, SextanteConfig
 from WpsAlgorithm import WpsAlgorithm
 from AddNewWpsAction import AddNewWpsAction
-from wps.qgswpstools import QgsWpsTools
+from wps.wpslib.processdescription import ProcessDescription
 
 class WpsAlgorithmProvider(AlgorithmProvider):
 
@@ -45,8 +45,8 @@ class WpsAlgorithmProvider(AlgorithmProvider):
 
     def _bookmarkAlgsList(self):
         bookmarkAlgs = []
-        for item in QgsWpsTools.getBookmarks():
-            bookmarkAlgs.append( WpsAlgorithm(item) )
+        for process in ProcessDescription.getBookmarks():
+            bookmarkAlgs.append( WpsAlgorithm(process) )
         return bookmarkAlgs
 
     def _loadAlgorithms(self):

@@ -19,8 +19,10 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtNetwork import *
+from PyQt4.QtGui import QApplication,QMessageBox
 from PyQt4 import QtXml
 from qgis.core import QgsNetworkAccessManager
+from wpsserver import WpsServer
 from collections import namedtuple
 
 
@@ -292,20 +294,54 @@ class ProcessDescription(QObject):
     Request and parse a WPS process description
     """
 
-    def __init__(self):
+    def __init__(self, server, identifier):
         QObject.__init__(self)
+        self.server = server
+        self.version = server.version
+        self.identifier = identifier
+        self._requestExecuted = False
+        self.doc = None
+        self.inputs = []
+        self.outputs = []
 
-    def requestDescribeProcess(self, baseUrl, identifier, version):
+    @staticmethod
+    def getBookmarks():
+        settings = QSettings()
+        settings.beginGroup("WPS-Bookmarks")
+        bookmarks = settings.childGroups()
+        processList = []
+        for myBookmark in bookmarks:
+            settings = QSettings()
+
+            mySettings = "/WPS-Bookmarks/"+myBookmark
+            #scheme = settings.value(mySettings+"/scheme").toString()
+            server = settings.value(mySettings+"/server").toString()
+            #path = settings.value(mySettings+"/path").toString()
+            #port = settings.value(mySettings+"/port").toString()
+
+            myBookmarkArray = myBookmark.split("@@")
+            service = myBookmarkArray[0]
+            #version = settings.value(mySettings+"/version").toString()
+            identifier = settings.value(mySettings+"/identifier").toString()
+
+            server = WpsServer.getServer(service)
+            process = ProcessDescription(server, identifier)
+            processList.append(process)
+        #settings.endGroup()
+        return processList
+
+    def requestDescribeProcess(self):
         """
         Request process description
         """
+        self._requestExecuted = False
         self.doc = None
         self.inputs = []
         self.outputs = []
 
         url = QUrl()
-        myRequest = "?Request=DescribeProcess&identifier=" + identifier + "&Service=WPS&Version=" + version
-        url.setUrl(baseUrl + myRequest)
+        myRequest = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
+        url.setUrl(self.server.baseUrl + myRequest)
         myHttp = QgsNetworkAccessManager.instance()
         self._theReply = myHttp.get(QNetworkRequest(url))
         self._theReply.finished.connect(self._describeProcessFinished)
@@ -326,7 +362,11 @@ class ProcessDescription(QObject):
         self._parseProcessInputs()
         self._parseProcessOutputs()
 
+        self._requestExecuted = True
         self.emit(SIGNAL("describeProcessFinished"))
+
+    def loaded(self):
+        return self._requestExecuted
 
     def _parseProcessInputs(self):
         """

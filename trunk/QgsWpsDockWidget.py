@@ -26,15 +26,15 @@ from wps import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
+from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
 from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile,isMimeTypePlaylist
 from wpslib.executionrequest import ExecutionRequest
 from wpslib.executionrequest import createTmpGML
 from wpslib.executionresult import ExecutionResult
-from qgswpstools import QgsWpsGuiTools
+from qgswpstools import QgsWpsTools
 from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
-from functools import partial
 
 from streaming import Streaming
 
@@ -58,7 +58,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QDockWidget.__init__(self, iface.mainWindow())
         self.setupUi(self)
         self.iface = iface
-        self.tools = QgsWpsGuiTools(self.iface)
+        self.tools = QgsWpsTools(self.iface)
         self.doc = QtXml.QDomDocument()
         self.tmpPath = QDir.tempPath()        
         self.uploadFinished = False
@@ -76,7 +76,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             }
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
-        self.dlg = QgsWpsGui(self.iface.mainWindow(),  self.tools,  flags)            
+        self.dlg = QgsWpsGui(self.iface.mainWindow(), flags)
         QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
         QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
         QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
@@ -91,21 +91,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.requestDescribeProcess(name, item.text(0))
 
     def requestDescribeProcess(self, serverName, processIdentifier):
-        result = self.tools.getServer(serverName)
-        path = result["path"]
-        server = result["server"]
-        method = result["method"]
-        version = result["version"]
-        scheme = result["scheme"]
-        baseUrl = scheme+"://"+server+path
-
-        self.process = ProcessDescription()
+        server = WpsServer.getServer(serverName)
+        self.process = ProcessDescription(server, processIdentifier)
         QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
-        self.process.requestDescribeProcess(baseUrl, processIdentifier, version)
-        
-    def getBookmarkDescription(self,  item):
-        QMessageBox.information(self.iface.mainWindow(), '', item.text(0))
-        self.tools.getBookmarkXML(item.text(0))            
+        self.process.requestDescribeProcess()
         
     def setUpload(self,  bool):
         self.status = 'Upload'
@@ -672,17 +661,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 QApplication.translate("QgsWps","Result not loaded to the map"), 
                 QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '%1' type and can be accessed at '%2'. \n\nYou could ask the service provider to consider changing the default data type of the result.").arg(self.mimeType ).arg(resultFile))
 
-    def fetchResult(self, encoding, fileLink):
-        url = QUrl(fileLink)
-        self.myHttp = QgsNetworkAccessManager.instance()
-        self.theReply = self.myHttp.get(QNetworkRequest(url))
-            
-        # Append encoding to 'finished' signal parameters
-        self.encoding = encoding
-        self.theReply.finished.connect(partial(self.getResultFile, encoding,  self.theReply))  
-        
-        QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
-
     def getLiteralResult(self, identifier, literalText):
         self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
         self.setStatusLabel('finished')
@@ -733,11 +711,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
   ##############################################################################
 
     def editServer(self, name):
-        info = self.tools.getServer(name)
+        server = WpsServer.getServer(name)
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         dlgEdit = QgsNewHttpConnectionBaseGui(self.dlg,  flags)  
         dlgEdit.txtName.setText(name)
-        dlgEdit.txtUrl.setText(info["scheme"]+"://"+info["server"]+info["path"])
+        dlgEdit.txtUrl.setText(server.baseUrl)
         dlgEdit.show()
         self.dlg.initQgsWpsGui()     
     

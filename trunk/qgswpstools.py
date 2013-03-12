@@ -16,229 +16,23 @@
   *                                                                         *
   ***************************************************************************/
 """
-# Import the PyQt and the QGIS libraries
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from PyQt4 import QtXml
-from PyQt4.QtSql import * 
 from PyQt4.QtWebKit import QWebView
 from qgis.core import *
-import os, sys, string, tempfile, base64
-from functools import partial
-
-# initialize Qt resources from file resources.py
-import resources_rc
 
 
 
 
-DEBUG = False
-
-
-# Main helper class, without GUI dependency
+# Helper class for native QGIS GUI
 class QgsWpsTools(QObject):
-
-  def __init__(self):
+  def __init__(self, iface, dlg=None):
     QObject.__init__(self)
-    self.doc = QtXml.QDomDocument()
-
-
-##############################################################################
-
-  def getProxy(self):
-      settings = QSettings()
-      mySettings = "/proxy"
-      result = {}
-      result["proxyEnabled"] = settings.value(mySettings+"/proxyEnabled").toString()
-      result["proxyHost"] = settings.value(mySettings+"/proxyHost").toString()
-      result["proxyPort"] = settings.value(mySettings+"/proxyPort").toString()
-      result["proxyUser"] = settings.value(mySettings+"/proxyUser").toString()
-      result["proxyPassword"] = settings.value(mySettings+"/proxyPassword").toString()
-      result["proxyType"] = settings.value(mySettings+"/proxyType").toString()        
-      result["proxyExcludedUrls"] = settings.value(mySettings+"/proxyExcludedUrls").toString()        
-
-      return result
-
-
-  ##############################################################################
-
-  def webConnectionExists(self, connection):
-    try:
-      xmlString = self.getServiceXML(connection,"GetCapabilities")
-      return True
-    except:
-      QMessageBox.critical(None,'',QApplication.translate("QgsWps","Web Connection Failed"))
-      return False
-
-
-  ##############################################################################
-
-  # Gets Server and Connection Info from Stored Server Connections in QGIS Settings
-  # Param: String ConnectionName
-  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
-  def getServer(self,name):
-    settings = QSettings()
-    mySettings = "/WPS/"+name
-    result = {}
-    result["scheme"] = settings.value(mySettings+"/scheme").toString()
-    result["server"] = settings.value(mySettings+"/server").toString()
-    result["port"] =  settings.value(mySettings+"/port")
-    result["path"] = settings.value(mySettings+"/path").toString()
-    result["method"] = settings.value(mySettings+"/method").toString()
-    result["version"] = settings.value(mySettings+"/version").toString()
-    return result    
-
-
-  @staticmethod
-  def getBookmarks():
-    settings = QSettings()
-    settings.beginGroup("WPS-Bookmarks")
-    bookmarks = settings.childGroups()
-    itemList = []
-    for myBookmark in bookmarks:
-      settings = QSettings()
-      myItem = {}
-
-      mySettings = "/WPS-Bookmarks/"+myBookmark
-      myItem['scheme'] = settings.value(mySettings+"/scheme").toString()
-      myItem['server'] = settings.value(mySettings+"/server").toString()
-      myItem['path'] = settings.value(mySettings+"/path").toString()
-      myItem['port'] = settings.value(mySettings+"/port").toString()
-
-      myBookmarkArray = myBookmark.split("@@")
-      myItem['service'] = myBookmarkArray[0]
-      myItem['version'] = settings.value(mySettings+"/version").toString()
-      myItem['identifier'] = settings.value(mySettings+"/identifier").toString()
-      itemList.append(myItem)
-    #settings.endGroup()
-    return itemList
-
-
-  # Gets Server and Connection Info from Stored Server Connections
-  # Param: String ConnectionName
-  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
-  def getBookmarkXML(self, name):
-    settings = QSettings()
-    mySettings = "/WPS-Bookmarks/"+name
-    scheme = settings.value(mySettings+"/scheme").toString()
-    server = settings.value(mySettings+"/server").toString()
-    path = settings.value(mySettings+"/path").toString()
-    port =  settings.value(mySettings+"/port")
-    identifier = settings.value(mySettings+"/identifier").toString()
-    version = settings.value(mySettings+"/version").toString()    
-    requestFinished = False
-    self.myHttp = QgsNetworkAccessManager.instance()     
-
-    url = QUrl()        
-    myRequest = "?Request=DescribeProcess&identifier="+identifier+"&Service=WPS&Version="+version
-    url.setUrl(scheme+"://"+server+path+myRequest)
-    url.setPort(port)
-    self.theReply = self.myHttp.get(QNetworkRequest(url))                        
-    self.theReply.finished.connect(self.serviceRequestFinished)      
-      
-      
-  ##############################################################################
-
-  # Gets Server and Connection Info from Stored Server Connections
-  # Param: String ConnectionName
-  # Return: Array Server Information (http,www....,/cgi-bin/...,Post||Get,Service Version)
-  def getServiceXML(self, name, request, identifier=''):
-    result = self.getServer(name)
-    path = result["path"]
-    server = result["server"]
-    method = result["method"]
-    version = result["version"]
-    scheme = result["scheme"]
-    requestFinished = False
-    self.myHttp = QgsNetworkAccessManager.instance()     
-
-    if identifier <> '':
-      url = QUrl()        
-      myRequest = "?Request="+request+"&identifier="+identifier+"&Service=WPS&Version="+version
-      url.setUrl(scheme+"://"+server+path+myRequest)
-      self.theReply = self.myHttp.get(QNetworkRequest(url))                        
-      self.theReply.finished.connect(self.serviceRequestFinished)      
-    else:
-      url = QUrl()        
-      myRequest = "?Request="+request+"&Service=WPS&Version="+version
-      url.setUrl(scheme+"://"+server+path+myRequest)
-      self.theReply = self.myHttp.get(QNetworkRequest(url))      
-      self.theReply.finished.connect(self.capabilitiesRequestFinished)
-
-  def executeProcess(self, processUrl, postString, resultHandler):
-    postData = QByteArray()
-    postData.append(postString)
-
-    scheme = processUrl.scheme()
-    path = processUrl.path()
-    server = processUrl.host()
-    port = processUrl.port()
-
-    wpsConnection = scheme+'://'+server+path
-
-    thePostHttp = QgsNetworkAccessManager.instance()
-    url = QUrl(wpsConnection)
-    url.setPort(port)
-    qDebug("Post URL=" + str(url))
-
-#        thePostHttp.finished.connect(self.resultHandler)
-    request = QNetworkRequest(url)
-    request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )
-    self.thePostReply = thePostHttp.post(request, postData)
-    self.thePostReply.finished.connect(partial(resultHandler, self.thePostReply) )
-
-  def capabilitiesRequestFinished(self):
-#        self.myHttp.finished.disconnect(self.capabilitiesRequestFinished)      
-        self.emit(SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"), self.theReply) 
-
-
-  def serviceRequestFinished(self):
-#        self.myHttp.finished.disconnect(self.serviceRequestFinished)      
-        self.emit(SIGNAL("serviceRequestIsFinished(QNetworkReply)"), self.theReply) 
-
-  ##############################################################################
-
-  def parseCapabilitiesXML(self,  xmlString):    
-    self.doc.setContent(xmlString,  True)  
-    if self.getServiceVersion(self.doc) != "1.0.0":
-      QMessageBox.information(None, QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supported"), xmlString)
-#      QMessageBox.information(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supprted"))
-      return 0
-
-    version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")
-    title      = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title")    
-    identifier = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier")
-    abstract   = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract")
-
-    itemListAll = []
-
-    for i in range(identifier.size()):
-      v_element = version.at(i).toElement()
-      i_element = identifier.at(i).toElement()
-      t_element = title.at(i+1).toElement()
-      a_element = abstract.at(i+1).toElement()                       
-
-      itemList = []
-      itemList.append(i_element.text()) 
-      itemList.append(t_element.text()) 
-      if "*"+a_element.text()+"*"== "**":
-         itemList.append("*")
-      else:
-         itemList.append(a_element.text()) 
-
-      itemListAll.append(itemList)
-
-    return itemListAll
-
-
-  ##############################################################################
-
-  def getServiceVersion(self,  doc):
-    root = doc.documentElement()  
-    version = root.attribute("version")
-    return version
-
+    self.iface = iface
+    self.dlg = dlg
 
   ##############################################################################
 
@@ -261,15 +55,6 @@ class QgsWpsTools(QObject):
 
   
 ################################################################################
-################################################################################
-################################################################################
-
-# Helper class for native QGIS GUI
-class QgsWpsGuiTools(QgsWpsTools):
-  def __init__(self, iface,  dlg=None):
-    QgsWpsTools.__init__(self)
-    self.iface = iface
-    self.dlg = dlg
 
   ##############################################################################
 

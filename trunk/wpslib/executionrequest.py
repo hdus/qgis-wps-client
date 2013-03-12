@@ -19,6 +19,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4 import QtXml
+from PyQt4.QtSql import *
 from qgis.core import QgsVectorFileWriter
 import os, sys, string, tempfile, base64
 

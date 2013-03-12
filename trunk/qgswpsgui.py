@@ -21,6 +21,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtNetwork import *
 from qgis.core import *
 from wps import version
+from wpslib.wpsserver import WpsServer
 from Ui_qgswpsgui import Ui_QgsWps
 from qgswpsbookmarks import Bookmarks
 from doAbout import DlgAbout
@@ -31,13 +32,12 @@ import os, sys, string
 class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   MSG_BOX_TITLE = "WPS"
   
-  def __init__(self, parent, tools,  fl):
+  def __init__(self, parent, fl):
     QDialog.__init__(self, parent, fl)
     self.setupUi(self)
     self.fl = fl
-    self.tools = tools
     self.setWindowTitle('QGIS WPS-Client '+version())
-    self.dlgAbout = DlgAbout(parent)    
+    self.dlgAbout = DlgAbout(parent)
    
   def initQgsWpsGui(self):    
 ##    self.btnOk.setEnabled(False)
@@ -54,12 +54,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.btnEdit.setEnabled(True)
       self.btnDelete.setEnabled(True)
     return 1    
-        
-        
-#  def getDescription(self,  name, item):
-#        QMessageBox.information(None, '', name)
-#        self.tools.getServiceXML(name,"DescribeProcess",item.text(0))    
-    
+
+
   def getBookmark(self, item):
       self.emit(SIGNAL("requestDescribeProcess(QString, QString)"), item.text(0), item.text(1))
         
@@ -80,20 +76,17 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   @pyqtSignature("on_btnConnect_clicked()")       
   def on_btnConnect_clicked(self):
     self.treeWidget.clear()
-    self.selectedWPS = self.cmbConnections.currentText()
-    self.tools.getServiceXML(self.selectedWPS,  'GetCapabilities' )
-    try:
-        QObject.disconnect(self.tools, SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
-    except:
-        pass
-    QObject.connect(self.tools, SIGNAL("capabilitiesRequestIsFinished(QNetworkReply)"),  self.createCapabilitiesGUI)  
+    selectedWPS = self.cmbConnections.currentText()
+    self.server = WpsServer.getServer(selectedWPS)
+    QObject.connect(self.server, SIGNAL("capabilitiesRequestFinished"), self.createCapabilitiesGUI)
+    self.server.requestCapabilities()
 
   @pyqtSignature("on_btnBookmarks_clicked()")       
   def on_btnBookmarks_clicked(self):    
 #      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.getDescription)    
 #      QObject.connect(self.dlgBookmarks, SIGNAL("removeBookmark(QTreeWidgetItem, int)"), self.removeBookmark)        
       self.dlgBookmarks = Bookmarks(self.fl)
-      QObject.connect(self.dlgBookmarks,  SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)      
+      QObject.connect(self.dlgBookmarks, SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.getBookmark)
       self.dlgBookmarks.show()
 
   @pyqtSignature("on_btnNew_clicked()")       
@@ -140,14 +133,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   def on_treeWidget_itemDoubleClicked(self, item, column):
       self.emit(SIGNAL("getDescription(QString,QTreeWidgetItem)"), self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
 
-  def createCapabilitiesGUI(self, reply):
-     if reply.error() == 1:
-         QMessageBox.information(None, '', QApplication.translate("QgsWpsGui","Connection Refused. Please check your Proxy-Settings"))
-         pass
-     else:
-       try:
-           self.treeWidget.clear()
-           itemListAll = self.tools.parseCapabilitiesXML(reply.readAll().data())
-           self.initTreeWPSServices(itemListAll)
-       except:
-           pass
+  def createCapabilitiesGUI(self):
+      try:
+          self.treeWidget.clear()
+          itemListAll = self.server.parseCapabilitiesXML()
+          self.initTreeWPSServices(itemListAll)
+      except:
+          pass

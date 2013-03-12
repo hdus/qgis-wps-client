@@ -15,65 +15,38 @@ from sextante.parameters.ParameterVector import ParameterVector
 from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
 from sextante.outputs.OutputFactory import OutputFactory
+from wps.wpslib.wpsserver import WpsServer
 from wps.wpslib.processdescription import ProcessDescription
 from wps.wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
 from wps.wpslib.executionrequest import ExecutionRequest
 from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
-from wps.qgswpstools import QgsWpsTools
-from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from PyQt4 import QtXml
-#http communication:
-from qgis.core import *
-from PyQt4.QtNetwork import *
-from functools import partial
-
+from PyQt4.QtGui import qApp
 
 class WpsAlgorithm(GeoAlgorithm):
 
-    def __init__(self, config):
-        self.config = config
-        self.processName = str(self.config['service'])
-        self.processIdentifier = str(self.config['identifier'])
-        self.tools = QgsWpsTools()
+    def __init__(self, process):
+        self.process = process
         GeoAlgorithm.__init__(self) #calls defineCharacteristics
 
     def defineCharacteristics(self):
-        self.name = self.processIdentifier
+        self.name = str(self.process.identifier)
         self.group = "Bookmarks"
-        #Lazy loading of process description
-        self.processXML = None
         #Parameters are added after loading process description
 
     def checkBeforeOpeningParametersDialog(self):
-        if self.processXML == None:
-            self.getServiceXML()
+        if not self.process.loaded():
+            self.getProcessDescription()
             self.buildParametersDialog()
         return None
 
-    def getServiceXML(self):
-        self.process = ProcessDescription()
-        QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.describeProcessFinished)
-
-        result = self.tools.getServer(self.processName)
-        path = result["path"]
-        server = result["server"]
-        method = result["method"]
-        version = result["version"]
-        scheme = result["scheme"]
-        baseUrl = scheme+"://"+server+path
-
-        self.process.requestDescribeProcess(baseUrl, self.processIdentifier, version)
-
+    def getProcessDescription(self):
+        self.process.requestDescribeProcess()
         #Wait for answer
-        while self.processXML == None:
+        while not self.process.loaded():
              qApp.processEvents()
-        qDebug(self.processXML)
-
-    @pyqtSlot()
-    def describeProcessFinished(self):
-        self.processXML = self.process.processXML
+        qDebug(self.process.processXML)
 
     def buildParametersDialog(self):
         for input in self.process.inputs:
