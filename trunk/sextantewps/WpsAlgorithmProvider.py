@@ -18,15 +18,14 @@ class WpsAlgorithmProvider(AlgorithmProvider):
         automatically adding a setting for activating or deactivating the
         algorithms in the provider'''
         AlgorithmProvider.initializeSettings(self)
-        SextanteConfig.addSetting(Setting("Example algorithms", QgsWpsAlgorithmProvider.MY_DUMMY_SETTING, "Example setting", "Default value"))
+        #SextanteConfig.addSetting(Setting("Example algorithms", WpsAlgorithmProvider.MY_DUMMY_SETTING, "Example setting", "Default value"))
         '''To get the parameter of a setting parameter, use SextanteConfig.getSetting(name_of_parameter)'''
 
     def unload(self):
         '''Setting should be removed here, so they do not appear anymore
         when the plugin is unloaded'''
         AlgorithmProvider.unload(self)
-        SextanteConfig.removeSetting( QgsWpsAlgorithmProvider.MY_DUMMY_SETTING)
-
+        #SextanteConfig.removeSetting( WpsAlgorithmProvider.MY_DUMMY_SETTING)
 
     def getName(self):
         '''This name is  used to create the command line name of all the algorithms

@@ -19,6 +19,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4 import QtXml
+from qgis.core import QgsVectorFileWriter
 import os, sys, string, tempfile, base64
 
 
@@ -115,6 +116,74 @@ def createTmpBase64(self, rLayer):
       QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
   return base64String
 
+def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
+    if supportedGML == "": # Neither GML, GML2 or GML3 are supported!
+      return 0
+
+    myQTempFile = QTemporaryFile()
+    myQTempFile.open()
+    tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
+    myQTempFile.close()
+
+    if vLayer.dataProvider().name() == "postgres":
+      encoding = getDBEncoding(vLayer.dataProvider())
+    else:
+      encoding = vLayer.dataProvider().encoding()
+
+    processSelected = False
+    if processSelection and vLayer.selectedFeatureCount() > 0:
+      processSelected = True
+
+    # FORMAT=GML3 only works with OGR >= 1.8.0, otherwise GML2 is always returned
+    if supportedGML == "GML3":
+      dso = QStringList("FORMAT=GML3")
+    else: # "GML" or "GML2"
+      dso = QStringList()
+    lco = QStringList()
+    error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
+    if error != QgsVectorFileWriter.NoError:
+        QMessageBox.information(None, 'Error',  'Process stopped with errors')
+    else:
+        myFile = QFile(tmpFile)
+        if (not myFile.open(QIODevice.ReadOnly | QIODevice.Text)):
+          QMessageBox.information(None, '', QApplication.translate("QgsWps","File open problem"))
+          pass
+
+        myGML = QTextStream(myFile)
+        myGML.setCodec(encoding)
+        gmlString = ""
+        # Overread the first Line of GML Result
+        dummy = myGML.readLine()
+        gmlString += myGML.readAll()
+        myFile.close()
+        myFilePath = QFileInfo(myFile).dir().path()
+        myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
+        QFile(myFileInfo+'.xsd').remove()
+        QFile(myFileInfo+'.gml').remove()
+    return gmlString.simplified()
+
+def getDBEncoding(layerProvider):
+    dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())
+    db = QSqlDatabase.addDatabase("QPSQL","WPSClient")
+    db.setHostName(dbConnection.host())
+    db.setDatabaseName(dbConnection.database())
+    db.setUserName(dbConnection.username())
+    db.setPassword(dbConnection.password())
+    db.setPort(int(dbConnection.port()))
+    db.open()
+
+    query =  "select pg_encoding_to_char(encoding) as encoding "
+    query += "from pg_catalog.pg_database "
+    query += "where datname = '"+dbConnection.database()+"' "
+
+    result = QSqlQuery(query,db)
+    result.first()
+    encoding = result.value(0).toString()
+    db.close()
+
+    return encoding
+
+
 
 class ExecutionRequest(QObject):
     """
@@ -126,7 +195,9 @@ class ExecutionRequest(QObject):
         self.process = process
         self.request = ""
 
-    def addExecuteRequestHeader(self, identifier, version):
+    def addExecuteRequestHeader(self):
+        identifier = self.process.processIdentifier
+        version = self.process.getServiceVersion()
         self.request = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         self.request += "<wps:Execute service=\"WPS\" version=\""+ version + "\"" + \
                        " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \

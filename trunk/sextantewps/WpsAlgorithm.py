@@ -16,7 +16,9 @@ from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
 from sextante.outputs.OutputFactory import OutputFactory
 from wps.wpslib.processdescription import ProcessDescription
+from wps.wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
 from wps.wpslib.executionrequest import ExecutionRequest
+from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
 from wps.qgswpstools import QgsWpsTools
 from PyQt4.QtGui import *
@@ -104,7 +106,7 @@ class WpsAlgorithm(GeoAlgorithm):
     def defineProcess(self):
         """Create the execute request"""
         request = ExecutionRequest(self.process)
-        request.addExecuteRequestHeader(self.processIdentifier, self.tools.getServiceVersion(self.process.doc))
+        request.addExecuteRequestHeader()
 
         # inputs
         useSelected = False
@@ -115,7 +117,7 @@ class WpsAlgorithm(GeoAlgorithm):
             if inputType == 'VectorInput':
                 layer = QGisLayers.getObjectFromUri(value, False)
                 mimeType = input.dataFormat["MimeType"]
-                data = self.tools.createTmpGML(layer, useSelected, mimeType)
+                data = createTmpGML(layer, useSelected, mimeType)
                 request.addGeometryInput(input.identifier, mimeType, input.dataFormat["Schema"], input.dataFormat["Encoding"], data, useSelected)
             elif inputType == 'MultipleVectorInput':
                 #ParameterMultipleInput(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
@@ -173,7 +175,7 @@ class WpsAlgorithm(GeoAlgorithm):
         # Get a unique temporary file name
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
-        ext = self.tools.getFileExtension(mimeType)
+        ext = getFileExtension(mimeType)
         tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
         myQTempFile.close()
 
@@ -191,19 +193,19 @@ class WpsAlgorithm(GeoAlgorithm):
     def loadData(self, resultFile, mimeType, identifier):
         # Vector data 
         # TODO: Check for schema GML and KML
-        if self.tools.isMimeTypeVector(mimeType) != None:
+        if isMimeTypeVector(mimeType) != None:
             self.setOutputValue(identifier, resultFile)
        # Raster data
-        elif self.tools.isMimeTypeRaster(mimeType) != None:
+        elif isMimeTypeRaster(mimeType) != None:
             self.setOutputValue(identifier, resultFile)
 
         # Text data
-        elif self.tools.isMimeTypeText(mimeType) != None:
+        elif isMimeTypeText(mimeType) != None:
             text = open(resultFile, 'r').read()
             self.setOutputValue(identifier, text)
 
         # Everything else
-        elif self.tools.isMimeTypeFile(mimeType) != None:
+        elif isMimeTypeFile(mimeType) != None:
             text = open(resultFile, 'r').read()
             self.setOutputValue(identifier, text)
 

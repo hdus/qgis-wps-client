@@ -27,7 +27,9 @@ from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from wpslib.processdescription import ProcessDescription
+from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile,isMimeTypePlaylist
 from wpslib.executionrequest import ExecutionRequest
+from wpslib.executionrequest import createTmpGML
 from wpslib.executionresult import ExecutionResult
 from qgswpstools import QgsWpsGuiTools
 from qgswpsgui import QgsWpsGui
@@ -284,7 +286,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, dValue))
             elif inputType == 'TextInput':
                 complexDataFormat = input.dataFormat
-                if self.tools.isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
+                if isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
                     self.inputDataTypeList[inputIdentifier] = complexDataFormat
                     # Playlist (text) inputs
                     self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(complexDataFormat))) 
@@ -380,7 +382,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           useSelected = checkBoxes[0].isChecked()
 
         request = ExecutionRequest(self.process)
-        request.addExecuteRequestHeader(self.processIdentifier, self.tools.getServiceVersion(self.doc))
+        request.addExecuteRequestHeader()
 
         request.addDataInputsStart()
         if len(self.process.inputs) > 0:
@@ -393,7 +395,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               # TODO: Check for more types (e.g. KML, Shapefile, JSON)
               self.mimeType = self.inputDataTypeList[textBox.objectName()]["MimeType"]
               
-              if self.tools.isMimeTypePlaylist(self.mimeType) != None:
+              if isMimeTypePlaylist(self.mimeType) != None:
                 schema = self.inputDataTypeList[textBox.objectName()]["Schema"]
                 encoding = self.inputDataTypeList[textBox.objectName()]["Encoding"]
   
@@ -417,11 +419,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               self.myLayer = self.tools.getVLayer(comboBox.currentText())
                  
               try:
-                  if self.tools.isMimeTypeVector(self.mimeType) != None and encoding != "base64":
-                      gmldata = self.tools.createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
+                  if isMimeTypeVector(self.mimeType) != None and encoding != "base64":
+                      gmldata = createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
                                                         useSelected, self.process.getSupportedGMLVersion(comboBox.objectName()))
                       request.addGeometryInput(comboBox.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
-                  elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+                  elif isMimeTypeVector(self.mimeType) != None or isMimeTypeRaster(self.mimeType) != None:
                       request.addGeometryBase64Input(comboBox.objectName(), self.mimeType, self.tools.getVLayer(comboBox.currentText()))
               except:
                   QApplication.restoreOverrideCursor()
@@ -447,11 +449,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                   continue
 
                 # TODO: Check for more types
-                if self.tools.isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
-                  gmldata = self.tools.createTmpGML(self.tools.getVLayer(listWidget.text()), 
+                if isMimeTypeVector(self.mimeType) != None and self.mimeType == "text/xml":
+                  gmldata = createTmpGML(self.tools.getVLayer(listWidget.text()), 
                     useSelected, self.process.getSupportedGMLVersion(listWidgets.objectName()))
                   request.addMultipleGeometryInput(listWidgets.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
-                elif self.tools.isMimeTypeVector(self.mimeType) != None or self.tools.isMimeTypeRaster(self.mimeType) != None:
+                elif isMimeTypeVector(self.mimeType) != None or isMimeTypeRaster(self.mimeType) != None:
                   addMultipleGeometryBase64Input(listWidgets.objectName(), self.mimeType, self.tools.getVLayer(listWidget.text()))
 
 
@@ -592,11 +594,11 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         
         # Get number of chunks (Only for Output streaming based WPSs)
         chunks=0
-        if self.tools.isMimeTypeVector(self.mimeType) != None:
+        if isMimeTypeVector(self.mimeType) != None:
             for lineEdit in self.literalInputLineEditList:
                 if lineEdit.objectName() == "NumberOfChunks":
                     chunks = int(lineEdit.text())
-        elif self.tools.isMimeTypeRaster(self.mimeType) != None:
+        elif isMimeTypeRaster(self.mimeType) != None:
             chunks=1
             for lineEdit in self.literalInputLineEditList:
                 if lineEdit.objectName() == "chunksByRow" or lineEdit.objectName() == "chunksByColumn":
@@ -627,7 +629,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 
         # Vector data 
         # TODO: Check for schema GML and KML
-        if self.tools.isMimeTypeVector(self.mimeType) != None:
+        if isMimeTypeVector(self.mimeType) != None:
             vlayer = QgsVectorLayer(resultFile, layerName, "ogr")
             try:
               vlayer.setCrs(self.myLayer.dataProvider().crs())
@@ -636,13 +638,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
             
        # Raster data
-        elif self.tools.isMimeTypeRaster(self.mimeType) != None:
+        elif isMimeTypeRaster(self.mimeType) != None:
             # We can directly attach the new layer
             rLayer = QgsRasterLayer(resultFile, layerName)
             bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
             
         # Text data
-        elif self.tools.isMimeTypeText(self.mimeType) != None:
+        elif isMimeTypeText(self.mimeType) != None:
             #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             QApplication.restoreOverrideCursor()
             text = open(resultFile, 'r').read()
@@ -650,7 +652,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Process result (text/plain)'),text)
             
         # Everything else
-        elif self.tools.isMimeTypeFile(self.mimeType) != None:
+        elif isMimeTypeFile(self.mimeType) != None:
             #TODO: this should be handled in a separate diaqgswps.pylog to save the text output as file'
             QApplication.restoreOverrideCursor()
             text = open(resultFile, 'r').read()
@@ -691,7 +693,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         # Get a unique temporary file name
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
-        ext = self.tools.getFileExtension(self.mimeType)
+        ext = getFileExtension(self.mimeType)
         tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
         myQTempFile.close()
         
@@ -768,7 +770,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.progressBar.setMaximum(100)
         self.progressBar.setRange(0, 100)
         self.progressBar.setValue(0)
-        self.tools.thePostReply.abort()
+        self.wps.thePostReply.abort()
         self.setStatusLabel('error')
         self.killed.emit()
         

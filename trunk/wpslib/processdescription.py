@@ -464,6 +464,11 @@ class ProcessDescription(QObject):
             else:
                 self.outputs.append(RasterOutput(outputIdentifier, title, complexOutputFormat))
 
+    def getServiceVersion(self):
+        root = self.doc.documentElement()
+        version = root.attribute("version")
+        return version
+
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
       for dataType in self._inputsMetaInfo[name]:
