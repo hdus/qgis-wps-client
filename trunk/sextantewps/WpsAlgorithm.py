@@ -28,7 +28,7 @@ from PyQt4.QtNetwork import *
 from functools import partial
 
 
-class BookmarksAlgorithm(GeoAlgorithm):
+class WpsAlgorithm(GeoAlgorithm):
 
     def __init__(self, config):
         self.config = config

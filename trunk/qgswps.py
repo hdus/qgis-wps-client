@@ -27,7 +27,7 @@ from doAbout import DlgAbout
 SEXTANTE_SUPPORT = False
 try:
     from sextante.core.Sextante import Sextante
-    from wps.sextantewps.qgswpsalgorithmprovider import QgsWpsAlgorithmProvider
+    from wps.sextantewps.WpsAlgorithmProvider import WpsAlgorithmProvider
     SEXTANTE_SUPPORT = True
 except ImportError:
     pass
@@ -95,7 +95,7 @@ class QgsWps:
      self.myDockWidget.show()
 
      if SEXTANTE_SUPPORT:
-         self.provider = QgsWpsAlgorithmProvider(self.myDockWidget)
+         self.provider = WpsAlgorithmProvider(self.myDockWidget)
      else:
          self.provider = None
 
