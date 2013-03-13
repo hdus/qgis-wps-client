@@ -19,6 +19,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtNetwork import *
+from PyQt4.QtGui import QApplication,QMessageBox
 from PyQt4 import QtXml
 from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import QgsNetworkAccessManager
@@ -149,7 +150,7 @@ class ExecutionResult(QObject):
                 if fileLink == '0':
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
                 if fileLink == '0':
-                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                  QMessageBox.warning(None, '', 
                       str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
                   return False
 
@@ -179,14 +180,14 @@ class ExecutionResult(QObject):
                   self._streamingHandler(encoding, playlistUrl)
 
                 else: # Other ComplexData are not supported by this WPS client
-                  QMessageBox.warning(self.iface.mainWindow(), '', 
+                  QMessageBox.warning(None, '', 
                     str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + mimeType + "' is not supported by this client")))
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
                 self._getLiteralResult(identifier, literalText)
               else:
-                QMessageBox.warning(self.iface.mainWindow(), '', 
+                QMessageBox.warning(None, '', 
                   str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             status = self.doc.elementsByTagName("Status")

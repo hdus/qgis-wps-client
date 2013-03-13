@@ -109,7 +109,6 @@ class WpsAlgorithm(GeoAlgorithm):
                 #ParameterSelection(input.identifier, input.title, input.valList)) 
                 pass
             elif inputType == 'ExtentInput':
-                #myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
                 #ParameterExtent("EXTENT","EXTENT"))
                 pass
             elif inputType == 'CrsInput':

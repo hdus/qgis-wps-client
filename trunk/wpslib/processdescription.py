@@ -402,7 +402,7 @@ class ProcessDescription(QObject):
               complexDataFormat = self.getSupportedGMLDataFormat(inputIdentifier)
 
               if complexDataFormat == None :
-                QMessageBox.warning(self.iface.mainWindow(), QApplication.translate("QgsWps", "Error"),
+                QMessageBox.warning(None, QApplication.translate("QgsWps", "Error"),
                   QApplication.translate("QgsWps", "The process '%1' does not seem to support GML for the parameter '%2', which is required by the QGIS WPS client.").arg(self.processIdentifier).arg(inputIdentifier))
                 return 0
 
