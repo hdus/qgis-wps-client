@@ -287,6 +287,7 @@ ExtentInput = namedtuple('ExtentInput', 'identifier title minOccurs')
 CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsList')
 VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat')
 RasterOutput = namedtuple('RasterOutput', 'identifier title dataFormat')
+StringOutput = namedtuple('StringOutput', 'identifier title')
 
 
 class ProcessDescription(QObject):
@@ -490,15 +491,16 @@ class ProcessDescription(QObject):
           f_element = dataOutputs.at(i).toElement()
 
           outputIdentifier, title, abstract = getIdentifierTitleAbstractFromElement(f_element)
-          complexOutput = f_element.elementsByTagName("ComplexOutput")
 
-          # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
+          literalOutputType = f_element.elementsByTagName("LiteralOutput")
+          if literalOutputType.size() != 0:
+                self.outputs.append(StringOutput(outputIdentifier, title))
+
+          complexOutput = f_element.elementsByTagName("ComplexOutput")
           if complexOutput.size() > 0:
-            # Das i-te ComplexData Objekt auswerten
             complexOutputTypeElement = complexOutput.at(0).toElement()
             complexOutputFormat = getDefaultMimeType(complexOutputTypeElement)
             supportedcomplexOutputFormat = getSupportedMimeTypes(complexOutputTypeElement)
-            # Store the input formats
             if isMimeTypeVector(complexOutputFormat["MimeType"]) != None:
                 self.outputs.append(VectorOutput(outputIdentifier, title, complexOutputFormat))
             else:

@@ -100,14 +100,14 @@ class WpsAlgorithm(GeoAlgorithm):
             elif inputType == 'TextInput':
                 request.addLiteralDataInput(input.identifier, str(value))
             elif inputType == 'RasterInput':
-                #ParameterRaster(input.identifier, input.title, input.minOccurs == 0))
-                pass
+                layer = QGisLayers.getObjectFromUri(value, False)
+                mimeType = input.dataFormat["MimeType"]
+                request.addGeometryBase64Input(input.identifier, mimeType, layer)
             elif inputType == 'MultipleRasterInput':
                 #ParameterMultipleInput(input.identifier, input.title, ParameterVector.TYPE_RASTER, input.minOccurs == 0))
                 pass
             elif inputType == 'SelectionInput':
-                #ParameterSelection(input.identifier, input.title, input.valList)) 
-                pass
+                request.addLiteralDataInput(input.identifier, value)
             elif inputType == 'ExtentInput':
                 #ParameterExtent("EXTENT","EXTENT"))
                 pass
@@ -121,10 +121,12 @@ class WpsAlgorithm(GeoAlgorithm):
         request.addResponseFormStart()
         for output in self.process.outputs:
             outputType = type(output).__name__
-            mimeType = output.dataFormat["MimeType"]
-            schema = output.dataFormat["Schema"]
-            encoding = output.dataFormat["Encoding"]
-            if outputType == 'VectorOutput' or outputType == 'RasterOutput':
+            if outputType == 'StringOutput':
+                request.addLiteralDataOutput(output.identifier)
+            elif outputType == 'VectorOutput' or outputType == 'RasterOutput':
+                mimeType = output.dataFormat["MimeType"]
+                schema = output.dataFormat["Schema"]
+                encoding = output.dataFormat["Encoding"]
                 request.addReferenceOutput(output.identifier, mimeType, schema, encoding)
         request.addResponseFormEnd()
 

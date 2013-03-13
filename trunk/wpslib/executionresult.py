@@ -225,13 +225,15 @@ class ExecutionResult(QObject):
 
     def errorHandler(self, resultXML):
          if resultXML:
-           #print resultXML
+           qDebug(resultXML)
            query = QXmlQuery(QXmlQuery.XSLT20)
            xslFile = QFile(":/plugins/wps/exception.xsl")
            xslFile.open(QIODevice.ReadOnly)
            bRead = query.setFocus(resultXML)
            query.setQuery(xslFile)
            exceptionHtml = query.evaluateToString()
+           if exceptionHtml is None:
+               exceptionHtml = resultXML
            self._errorResultCallback(exceptionHtml)
            xslFile.close()
          return False
