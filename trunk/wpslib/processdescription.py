@@ -352,6 +352,7 @@ class ProcessDescription(QObject):
         # Receive the XML process description
         self.processUrl = self._theReply.url()
         self.processXML = self._theReply.readAll().data()
+        qDebug(self.processXML)
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(self.processXML, True)
 
@@ -381,12 +382,11 @@ class ProcessDescription(QObject):
           f_element = dataInputs.at(i).toElement()
 
           inputIdentifier, title, abstract = getIdentifierTitleAbstractFromElement(f_element)
-
-          complexData = f_element.elementsByTagName("ComplexData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
+          minOccurs = int(f_element.attribute("minOccurs", "1"))
+          maxOccurs = int(f_element.attribute("maxOccurs", "1"))
 
           # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
+          complexData = f_element.elementsByTagName("ComplexData")
           if complexData.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexDataTypeElement = complexData.at(0).toElement()
@@ -436,11 +436,10 @@ class ProcessDescription(QObject):
           f_element = dataInputs.at(i).toElement()
 
           inputIdentifier, title, abstract = getIdentifierTitleAbstractFromElement(f_element)
+          minOccurs = int(f_element.attribute("minOccurs", "1"))
+          maxOccurs = int(f_element.attribute("maxOccurs", "1"))
 
           literalData = f_element.elementsByTagName("LiteralData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-
           if literalData.size() > 0:
             allowedValuesElement = literalData.at(0).toElement()
             aValues = getOwsElement(allowedValuesElement, "AllowedValues")
@@ -460,11 +459,10 @@ class ProcessDescription(QObject):
           f_element = dataInputs.at(i).toElement()
 
           inputIdentifier, title, abstract = getIdentifierTitleAbstractFromElement(f_element)
+          minOccurs = int(f_element.attribute("minOccurs", "1"))
+          maxOccurs = int(f_element.attribute("maxOccurs", "1"))
 
           bBoxData = f_element.elementsByTagName("BoundingBoxData")
-          minOccurs = int(f_element.attribute("minOccurs"))
-          maxOccurs = int(f_element.attribute("maxOccurs"))
-
           if bBoxData.size() > 0:
             crsListe = []
             bBoxElement = bBoxData.at(0).toElement()

@@ -193,6 +193,8 @@ class ExecutionResult(QObject):
             status = self.doc.elementsByTagName("Status")
             if status.size() == 0:
               return self.errorHandler(resultXML)
+            else:
+              return self.errorHandler("Empty Result") #TODO: handle wps:ProcessFailed
 
     def fetchResult(self, encoding, fileLink, identifier):
         self.noFilesToFetch += 1

@@ -22,7 +22,7 @@ from wps.wpslib.executionrequest import ExecutionRequest
 from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
 from PyQt4.QtCore import *
-from PyQt4.QtGui import qApp
+from PyQt4.QtGui import qApp,QApplication,QMessageBox
 
 class WpsAlgorithm(GeoAlgorithm):
 
@@ -46,7 +46,6 @@ class WpsAlgorithm(GeoAlgorithm):
         #Wait for answer
         while not self.process.loaded():
              qApp.processEvents()
-        qDebug(self.process.processXML)
 
     def buildParametersDialog(self):
         for input in self.process.inputs:
