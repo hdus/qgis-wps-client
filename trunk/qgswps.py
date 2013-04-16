@@ -100,7 +100,10 @@ class QgsWps:
          self.provider = None
 
      if self.provider:
-        Sextante.addProvider(self.provider, True)
+        try:
+            Sextante.addProvider(self.provider, True) #Force tree update
+        except TypeError:
+            Sextante.addProvider(self.provider)
 
 
 
