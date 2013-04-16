@@ -33,13 +33,9 @@ class WpsAlgorithm(GeoAlgorithm):
     def defineCharacteristics(self):
         self.name = str(self.process.identifier)
         self.group = "Bookmarks"
-        #Parameters are added after loading process description
-
-    def checkBeforeOpeningParametersDialog(self):
         if not self.process.loaded():
             self.getProcessDescription()
             self.buildParametersDialog()
-        return None
 
     def getProcessDescription(self):
         self.process.requestDescribeProcess()
