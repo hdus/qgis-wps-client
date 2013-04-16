@@ -100,7 +100,7 @@ class QgsWps:
          self.provider = None
 
      if self.provider:
-        Sextante.addProvider(self.provider)
+        Sextante.addProvider(self.provider, True)
 
 
 
