@@ -61,19 +61,19 @@ class WpsAlgorithm(GeoAlgorithm):
         for input in self.process.inputs:
             inputType = type(input).__name__
             if inputType == 'VectorInput':
-                self.addParameter(ParameterVector(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
+                self.addParameter(ParameterVector(str(input.identifier), str(input.title), ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
             elif inputType == 'MultipleVectorInput':
-                self.addParameter(ParameterMultipleInput(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
+                self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
             elif inputType == 'StringInput':
-                self.addParameter(ParameterString(input.identifier, input.title))
+                self.addParameter(ParameterString(str(input.identifier), str(input.title)))
             elif inputType == 'TextInput':
-                self.addParameter(ParameterString(input.identifier, input.title))
+                self.addParameter(ParameterString(str(input.identifier), str(input.title)))
             elif inputType == 'RasterInput':
-                self.addParameter(ParameterRaster(input.identifier, input.title, input.minOccurs == 0))
+                self.addParameter(ParameterRaster(str(input.identifier), str(input.title), input.minOccurs == 0))
             elif inputType == 'MultipleRasterInput':
-                self.addParameter(ParameterMultipleInput(input.identifier, input.title, ParameterVector.TYPE_RASTER, input.minOccurs == 0))
+                self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.TYPE_RASTER, input.minOccurs == 0))
             elif inputType == 'SelectionInput':
-                self.addParameter(ParameterSelection(input.identifier, input.title, input.valList)) 
+                self.addParameter(ParameterSelection(str(input.identifier), str(input.title), input.valList))
             elif inputType == 'ExtentInput':
                 #myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
                 self.addParameter(ParameterExtent("EXTENT","EXTENT"))
@@ -83,7 +83,7 @@ class WpsAlgorithm(GeoAlgorithm):
         for output in self.process.outputs:
             outputType = type(output).__name__
             if outputType == 'VectorOutput':
-                self.addOutput(OutputVector(output.identifier, output.title))
+                self.addOutput(OutputVector(str(output.identifier), str(output.title)))
 
     def defineProcess(self):
         """Create the execute request"""
