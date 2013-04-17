@@ -105,7 +105,7 @@ import os, sys, string, tempfile, base64
 def createTmpBase64(rLayer):
   try:
       tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
-      infile = open(rLayer.source())
+      infile = open(unicode(rLayer.source()))
       tmpFileName = tmpFile.name
       outfile = open(tmpFileName, 'w')
       base64.encode(infile,outfile)
