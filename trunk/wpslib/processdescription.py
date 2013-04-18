@@ -128,6 +128,7 @@ VECTOR_MIMETYPES = [{"MIMETYPE":"application/x-zipped-shp", "SCHEMA":"", "GDALID
 # mimeTypes for streaming
 PLAYLIST_MIMETYPES = [{"MIMETYPE":"application/x-ogc-playlist+", "SCHEMA":"", "GDALID":"", "DATATYPE":"PLAYLIST", "EXTENSION":"txt"}]
 
+FILE_MIMETYPES = [{"MIMETYPE":"application/octet-stream"}]
 
 # Helper methods for reading WPS XML
 
@@ -197,8 +198,8 @@ def isMimeTypeText(mimeType):
 
 def isMimeTypeFile(mimeType):
     """Check for file output"""
-    for fileType in FILE_MIMETYPES: # TODO define FILE_MIMETYPES, sometimes it yields errors
-        if mimeType.upper() == fileType["MIMETYPE"]:
+    for fileType in FILE_MIMETYPES:
+        if fileType["MIMETYPE"] in mimeType.lower():
           return "ZIP"
     return None
 
@@ -283,6 +284,8 @@ VectorInput = namedtuple('VectorInput', 'identifier title minOccurs dataFormat')
 MultipleVectorInput = namedtuple('MultipleVectorInput', 'identifier title minOccurs dataFormat')
 RasterInput = namedtuple('RasterInput', 'identifier title minOccurs dataFormat')
 MultipleRasterInput = namedtuple('MultipleRasterInput', 'identifier title minOccurs dataFormat')
+FileInput = namedtuple('FileInput', 'identifier title minOccurs dataFormat')
+MultipleFileInput = namedtuple('MultipleFileInput', 'identifier title minOccurs dataFormat')
 ExtentInput = namedtuple('ExtentInput', 'identifier title minOccurs')
 CrsInput = namedtuple('CrsInput', 'identifier title minOccurs crsList')
 VectorOutput = namedtuple('VectorOutput', 'identifier title dataFormat')
@@ -426,6 +429,12 @@ class ProcessDescription(QObject):
             elif isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
               # Playlist (text) inputs
               self.inputs.append(TextInput(inputIdentifier, title, minOccurs, complexDataFormat))
+
+            elif isMimeTypeFile(complexDataFormat["MimeType"]) != None:
+              if maxOccurs == 1:
+                self.inputs.append(FileInput(inputIdentifier, title, minOccurs, complexDataFormat))
+              else:
+                self.inputs.append(MultipleFileInput(inputIdentifier, title, minOccurs, complexDataFormat))
 
             else:
               # We assume text inputs in case of an unknown mime type

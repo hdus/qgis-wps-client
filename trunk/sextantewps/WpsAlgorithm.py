@@ -4,7 +4,6 @@ from sextante.core.QGisLayers import QGisLayers
 from sextante.parameters.ParameterBoolean import ParameterBoolean
 from sextante.parameters.ParameterCrs import ParameterCrs
 from sextante.parameters.ParameterExtent import ParameterExtent
-from sextante.parameters.ParameterFactory import ParameterFactory
 from sextante.parameters.ParameterMultipleInput import ParameterMultipleInput
 from sextante.parameters.ParameterNumber import ParameterNumber
 from sextante.parameters.ParameterRaster import ParameterRaster
@@ -12,6 +11,7 @@ from sextante.parameters.ParameterSelection import ParameterSelection
 from sextante.parameters.ParameterString import ParameterString
 from sextante.parameters.ParameterTable import ParameterTable
 from sextante.parameters.ParameterVector import ParameterVector
+from sextante.parameters.ParameterFile import ParameterFile
 from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
 from sextante.outputs.OutputFactory import OutputFactory
@@ -72,6 +72,11 @@ class WpsAlgorithm(GeoAlgorithm):
                 self.addParameter(ParameterRaster(str(input.identifier), str(input.title), input.minOccurs == 0))
             elif inputType == 'MultipleRasterInput':
                 self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.TYPE_RASTER, input.minOccurs == 0))
+            elif inputType == 'FileInput':
+                #self.addParameter(ParameterFile(str(input.identifier), str(input.title), False, input.minOccurs == 0))
+                self.addParameter(ParameterFile(str(input.identifier), str(input.title)))
+            elif inputType == 'MultipleFileInput':
+                pass #Not supported
             elif inputType == 'SelectionInput':
                 self.addParameter(ParameterSelection(str(input.identifier), str(input.title), input.valList))
             elif inputType == 'ExtentInput':
@@ -115,6 +120,9 @@ class WpsAlgorithm(GeoAlgorithm):
             elif inputType == 'MultipleRasterInput':
                 #ParameterMultipleInput(input.identifier, input.title, ParameterVector.TYPE_RASTER, input.minOccurs == 0))
                 pass
+            elif inputType == 'FileInput':
+                mimeType = input.dataFormat["MimeType"]
+                request.addFileBase64Input(input.identifier, mimeType, value)
             elif inputType == 'SelectionInput':
                 request.addLiteralDataInput(input.identifier, value)
             elif inputType == 'ExtentInput':

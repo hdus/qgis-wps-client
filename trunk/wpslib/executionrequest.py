@@ -261,12 +261,24 @@ class ExecutionRequest(QObject):
         # Single raster and vector inputs ##########################################
         #elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
         self.addExecuteRequestInputStart(identifier)
-        
+
         self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
         self.request += createTmpBase64(data)
         
         self.request += "</wps:ComplexData>\n"
-        self.addExecuteRequestInputEnd()  
+        self.addExecuteRequestInputEnd()
+
+    def addFileBase64Input(self, identifier, mimeType, filename):
+        self.addExecuteRequestInputStart(identifier)
+
+        self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
+
+        file = open(filename, 'r')
+        self.request += base64.encodestring(file.read())
+        file.close()
+
+        self.request += "</wps:ComplexData>\n"
+        self.addExecuteRequestInputEnd()
 
     def addMultipleGeometryInput(self, identifier, mimeType, schema, encoding, gmldata, useSelected):
         # Multiple raster and vector inputs ########################################
