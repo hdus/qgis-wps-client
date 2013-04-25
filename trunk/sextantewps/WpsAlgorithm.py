@@ -124,7 +124,10 @@ class WpsAlgorithm(GeoAlgorithm):
                 mimeType = input.dataFormat["MimeType"]
                 request.addFileBase64Input(input.identifier, mimeType, value)
             elif inputType == 'SelectionInput':
-                request.addLiteralDataInput(input.identifier, value)
+                #Value is dropdown index
+                param = self.getParameterFromName(input.identifier)
+                strval = str(param.options[int(value)])
+                request.addLiteralDataInput(input.identifier, strval)
             elif inputType == 'ExtentInput':
                 #ParameterExtent("EXTENT","EXTENT"))
                 pass
