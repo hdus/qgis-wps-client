@@ -19,6 +19,7 @@ from sextante.outputs.OutputFactory import OutputFactory
 from wps.wpslib.wpsserver import WpsServer
 from wps.wpslib.processdescription import ProcessDescription
 from wps.wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
+from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
 from wps.wpslib.executionrequest import ExecutionRequest
 from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
@@ -60,39 +61,39 @@ class WpsAlgorithm(GeoAlgorithm):
 
     def buildParametersDialog(self):
         for input in self.process.inputs:
-            inputType = type(input).__name__
-            if inputType == 'VectorInput':
+            inputType = type(input)
+            if inputType == VectorInput:
                 self.addParameter(ParameterVector(str(input.identifier), str(input.title), ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
-            elif inputType == 'MultipleVectorInput':
+            elif inputType == MultipleVectorInput:
                 self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
-            elif inputType == 'StringInput':
+            elif inputType == StringInput:
                 self.addParameter(ParameterString(str(input.identifier), str(input.title)))
-            elif inputType == 'TextInput':
+            elif inputType == TextInput:
                 self.addParameter(ParameterString(str(input.identifier), str(input.title)))
-            elif inputType == 'RasterInput':
+            elif inputType == RasterInput:
                 self.addParameter(ParameterRaster(str(input.identifier), str(input.title), input.minOccurs == 0))
-            elif inputType == 'MultipleRasterInput':
+            elif inputType == MultipleRasterInput:
                 self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.TYPE_RASTER, input.minOccurs == 0))
-            elif inputType == 'FileInput':
+            elif inputType == FileInput:
                 #self.addParameter(ParameterFile(str(input.identifier), str(input.title), False, input.minOccurs == 0))
                 self.addParameter(ParameterFile(str(input.identifier), str(input.title)))
-            elif inputType == 'MultipleFileInput':
+            elif inputType == MultipleFileInput:
                 pass #Not supported
-            elif inputType == 'SelectionInput':
+            elif inputType == SelectionInput:
                 self.addParameter(ParameterSelection(str(input.identifier), str(input.title), input.valList))
-            elif inputType == 'ExtentInput':
+            elif inputType == ExtentInput:
                 #myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
                 self.addParameter(ParameterExtent("EXTENT","EXTENT"))
-            elif inputType == 'CrsInput':
+            elif inputType == CrsInput:
                 self.addParameter(ParameterCrs("CRS", "CRS"))
 
         for output in self.process.outputs:
-            outputType = type(output).__name__
-            if outputType == 'VectorOutput':
+            outputType = type(output)
+            if outputType == VectorOutput:
                 self.addOutput(OutputVector(str(output.identifier), str(output.title)))
-            elif outputType == 'RasterOutput':
+            elif outputType == RasterOutput:
                 self.addOutput(OutputRaster(str(output.identifier), str(output.title)))
-            elif outputType == 'StringOutput':
+            elif outputType == StringOutput:
                 self.addOutput(OutputString(str(output.identifier), str(output.title)))
 
     def defineProcess(self):
@@ -104,39 +105,41 @@ class WpsAlgorithm(GeoAlgorithm):
         useSelected = False
         request.addDataInputsStart()
         for input in self.process.inputs:
-            inputType = type(input).__name__
+            inputType = type(input)
             value = self.getParameterValue(input.identifier)
-            if inputType == 'VectorInput':
+            if inputType == VectorInput:
                 layer = QGisLayers.getObjectFromUri(value, False)
+                if layer is None:
+                    raise Exception("Couldn't extract layer for parameter '%s' from '%s'" % (input.identifier, value))
                 mimeType = input.dataFormat["MimeType"]
                 data = createTmpGML(layer, useSelected, mimeType)
                 request.addGeometryInput(input.identifier, mimeType, input.dataFormat["Schema"], input.dataFormat["Encoding"], data, useSelected)
-            elif inputType == 'MultipleVectorInput':
+            elif inputType == MultipleVectorInput:
                 #ParameterMultipleInput(input.identifier, input.title, ParameterVector.VECTOR_TYPE_ANY, input.minOccurs == 0))
                 pass
-            elif inputType == 'StringInput':
+            elif inputType == StringInput:
                 request.addLiteralDataInput(input.identifier, str(value))
-            elif inputType == 'TextInput':
+            elif inputType == TextInput:
                 request.addLiteralDataInput(input.identifier, str(value))
-            elif inputType == 'RasterInput':
+            elif inputType == RasterInput:
                 layer = QGisLayers.getObjectFromUri(value, False)
                 mimeType = input.dataFormat["MimeType"]
                 request.addGeometryBase64Input(input.identifier, mimeType, layer)
-            elif inputType == 'MultipleRasterInput':
+            elif inputType == MultipleRasterInput:
                 #ParameterMultipleInput(input.identifier, input.title, ParameterVector.TYPE_RASTER, input.minOccurs == 0))
                 pass
-            elif inputType == 'FileInput':
+            elif inputType == FileInput:
                 mimeType = input.dataFormat["MimeType"]
                 request.addFileBase64Input(input.identifier, mimeType, value)
-            elif inputType == 'SelectionInput':
+            elif inputType == SelectionInput:
                 #Value is dropdown index
                 param = self.getParameterFromName(input.identifier)
                 strval = str(param.options[int(value)])
                 request.addLiteralDataInput(input.identifier, strval)
-            elif inputType == 'ExtentInput':
+            elif inputType == ExtentInput:
                 #ParameterExtent("EXTENT","EXTENT"))
                 pass
-            elif inputType == 'CrsInput':
+            elif inputType == CrsInput:
                 #ParameterCrs("CRS", "CRS"))
                 pass
         #TODO: "selcetion only" checkbox
@@ -145,10 +148,10 @@ class WpsAlgorithm(GeoAlgorithm):
         # outputs
         request.addResponseFormStart()
         for output in self.process.outputs:
-            outputType = type(output).__name__
-            if outputType == 'StringOutput':
+            outputType = type(output)
+            if outputType == StringOutput:
                 request.addLiteralDataOutput(output.identifier)
-            elif outputType == 'VectorOutput' or outputType == 'RasterOutput':
+            elif outputType == VectorOutput or outputType == RasterOutput:
                 mimeType = output.dataFormat["MimeType"]
                 schema = output.dataFormat["Schema"]
                 encoding = output.dataFormat["Encoding"]

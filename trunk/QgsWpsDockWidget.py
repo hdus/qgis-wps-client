@@ -29,6 +29,8 @@ from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
 from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile,isMimeTypePlaylist
+from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
+from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
 from wpslib.executionrequest import ExecutionRequest
 from wpslib.executionrequest import createTmpGML
 from wpslib.executionresult import ExecutionResult
@@ -260,22 +262,22 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def generateProcessInputsGUI(self):
         """Generate the GUI for all Inputs defined in the process description XML file"""
         for input in self.process.inputs:
-            inputType = type(input).__name__
+            inputType = type(input)
             inputIdentifier = input.identifier
             title = input.title
             minOccurs = input.minOccurs
-            if inputType == 'VectorInput' or inputType == 'MultipleVectorInput':
+            if inputType == VectorInput or inputType == MultipleVectorInput:
                 complexDataFormat = input.dataFormat
                 self.inputDataTypeList[inputIdentifier] = complexDataFormat
                 layerNamesList = self.tools.getLayerNameList(0)
-                if inputType == 'VectorInput':
+                if inputType == VectorInput:
                     self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
                 else:
                     self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))              
-            elif inputType == 'StringInput':
+            elif inputType == StringInput:
                 dValue =  input.defaultValue
                 self.literalInputLineEditList.append(self.tools.addLiteralLineEdit(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, dValue))
-            elif inputType == 'TextInput':
+            elif inputType == TextInput:
                 complexDataFormat = input.dataFormat
                 if isMimeTypePlaylist(complexDataFormat["MimeType"]) != None:
                     self.inputDataTypeList[inputIdentifier] = complexDataFormat
@@ -283,21 +285,21 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                     self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, str(complexDataFormat))) 
                 else:
                     self.complexInputTextBoxList.append(self.tools.addComplexInputTextBox(title, inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            elif inputType == 'RasterInput' or inputType == 'MultipleRasterInput':
+            elif inputType == RasterInput or inputType == MultipleRasterInput:
                 complexDataFormat = input.dataFormat
                 self.inputDataTypeList[inputIdentifier] = complexDataFormat
                 layerNamesList = self.tools.getLayerNameList(1)
-                if inputType == 'RasterInput':
+                if inputType == RasterInput:
                     self.complexInputComboBoxList.append(self.tools.addComplexInputComboBox(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
                 else:
                     self.complexInputListWidgetList.append(self.tools.addComplexInputListWidget(title, inputIdentifier, str(complexDataFormat), layerNamesList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            elif inputType == 'SelectionInput':
+            elif inputType == SelectionInput:
                 valList = input.valList
                 self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
-            elif inputType == 'ExtentInput':
+            elif inputType == ExtentInput:
                 myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')                
                 self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
-            elif inputType == 'CrsInput':
+            elif inputType == CrsInput:
                 crsListe = input.crsList
 #                self.literalInputComboBoxList.append(self.tools.addLiteralComboBox("Supported CRS", inputIdentifier, crsListe, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
     
@@ -316,10 +318,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         layout = QVBoxLayout()
     
         for output in self.process.outputs:
-            outputType = type(output).__name__
+            outputType = type(output)
             outputIdentifier = output.identifier
             title = output.title
-            if outputType == 'VectorOutput' or outputType == 'RasterOutput':
+            if outputType == VectorOutput or outputType == RasterOutput:
                 complexOutputFormat = output.dataFormat
                 # Store the input formats
                 self.outputDataTypeList[outputIdentifier] = complexOutputFormat
