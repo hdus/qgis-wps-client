@@ -14,6 +14,7 @@ from sextante.parameters.ParameterVector import ParameterVector
 from sextante.parameters.ParameterFile import ParameterFile
 from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
+from sextante.outputs.OutputString import OutputString
 from sextante.outputs.OutputFactory import OutputFactory
 from wps.wpslib.wpsserver import WpsServer
 from wps.wpslib.processdescription import ProcessDescription
@@ -89,6 +90,10 @@ class WpsAlgorithm(GeoAlgorithm):
             outputType = type(output).__name__
             if outputType == 'VectorOutput':
                 self.addOutput(OutputVector(str(output.identifier), str(output.title)))
+            elif outputType == 'RasterOutput':
+                self.addOutput(OutputRaster(str(output.identifier), str(output.title)))
+            elif outputType == 'StringOutput':
+                self.addOutput(OutputString(str(output.identifier), str(output.title)))
 
     def defineProcess(self):
         """Create the execute request"""
