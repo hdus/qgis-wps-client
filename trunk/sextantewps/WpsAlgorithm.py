@@ -1,6 +1,7 @@
 from sextante.core.GeoAlgorithm import GeoAlgorithm
 from sextante.core.Sextante import Sextante
 from sextante.core.QGisLayers import QGisLayers
+from sextante.core.SextanteLog import SextanteLog
 from sextante.parameters.ParameterBoolean import ParameterBoolean
 from sextante.parameters.ParameterCrs import ParameterCrs
 from sextante.parameters.ParameterExtent import ParameterExtent
@@ -172,6 +173,7 @@ class WpsAlgorithm(GeoAlgorithm):
 
     def getLiteralResult(self, identifier, literalText):
         self.setOutputValue(identifier, literalText)
+        SextanteLog.addToLog(SextanteLog.LOG_INFO, identifier + ": " + literalText)
 
     def getResultFile(self, identifier, mimeType, encoding, reply):
         # Get a unique temporary file name
