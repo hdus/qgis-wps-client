@@ -356,6 +356,16 @@ class ProcessDescription(QObject):
         self.processUrl = self._theReply.url()
         self.processXML = self._theReply.readAll().data()
         qDebug(self.processXML)
+        self._readProcessXML()
+        self._requestExecuted = True
+        self.emit(SIGNAL("describeProcessFinished"))
+
+    def loadDescription(self, fn):
+        #self.processUrl = ...
+        self.processXML = open(fn).read()
+        self._readProcessXML()
+
+    def _readProcessXML(self):
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(self.processXML, True)
 
@@ -367,11 +377,13 @@ class ProcessDescription(QObject):
         self._parseProcessInputs()
         self._parseProcessOutputs()
 
-        self._requestExecuted = True
-        self.emit(SIGNAL("describeProcessFinished"))
-
     def loaded(self):
         return self._requestExecuted
+
+    def saveDescription(self, fn):
+        f = open(fn, "wb")
+        f.write(self.processXML)
+        f.close()
 
     def _parseProcessInputs(self):
         """

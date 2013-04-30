@@ -26,6 +26,7 @@ from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
 from PyQt4.QtCore import *
 from PyQt4.QtGui import qApp,QApplication,QMessageBox
+import os
 
 class WpsAlgorithm(GeoAlgorithm):
 
@@ -36,23 +37,21 @@ class WpsAlgorithm(GeoAlgorithm):
     def defineCharacteristics(self):
         self.name = str(self.process.identifier)
         self.group = "Bookmarks"
-        #Parameters are added after loading process description
+        self.loadProcessDescription()
+        self.buildParametersDialog()
 
-    def _addParametersFromProcessDescription(self):
-        if not self.process.loaded():
+    def loadProcessDescription(self):
+        if not os.path.exists(self.processDescriptionFile()):
             self.getProcessDescription()
-        if not self.parameters and not self.outputs:
-            self.buildParametersDialog()
+            if self.process.identifier == None or self.process.identifier == "":
+                #Error reading description
+                self.process.processXML = '' #Save empty description to prevent retry at next startup
+            self.process.saveDescription(self.processDescriptionFile())
+        self.process.loadDescription(self.processDescriptionFile())
 
-    #called on double click in process tree
-    def checkBeforeOpeningParametersDialog(self):
-        self._addParametersFromProcessDescription()
-        return None
-
-    #called by modeler
-    def getCustomModelerParametersDialog(self, modelAlg, algIndex = None):
-        self._addParametersFromProcessDescription()
-        return None
+    def processDescriptionFile(self):
+        from WpsAlgorithmProvider import WpsAlgorithmProvider
+        return WpsAlgorithmProvider.WpsDescriptionFolder() + "/" + self.name
 
     def getProcessDescription(self):
         self.process.requestDescribeProcess()
