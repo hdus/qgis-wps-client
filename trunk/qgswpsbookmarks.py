@@ -20,6 +20,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from wps import version
+from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
 
 from Ui_qgswpsbookmarks import Ui_Bookmarks
@@ -80,10 +81,10 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     def on_btnClose_clicked(self):
          self.close()
          
-    def removeBookmark(self,  item):
+    def removeBookmark(self, item):
         QMessageBox.information(None, '', item.text(0)+'@@'+item.text(1))
-        settings = QSettings()
-        settings.beginGroup("WPS-Bookmarks")
-        settings.remove(item.text(0)+'@@'+item.text(1))
-        settings.endGroup()
+        server = WpsServer.getServer(item.text(0))
+        process = ProcessDescription(server, item.text(1))
+        process.removeBookmark()
+        self.emit(SIGNAL("bookmarksChanged()"))
         self.initTreeWPSServices()          

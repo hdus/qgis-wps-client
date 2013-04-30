@@ -25,6 +25,7 @@ from qgis.core import *
 from wps import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
+from qgswpstools import QgsWpsTools
 from qgsnewhttpconnectionbasegui import QgsNewHttpConnectionBaseGui
 from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
@@ -34,8 +35,6 @@ from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput
 from wpslib.executionrequest import ExecutionRequest
 from wpslib.executionrequest import createTmpGML
 from wpslib.executionresult import ExecutionResult
-from qgswpstools import QgsWpsTools
-from qgswpsgui import QgsWpsGui
 from urlparse import urlparse
 
 from streaming import Streaming
@@ -86,6 +85,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
         QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
         QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
+        QObject.connect(self.dlg, SIGNAL("bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))    
 
         self.killed.connect(self.stopStreaming)
         
@@ -562,14 +562,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         QObject.connect(btnBookmark,SIGNAL("clicked()"), self.saveBookmark)
         
     def saveBookmark(self):
-        settings = QSettings()
-        mySettings = "/WPS-Bookmarks/"+self.dlgProcess.currentServiceName()+"@@"+self.processUrl.queryItemValue('identifier')
-        settings.setValue(mySettings+"/scheme", self.processUrl.scheme())
-        settings.setValue(mySettings+"/server", self.processUrl.host())
-        settings.setValue(mySettings+"/path",  self.processUrl.path())
-        settings.setValue(mySettings+"/port",  self.processUrl.port())
-        settings.setValue(mySettings+"/version", self.processUrl.queryItemValue('version'))
-        settings.setValue(mySettings+"/identifier",  self.processUrl.queryItemValue('identifier'))
+        server = WpsServer.getServer(self.dlgProcess.currentServiceName())
+        process = ProcessDescription(server, self.processUrl.queryItemValue('identifier'))
+        process.saveBookmark()
+        self.emit(SIGNAL("bookmarksChanged()"))
         QMessageBox.information(self.iface.mainWindow(), 
             QCoreApplication.translate("QgsWps","Bookmark"), 
             QCoreApplication.translate("QgsWps","The creation bookmark was successful."))

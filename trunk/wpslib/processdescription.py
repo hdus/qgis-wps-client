@@ -278,7 +278,7 @@ def allowedValues(aValues):
 
 
 StringInput = namedtuple('StringInput', 'identifier title minOccurs defaultValue')
-TextInput = namedtuple('TextInput', 'identifier title minOccurs')
+TextInput = namedtuple('TextInput', 'identifier title minOccurs dataFormat')
 SelectionInput = namedtuple('SelectionInput', 'identifier title, minOccurs valList')
 VectorInput = namedtuple('VectorInput', 'identifier title minOccurs dataFormat')
 MultipleVectorInput = namedtuple('MultipleVectorInput', 'identifier title minOccurs dataFormat')
@@ -318,21 +318,39 @@ class ProcessDescription(QObject):
             settings = QSettings()
 
             mySettings = "/WPS-Bookmarks/"+myBookmark
+            #old redundant server properties:
             #scheme = settings.value(mySettings+"/scheme").toString()
-            server = settings.value(mySettings+"/server").toString()
+            #server = settings.value(mySettings+"/server").toString()
             #path = settings.value(mySettings+"/path").toString()
             #port = settings.value(mySettings+"/port").toString()
+            #version = settings.value(mySettings+"/version").toString()
 
             myBookmarkArray = myBookmark.split("@@")
-            service = myBookmarkArray[0]
-            #version = settings.value(mySettings+"/version").toString()
+            connectionName = myBookmarkArray[0]
             identifier = settings.value(mySettings+"/identifier").toString()
 
-            server = WpsServer.getServer(service)
+            server = WpsServer.getServer(connectionName)
             process = ProcessDescription(server, identifier)
             processList.append(process)
         #settings.endGroup()
         return processList
+
+    def saveBookmark(self):
+        settings = QSettings()
+        mySettings = "/WPS-Bookmarks/"+self.server.connectionName+"@@"+self.identifier
+        #old redundant server properties:
+        #settings.setValue(mySettings+"/scheme", processUrl.scheme())
+        #settings.setValue(mySettings+"/server", processUrl.host())
+        #settings.setValue(mySettings+"/path",  processUrl.path())
+        #settings.setValue(mySettings+"/port",  processUrl.port())
+        #settings.setValue(mySettings+"/version", processUrl.queryItemValue('version'))
+        settings.setValue(mySettings+"/identifier", self.identifier)
+
+    def removeBookmark(self):
+        settings = QSettings()
+        settings.beginGroup("WPS-Bookmarks")
+        settings.remove(self.server.connectionName+"@@"+self.identifier)
+        settings.endGroup()
 
     def requestDescribeProcess(self):
         """
@@ -429,7 +447,7 @@ class ProcessDescription(QObject):
                 self.inputs.append(MultipleVectorInput(inputIdentifier, title, minOccurs, complexDataFormat))
             elif isMimeTypeText(complexDataFormat["MimeType"]) != None:
               # Text inputs
-              self.inputs.append(TextInput(inputIdentifier, title))
+              self.inputs.append(TextInput(inputIdentifier, title, minOccurs, complexDataFormat))
             elif isMimeTypeRaster(complexDataFormat["MimeType"]) != None:
 
               # Raster inputs
@@ -450,7 +468,7 @@ class ProcessDescription(QObject):
 
             else:
               # We assume text inputs in case of an unknown mime type
-              self.inputs.append(TextInput(inputIdentifier, title, minOccurs))
+              self.inputs.append(TextInput(inputIdentifier, title, minOccurs, complexDataFormat))
 
         # Create the literal inputs as second
         for i in range(dataInputs.size()):
