@@ -41,17 +41,17 @@ class WpsAlgorithm(GeoAlgorithm):
         self.buildParametersDialog()
 
     def loadProcessDescription(self):
-        if not os.path.exists(self.processDescriptionFile()):
+        if not os.path.exists(self.process.processDescriptionFile(self.processDescriptionFolder())):
             self.getProcessDescription()
             if self.process.identifier == None or self.process.identifier == "":
                 #Error reading description
                 self.process.processXML = '' #Save empty description to prevent retry at next startup
-            self.process.saveDescription(self.processDescriptionFile())
-        self.process.loadDescription(self.processDescriptionFile())
+            self.process.saveDescription(self.processDescriptionFolder())
+        self.process.loadDescription(self.processDescriptionFolder())
 
-    def processDescriptionFile(self):
+    def processDescriptionFolder(self):
         from WpsAlgorithmProvider import WpsAlgorithmProvider
-        return WpsAlgorithmProvider.WpsDescriptionFolder() + "/" + self.name
+        return WpsAlgorithmProvider.WpsDescriptionFolder()
 
     def getProcessDescription(self):
         self.process.requestDescribeProcess()

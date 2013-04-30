@@ -352,6 +352,12 @@ class ProcessDescription(QObject):
         settings.remove(self.server.connectionName+"@@"+self.identifier)
         settings.endGroup()
 
+    def requestUrl(self):
+        url = QUrl()
+        request = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
+        url.setUrl(self.server.baseUrl + request)
+        return url
+
     def requestDescribeProcess(self):
         """
         Request process description
@@ -361,9 +367,7 @@ class ProcessDescription(QObject):
         self.inputs = []
         self.outputs = []
 
-        url = QUrl()
-        myRequest = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
-        url.setUrl(self.server.baseUrl + myRequest)
+        url = self.requestUrl()
         myHttp = QgsNetworkAccessManager.instance()
         self._theReply = myHttp.get(QNetworkRequest(url))
         self._theReply.finished.connect(self._describeProcessFinished)
@@ -374,16 +378,20 @@ class ProcessDescription(QObject):
         self.processUrl = self._theReply.url()
         self.processXML = self._theReply.readAll().data()
         qDebug(self.processXML)
-        self._readProcessXML()
+        self._parseProcessXML()
         self._requestExecuted = True
         self.emit(SIGNAL("describeProcessFinished"))
 
-    def loadDescription(self, fn):
-        #self.processUrl = ...
-        self.processXML = open(fn).read()
-        self._readProcessXML()
+    def processDescriptionFile(self, path):
+        key = self.server.connectionName + "@@" + self.identifier
+        return path + "/" + key
 
-    def _readProcessXML(self):
+    def loadDescription(self, path):
+        self.processUrl = self.requestUrl()
+        self.processXML = open(self.processDescriptionFile(path)).read()
+        self._parseProcessXML()
+
+    def _parseProcessXML(self):
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(self.processXML, True)
 
@@ -392,14 +400,16 @@ class ProcessDescription(QObject):
         self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
 
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
+        self.inputs = []
+        self.outputs = []
         self._parseProcessInputs()
         self._parseProcessOutputs()
 
     def loaded(self):
         return self._requestExecuted
 
-    def saveDescription(self, fn):
-        f = open(fn, "wb")
+    def saveDescription(self, path):
+        f = open(self.processDescriptionFile(path), "wb")
         f.write(self.processXML)
         f.close()
 
