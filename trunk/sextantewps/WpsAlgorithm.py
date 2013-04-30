@@ -82,10 +82,9 @@ class WpsAlgorithm(GeoAlgorithm):
             elif inputType == SelectionInput:
                 self.addParameter(ParameterSelection(str(input.identifier), str(input.title), input.valList))
             elif inputType == ExtentInput:
-                #myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')
-                self.addParameter(ParameterExtent("EXTENT","EXTENT"))
+                self.addParameter(ParameterExtent(str(input.identifier), str(input.title)))
             elif inputType == CrsInput:
-                self.addParameter(ParameterCrs("CRS", "CRS"))
+                self.addParameter(ParameterCrs(str(input.identifier), "Projection", None))
 
         for output in self.process.outputs:
             outputType = type(output)
