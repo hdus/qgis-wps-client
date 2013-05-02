@@ -62,11 +62,9 @@ class WpsAlgorithmProvider(AlgorithmProvider):
                 action = WpsServerAction(server)
                 self.actions.append(action)
                 dir = server.processDescriptionFolder(WpsAlgorithmProvider.WpsDescriptionFolder())
-                print dir
                 if os.path.exists(dir):
                     #load from descriptions
                     for fn in os.listdir(dir):
-                        print fn
                         process = ProcessDescription(server, fn)
                         action.processalgs.append(  WpsAlgorithm(process) )
                 algs += action.processalgs
@@ -80,6 +78,4 @@ class WpsAlgorithmProvider(AlgorithmProvider):
 
     def _loadAlgorithms(self):
         self.algs = self._serversAlgsList()
-        print "add bookmarks"
         self.algs += self._bookmarkAlgsList()
-        print "add finished"

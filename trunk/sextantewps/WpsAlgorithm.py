@@ -1,6 +1,5 @@
 from sextante.core.GeoAlgorithm import GeoAlgorithm
 from sextante.core.Sextante import Sextante
-from sextante.core.SextanteUtils import mkdir
 from sextante.core.QGisLayers import QGisLayers
 from sextante.core.SextanteLog import SextanteLog
 from sextante.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
