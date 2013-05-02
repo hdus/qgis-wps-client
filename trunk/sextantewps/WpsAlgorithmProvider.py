@@ -3,8 +3,11 @@ from sextante.core.SextanteConfig import Setting, SextanteConfig
 from sextante.core.SextanteUtils import mkdir, SextanteUtils
 from WpsAlgorithm import WpsAlgorithm
 from AddNewWpsAction import AddNewWpsAction
+from WpsServerAction import WpsServerAction
+from wps.wpslib.wpsserver import WpsServer
 from wps.wpslib.processdescription import ProcessDescription
 import os
+from PyQt4 import QtGui
 
 class WpsAlgorithmProvider(AlgorithmProvider):
 
@@ -41,16 +44,42 @@ class WpsAlgorithmProvider(AlgorithmProvider):
         return "WPS"
 
     def getSupportedOutputVectorLayerExtensions(self):
-        return ["gml"] #TODO: rasters?
+        return ["gml"]
+
+    def getSupportedOutputRasterLayerExtensions(self):
+        return ["tif"]
 
     def getIcon(self):
-        return AlgorithmProvider.getIcon(self)
+        return QtGui.QIcon(os.path.dirname(__file__) + "/../images/wps.png")
+
+    def _serversAlgsList(self):
+        algs = []
+        for server in WpsServer.getServers():
+            action = next((a for a in self.actions if isinstance(a, WpsServerAction) and a.server.connectionName == server.connectionName), None)
+            if action:
+                algs += action.processalgs
+            else:
+                action = WpsServerAction(server)
+                self.actions.append(action)
+                dir = server.processDescriptionFolder(WpsAlgorithmProvider.WpsDescriptionFolder())
+                print dir
+                if os.path.exists(dir):
+                    #load from descriptions
+                    for fn in os.listdir(dir):
+                        print fn
+                        process = ProcessDescription(server, fn)
+                        action.processalgs.append(  WpsAlgorithm(process) )
+                algs += action.processalgs
+        return algs
 
     def _bookmarkAlgsList(self):
         bookmarkAlgs = []
         for process in ProcessDescription.getBookmarks():
-            bookmarkAlgs.append( WpsAlgorithm(process) )
+            bookmarkAlgs.append( WpsAlgorithm(process, True) )
         return bookmarkAlgs
 
     def _loadAlgorithms(self):
-        self.algs = self._bookmarkAlgsList()
+        self.algs = self._serversAlgsList()
+        print "add bookmarks"
+        self.algs += self._bookmarkAlgsList()
+        print "add finished"

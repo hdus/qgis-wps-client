@@ -32,6 +32,29 @@ class WpsServer(QObject):
         self.server = server
         self.baseUrl = baseUrl
         self.version = version
+        self.processes = []
+
+    @staticmethod
+    def getServers():
+        settingsgrp = QSettings()
+        settingsgrp.beginGroup("WPS")
+        connections = settingsgrp.childGroups()
+        servers = []
+        for connectionName in connections:
+            settings = QSettings()
+            entry = "/WPS/"+connectionName
+            scheme = settings.value(entry+"/scheme").toString()
+            server = settings.value(entry+"/server").toString()
+            port =  settings.value(entry+"/port")
+            path = settings.value(entry+"/path").toString()
+            #method = settings.value(entry+"/method").toString()
+            version = settings.value(entry+"/version").toString()
+
+            baseUrl = scheme+"://"+server+path
+            server = WpsServer(connectionName, server, baseUrl, version)
+            servers.append(server)
+        settingsgrp.endGroup()
+        return servers
 
     # Gets Server and Connection Info from Stored Server Connections in QGIS Settings
     # Param: String ConnectionName
@@ -48,6 +71,9 @@ class WpsServer(QObject):
     
         baseUrl = scheme+"://"+server+path
         return WpsServer(connectionName, server, baseUrl, version)
+
+    def processDescriptionFolder(self, basePath):
+        return basePath + '/' + str(self.connectionName)
 
     def requestCapabilities(self):
         """
@@ -80,12 +106,14 @@ class WpsServer(QObject):
         self.emit(SIGNAL("capabilitiesRequestFinished"))
 
     def parseCapabilitiesXML(self):
+        from wps.wpslib.processdescription import ProcessDescription
         version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")
         title      = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title")    
         identifier = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier")
         abstract   = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Abstract")
     
-        itemListAll = []
+        self.processes = []
+        itemListAll = [] #Text array for list view
     
         for i in range(identifier.size()):
           v_element = version.at(i).toElement()
@@ -100,7 +128,8 @@ class WpsServer(QObject):
              itemList.append("*")
           else:
              itemList.append(a_element.text()) 
-    
+
+          self.processes.append(ProcessDescription(self, str(i_element.text())))
           itemListAll.append(itemList)
     
         return itemListAll

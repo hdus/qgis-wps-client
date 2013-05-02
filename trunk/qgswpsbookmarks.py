@@ -48,7 +48,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
            myItem.setText(1,process.identifier)
            myItem.setText(2,process.server.server)
            itemList.append(myItem)
-        self.myItem = itemList[-1] #FIXME: makes no sense
+           self.myItem = myItem #FIXME: backwards compatibility
         self.btnOK.setEnabled(False)
         self.treeWidget.addTopLevelItems(itemList)        
 
@@ -70,7 +70,8 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     
     @pyqtSignature("")
     def on_btnRemove_clicked(self):
-        self.removeBookmark(self.treeWidget.currentItem())
+        if self.treeWidget.currentItem():
+            self.removeBookmark(self.treeWidget.currentItem())
        
     @pyqtSignature("")
     def on_btnOK_clicked(self):

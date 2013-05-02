@@ -1,7 +1,9 @@
 from sextante.core.GeoAlgorithm import GeoAlgorithm
 from sextante.core.Sextante import Sextante
+from sextante.core.SextanteUtils import mkdir
 from sextante.core.QGisLayers import QGisLayers
 from sextante.core.SextanteLog import SextanteLog
+from sextante.core.GeoAlgorithmExecutionException import GeoAlgorithmExecutionException
 from sextante.parameters.ParameterBoolean import ParameterBoolean
 from sextante.parameters.ParameterCrs import ParameterCrs
 from sextante.parameters.ParameterExtent import ParameterExtent
@@ -24,32 +26,46 @@ from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput
 from wps.wpslib.executionrequest import ExecutionRequest
 from wps.wpslib.executionrequest import createTmpGML
 from wps.wpslib.executionresult import ExecutionResult
+from PyQt4 import QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import qApp,QApplication,QMessageBox
 import os
 
 class WpsAlgorithm(GeoAlgorithm):
 
-    def __init__(self, process):
+    def __init__(self, process, bookmark = False):
         self.process = process
+        self.bookmark = bookmark
         GeoAlgorithm.__init__(self) #calls defineCharacteristics
 
     def defineCharacteristics(self):
         self.name = str(self.process.identifier)
-        self.group = "Bookmarks"
+        if self.bookmark:
+            self.group = "Bookmarks"
+        else:
+            self.group = WpsAlgorithm.groupName(self.process.server)
         self.loadProcessDescription()
         self.buildParametersDialog()
 
+    def getIcon(self):
+        return QtGui.QIcon(os.path.dirname(__file__) + "/../images/wps.png")
+
+    @staticmethod
+    def groupName(server):
+        return "WPS %s" % server.connectionName
+
     def loadProcessDescription(self):
-        if not os.path.exists(self.process.processDescriptionFile(self.processDescriptionFolder())):
+        #retrieve and save if not saved before
+        if not os.path.exists(self.process.processDescriptionFile(self.wpsDescriptionFolder())):
             self.getProcessDescription()
             if self.process.identifier == None or self.process.identifier == "":
                 #Error reading description
                 self.process.processXML = '' #Save empty description to prevent retry at next startup
-            self.process.saveDescription(self.processDescriptionFolder())
-        self.process.loadDescription(self.processDescriptionFolder())
+            self.process.saveDescription(self.wpsDescriptionFolder())
+        #load from file
+        self.process.loadDescription(self.wpsDescriptionFolder())
 
-    def processDescriptionFolder(self):
+    def wpsDescriptionFolder(self):
         from WpsAlgorithmProvider import WpsAlgorithmProvider
         return WpsAlgorithmProvider.WpsDescriptionFolder()
 
@@ -73,7 +89,7 @@ class WpsAlgorithm(GeoAlgorithm):
             elif inputType == RasterInput:
                 self.addParameter(ParameterRaster(str(input.identifier), str(input.title), input.minOccurs == 0))
             elif inputType == MultipleRasterInput:
-                self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterVector.TYPE_RASTER, input.minOccurs == 0))
+                self.addParameter(ParameterMultipleInput(str(input.identifier), str(input.title), ParameterMultipleInput.TYPE_RASTER, input.minOccurs == 0))
             elif inputType == FileInput:
                 #self.addParameter(ParameterFile(str(input.identifier), str(input.title), False, input.minOccurs == 0))
                 self.addParameter(ParameterFile(str(input.identifier), str(input.title)))
@@ -220,3 +236,5 @@ class WpsAlgorithm(GeoAlgorithm):
 
     def errorResult(self, exceptionHtml):
         QMessageBox.critical(None, "Exception report", exceptionHtml)
+        #SextanteLog.addToLog(SextanteLog.LOG_ERROR, exceptionHtml)
+        #raise GeoAlgorithmExecutionException("Exception report\n" + exceptionHtml)

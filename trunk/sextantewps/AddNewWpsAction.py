@@ -1,4 +1,3 @@
-from sextante.script.EditScriptDialog import EditScriptDialog
 from sextante.gui.ToolboxAction import ToolboxAction
 from sextante.core.Sextante import Sextante
 import os

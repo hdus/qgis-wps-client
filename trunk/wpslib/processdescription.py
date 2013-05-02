@@ -24,6 +24,7 @@ from PyQt4 import QtXml
 from qgis.core import QgsNetworkAccessManager
 from wpsserver import WpsServer
 from collections import namedtuple
+import os
 
 
 # Process description example:
@@ -310,13 +311,12 @@ class ProcessDescription(QObject):
 
     @staticmethod
     def getBookmarks():
-        settings = QSettings()
-        settings.beginGroup("WPS-Bookmarks")
-        bookmarks = settings.childGroups()
+        settingsgrp = QSettings()
+        settingsgrp.beginGroup("WPS-Bookmarks")
+        bookmarks = settingsgrp.childGroups()
         processList = []
         for myBookmark in bookmarks:
             settings = QSettings()
-
             mySettings = "/WPS-Bookmarks/"+myBookmark
             #old redundant server properties:
             #scheme = settings.value(mySettings+"/scheme").toString()
@@ -332,12 +332,15 @@ class ProcessDescription(QObject):
             server = WpsServer.getServer(connectionName)
             process = ProcessDescription(server, identifier)
             processList.append(process)
-        #settings.endGroup()
+        settingsgrp.endGroup()
         return processList
+
+    def key(self):
+        return self.server.connectionName+"@@"+self.identifier
 
     def saveBookmark(self):
         settings = QSettings()
-        mySettings = "/WPS-Bookmarks/"+self.server.connectionName+"@@"+self.identifier
+        mySettings = "/WPS-Bookmarks/"+self.key()
         #old redundant server properties:
         #settings.setValue(mySettings+"/scheme", processUrl.scheme())
         #settings.setValue(mySettings+"/server", processUrl.host())
@@ -349,7 +352,7 @@ class ProcessDescription(QObject):
     def removeBookmark(self):
         settings = QSettings()
         settings.beginGroup("WPS-Bookmarks")
-        settings.remove(self.server.connectionName+"@@"+self.identifier)
+        settings.remove(self.key())
         settings.endGroup()
 
     def requestUrl(self):
@@ -382,9 +385,8 @@ class ProcessDescription(QObject):
         self._requestExecuted = True
         self.emit(SIGNAL("describeProcessFinished"))
 
-    def processDescriptionFile(self, path):
-        key = self.server.connectionName + "@@" + self.identifier
-        return path + "/" + key
+    def processDescriptionFile(self, basePath):
+        return self.server.processDescriptionFolder(basePath) + "/" + self.identifier
 
     def loadDescription(self, path):
         self.processUrl = self.requestUrl()
@@ -408,8 +410,11 @@ class ProcessDescription(QObject):
     def loaded(self):
         return self._requestExecuted
 
-    def saveDescription(self, path):
-        f = open(self.processDescriptionFile(path), "wb")
+    def saveDescription(self, basePath):
+        dir = self.server.processDescriptionFolder(basePath)
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        f = open(self.processDescriptionFile(basePath), "wb")
         f.write(self.processXML)
         f.close()
 
