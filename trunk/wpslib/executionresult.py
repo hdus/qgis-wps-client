@@ -192,9 +192,12 @@ class ExecutionResult(QObject):
         else:
             status = self.doc.elementsByTagName("Status")
             if status.size() == 0:
-              return self.errorHandler(resultXML)
+                return self.errorHandler(resultXML)
             else:
-              return self.errorHandler("Empty Result") #TODO: handle wps:ProcessFailed
+                statusXML = QString()
+                textStream = QTextStream(statusXML)
+                status.at(0).save(textStream, 2)
+                return self.errorHandler(statusXML)
 
     def fetchResult(self, encoding, fileLink, identifier):
         self.noFilesToFetch += 1
@@ -235,6 +238,7 @@ class ExecutionResult(QObject):
            query.setQuery(xslFile)
            exceptionHtml = query.evaluateToString()
            if exceptionHtml is None:
+               qDebug("Empty result from exception.xsl")
                exceptionHtml = resultXML
            self._errorResultCallback(exceptionHtml)
            xslFile.close()
