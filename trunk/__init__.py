@@ -29,7 +29,7 @@ def qgisMinimumVersion():
   return "1.5"  
 
 def date():
-    return '2013-xx-xx'
+    return '2013-05-24'
     
 def email():
     return 'horst.duester@kappasys.ch'
