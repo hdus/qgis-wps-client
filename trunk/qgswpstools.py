@@ -438,11 +438,12 @@ class QgsWpsTools(QObject):
 
   def addDocumentationTab(self, dlgProcessTab,  abstract):
     # Check for URL
-    if str(abstract).find("http://") == 0:
+    
+    try:
       textBox = QWebView(dlgProcessTab)
       textBox.load(QUrl(abstract))
       textBox.show()
-    else:
+    except:
       textBox = QTextBrowser(dlgProcessTab)
       textBox.setText(QString(abstract))
 
