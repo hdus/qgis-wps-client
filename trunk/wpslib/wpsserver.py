@@ -93,8 +93,6 @@ class WpsServer(QObject):
             myRequest = "?Request=GetCapabilities&identifier=&Service=WPS&Version=" + self.version
             
         url.setUrl(self.baseUrl + myRequest)
-        
-        QMessageBox.information(None, '',  url.toString())
         myHttp = QgsNetworkAccessManager.instance()
         self._theReply = myHttp.get(QNetworkRequest(url))
         self._theReply.finished.connect(self._capabilitiesRequestFinished)
