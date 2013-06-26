@@ -46,4 +46,6 @@ class QgsNewHttpConnectionBaseGui(QDialog,  QObject, Ui_QgsNewHttpConnectionBase
     settings.setValue(mySettings+"/path", QVariant(myURL.path))
     settings.setValue(mySettings+"/method",QVariant("GET"))
     settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+    settings.setValue(mySettings+"/url",QVariant(self.txtUrl.text()))
+    
     self.parent.initQgsWpsGui()    

@@ -739,6 +739,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             settings.setValue(mySettings+"/path", QVariant(myURL.path))
             settings.setValue(mySettings+"/method",QVariant("GET"))
             settings.setValue(mySettings+"/version",QVariant("1.0.0"))
+            settings.setValue(mySettings+"/url",QVariant(v))
             self.dlg.initQgsWpsGui()
     
     

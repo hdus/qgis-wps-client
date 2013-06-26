@@ -49,6 +49,7 @@ class WpsServer(QObject):
             path = settings.value(entry+"/path").toString()
             #method = settings.value(entry+"/method").toString()
             version = settings.value(entry+"/version").toString()
+            url = settings.value(entry+"/url").toString()
 
             baseUrl = scheme+"://"+server+path
             server = WpsServer(connectionName, server, baseUrl, version)
@@ -68,8 +69,12 @@ class WpsServer(QObject):
         path = settings.value(mySettings+"/path").toString()
         #method = settings.value(mySettings+"/method").toString()
         version = settings.value(mySettings+"/version").toString()
-    
-        baseUrl = scheme+"://"+server+path
+        url = settings.value(mySettings+"/url").toString()
+  
+        if url == '':
+            baseUrl = scheme+"://"+server+path
+        else:
+            baseUrl = url
         return WpsServer(connectionName, server, baseUrl, version)
 
     def processDescriptionFolder(self, basePath):
@@ -81,8 +86,15 @@ class WpsServer(QObject):
         """
         self.doc = None
         url = QUrl()
-        myRequest = "?Request=GetCapabilities&identifier=&Service=WPS&Version=" + self.version
+        
+        if self.baseUrl.contains('?'):
+            myRequest = "&Request=GetCapabilities&identifier=&Service=WPS&Version=" + self.version
+        else:    
+            myRequest = "?Request=GetCapabilities&identifier=&Service=WPS&Version=" + self.version
+            
         url.setUrl(self.baseUrl + myRequest)
+        
+        QMessageBox.information(None, '',  url.toString())
         myHttp = QgsNetworkAccessManager.instance()
         self._theReply = myHttp.get(QNetworkRequest(url))
         self._theReply.finished.connect(self._capabilitiesRequestFinished)
