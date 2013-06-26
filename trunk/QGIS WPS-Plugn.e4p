@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project QGIS WPS-Plugn -->
-<!-- Saved: 2012-04-23, 11:12:39 -->
-<!-- Copyright (C) 2012 ,  -->
+<!-- Saved: 2013-06-26, 17:03:25 -->
+<!-- Copyright (C) 2013 ,  -->
 <Project version="4.6">
   <Language>en</Language>
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -34,6 +34,16 @@
     <Source>doAbout.py</Source>
     <Source>Ui_qgswpsbookmarks.py</Source>
     <Source>qgswpsbookmarks.py</Source>
+    <Source>wpslib/processdescription.py</Source>
+    <Source>wpslib/__init__.py</Source>
+    <Source>wpslib/executionrequest.py</Source>
+    <Source>wpslib/executionresult.py</Source>
+    <Source>wpslib/wpsserver.py</Source>
+    <Source>sextantewps/__init__.py</Source>
+    <Source>sextantewps/WpsAlgorithmProvider.py</Source>
+    <Source>sextantewps/AddNewWpsAction.py</Source>
+    <Source>sextantewps/WpsServerAction.py</Source>
+    <Source>sextantewps/WpsAlgorithm.py</Source>
   </Sources>
   <Forms>
     <Form>qgsnewhttpconnectionbase.ui</Form>
@@ -60,6 +70,7 @@
   <Interfaces>
   </Interfaces>
   <Others>
+    <Other>metadata.txt</Other>
   </Others>
   <MainScript>qgswps.py</MainScript>
   <Vcs>
