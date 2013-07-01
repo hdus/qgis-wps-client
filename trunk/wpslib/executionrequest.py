@@ -104,16 +104,30 @@ import os, sys, string, tempfile, base64
 
 def createTmpBase64(rLayer):
   try:
-      tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
-      infile = open(unicode(rLayer.source()))
-      tmpFileName = tmpFile.name
-      outfile = open(tmpFileName, 'w')
-      base64.encode(infile,outfile)
-      outfile.close()
-      outfile =  open(tmpFileName, 'r')
-      base64String = outfile.read()
-      outfile.close()
-      os.remove(tmpFile.name)
+#      tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
+#      infile = open(unicode(rLayer.source()))
+#      tmpFileName = tmpFile.name
+#      outfile = open(tmpFileName, 'w')
+#      base64.encode(infile,outfile)
+#      outfile.close()
+#      outfile =  open(tmpFileName, 'r')
+#      base64String = outfile.read()
+#      outfile.close()
+#      os.remove(tmpFile.name)
+
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
+        rLayer = self.getVLayer(layer)
+        infile = open(rLayer.source())
+        tmpFileName = tmpFile.name
+        outfile = tmpFile #open(tmpFileName, 'w')
+        base64.encode(infile,outfile)
+        outfile.close()
+        infile.close()
+        outfile =  open(tmpFileName, 'r')
+        base64String = outfile.read()
+        outfile.close()
+        os.remove(tmpFileName)
+
   except:
       QMessageBox.critical(None, QApplication.translate("QgsWps","Error"), QApplication.translate("QgsWps","Unable to create temporal file: ") + filename + QApplication.translate("QgsWps"," for base64 encoding") ) 
   return base64String
