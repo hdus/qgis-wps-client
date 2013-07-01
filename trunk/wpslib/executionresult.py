@@ -101,16 +101,32 @@ class ExecutionResult(QObject):
         path = processUrl.path()
         server = processUrl.host()
         port = processUrl.port()
-    
-        wpsConnection = scheme+'://'+server+path
+        
+        processUrl.removeQueryItem('Request')
+        processUrl.removeQueryItem('identifier')
+        processUrl.removeQueryItem('Version')
+        processUrl.removeQueryItem('Service')
+
+#        itemList = processUrl.queryItems()
+#        params = ''
+#        
+#        for (k,  v) in itemList:
+#            if k != 'Request' and k != 'identifier' and k != 'Version' and k != 'Service': 
+#                params = k+"="+v+'&'
+#                
+#        params = '?'+params
+#        params = params[:-1]
+        
+#            
+#        wpsConnection = scheme+'://'+server+path
+#        wpsConnection = 'http://data.lacub.fr/wps?key=QYV1DCZUUW'
+#        url = QUrl(wpsConnection)
+#        url.setPort(port)
+
+        qDebug("Post URL=" + str(processUrl))
     
         thePostHttp = QgsNetworkAccessManager.instance()
-        url = QUrl(wpsConnection)
-        url.setPort(port)
-        qDebug("Post URL=" + str(url))
-    
-    #        thePostHttp.finished.connect(self.resultHandler)
-        request = QNetworkRequest(url)
+        request = QNetworkRequest(processUrl)
         request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )
         self.thePostReply = thePostHttp.post(request, postData)
         self.thePostReply.finished.connect(partial(self.resultHandler, self.thePostReply) )

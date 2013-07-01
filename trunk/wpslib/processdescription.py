@@ -357,7 +357,10 @@ class ProcessDescription(QObject):
 
     def requestUrl(self):
         url = QUrl()
-        request = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
+        if self.server.baseUrl.contains('?'):
+            request = "&Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
+        else:
+            request = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
         url.setUrl(self.server.baseUrl + request)
         return url
 
