@@ -107,22 +107,6 @@ class ExecutionResult(QObject):
         processUrl.removeQueryItem('Version')
         processUrl.removeQueryItem('Service')
 
-#        itemList = processUrl.queryItems()
-#        params = ''
-#        
-#        for (k,  v) in itemList:
-#            if k != 'Request' and k != 'identifier' and k != 'Version' and k != 'Service': 
-#                params = k+"="+v+'&'
-#                
-#        params = '?'+params
-#        params = params[:-1]
-        
-#            
-#        wpsConnection = scheme+'://'+server+path
-#        wpsConnection = 'http://data.lacub.fr/wps?key=QYV1DCZUUW'
-#        url = QUrl(wpsConnection)
-#        url.setPort(port)
-
         qDebug("Post URL=" + str(processUrl))
     
         thePostHttp = QgsNetworkAccessManager.instance()
@@ -197,7 +181,7 @@ class ExecutionResult(QObject):
 
                 else: # Other ComplexData are not supported by this WPS client
                   QMessageBox.warning(None, '', 
-                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + mimeType + "' is not supported by this client")))
+                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + self.mimeType + "' is not supported by this client")))
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
