@@ -411,19 +411,19 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
               self.myLayer = self.tools.getVLayer(comboBox.currentText())
                  
-              try:
-                  if isMimeTypeVector(self.mimeType) != None and encoding != "base64":
-                      gmldata = createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
-                                                        useSelected, self.process.getSupportedGMLVersion(comboBox.objectName()))
-                      request.addGeometryInput(comboBox.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
-                  elif isMimeTypeVector(self.mimeType) != None or isMimeTypeRaster(self.mimeType) != None:
-                      request.addGeometryBase64Input(comboBox.objectName(), self.mimeType, self.tools.getVLayer(comboBox.currentText()))
-              except:
-                  QApplication.restoreOverrideCursor()
-                  QMessageBox.warning(self.iface.mainWindow(), 
-                      QApplication.translate("QgsWps","Error"),  
-                      QApplication.translate("QgsWps","Please load or select a vector layer!"))
-                  return
+#              try:
+              if isMimeTypeVector(self.mimeType) != None and encoding != "base64":
+                  gmldata = createTmpGML(self.tools.getVLayer(comboBox.currentText()), 
+                                                    useSelected, self.process.getSupportedGMLVersion(comboBox.objectName()))
+                  request.addGeometryInput(comboBox.objectName(), self.mimeType, schema, encoding, gmldata, useSelected)
+              elif isMimeTypeVector(self.mimeType) != None or isMimeTypeRaster(self.mimeType) != None:
+                  request.addGeometryBase64Input(comboBox.objectName(), self.mimeType, self.tools.getVLayer(comboBox.currentText()))
+#              except:
+#                  QApplication.restoreOverrideCursor()
+#                  QMessageBox.warning(self.iface.mainWindow(), 
+#                      QApplication.translate("QgsWps","Error"),  
+#                      QApplication.translate("QgsWps","Please load or select a vector layer!"))
+#                  return
         
             # Multiple raster and vector inputs ########################################
             for listWidgets in self.complexInputListWidgetList:
@@ -630,7 +630,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         elif isMimeTypeRaster(self.mimeType) != None:
             # We can directly attach the new layer
             rLayer = QgsRasterLayer(resultFile, layerName)
-            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+            bLoaded = QgsMapLayerRegistry.instance().addMapLayer(rLayer)
             
         # Text data
         elif isMimeTypeText(self.mimeType) != None:

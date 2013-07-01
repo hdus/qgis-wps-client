@@ -116,7 +116,6 @@ def createTmpBase64(rLayer):
 #      os.remove(tmpFile.name)
 
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", delete=False)
-        rLayer = self.getVLayer(layer)
         infile = open(rLayer.source())
         tmpFileName = tmpFile.name
         outfile = tmpFile #open(tmpFileName, 'w')

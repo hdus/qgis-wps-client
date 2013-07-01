@@ -25,6 +25,7 @@ from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import QgsNetworkAccessManager
 from functools import partial
 from wps.wpslib.processdescription import getFileExtension
+import tempfile
 
 
 # Execute result example:
@@ -159,7 +160,7 @@ class ExecutionResult(QObject):
 
                 # Get the encoding of the result, it can be used decoding base64
                 encoding = str(reference.attribute("encoding", "").toLower())
-
+                
                 if fileLink != '0':
                   if "playlist" in self.mimeType: # Streaming based process?
                     self._streamingHandler(encoding, fileLink)
@@ -223,7 +224,7 @@ class ExecutionResult(QObject):
 
     def handleEncoded(self, file, mimeType, encoding):
         # Decode?
-        if encoding == "base64":
+        if encoding == "base64" or mimeType == 'image/tiff':
             return decodeBase64(file, mimeType)
         else:
             return file
