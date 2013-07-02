@@ -25,7 +25,7 @@ from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import QgsNetworkAccessManager
 from functools import partial
 from wps.wpslib.processdescription import getFileExtension
-import tempfile
+import tempfile,  base64
 
 
 # Execute result example:
@@ -61,17 +61,15 @@ import tempfile
 #    </wps:ProcessOutputs>
 #</wps:ExecuteResponse>
 
-def decodeBase64(self, infileName,  mimeType="", tmpDir=None):
+def decodeBase64(infileName,  mimeType="", tmpDir=None):
     try:
         tmpFile = tempfile.NamedTemporaryFile(prefix="base64", suffix=getFileExtension(mimeType), dir=tmpDir, delete=False) 
-        QMessageBox.information(None, '', infileName+"    "+tmpFile.name)
         infile = open(infileName)
         outfile = open(tmpFile.name, 'w')
         base64.decode(infile,outfile)
 
         infile.close()
         outfile.close()
-        
     except:
         raise
 
@@ -228,7 +226,7 @@ class ExecutionResult(QObject):
 
     def handleEncoded(self, file, mimeType, encoding,  schema):
         # Decode?
-        if schema == "base64":
+        if schema == "base64" or encoding == 'base64':
             return decodeBase64(file, mimeType)
         else:
             return file

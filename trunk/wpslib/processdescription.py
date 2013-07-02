@@ -228,8 +228,8 @@ def getFileExtension(mimeType):
 
     elif isMimeTypeRaster(mimeType):
       for rasterType in RASTER_MIMETYPES:
-        if rasterType["MIMETYPE"] in mimeType.lower():
-          return "." + rasterType["EXTENSION"]
+          if rasterType["MIMETYPE"] in mimeType.lower():
+            return "." + rasterType["EXTENSION"]
 
     return ""
 
