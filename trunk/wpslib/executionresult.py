@@ -63,8 +63,8 @@ import tempfile
 
 def decodeBase64(self, infileName,  mimeType="", tmpDir=None):
     try:
-        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", 
-            suffix=getFileExtension(mimeType), dir=tmpDir, delete=False) 
+        tmpFile = tempfile.NamedTemporaryFile(prefix="base64", suffix=getFileExtension(mimeType), dir=tmpDir, delete=False) 
+        QMessageBox.information(None, '', infileName+"    "+tmpFile.name)
         infile = open(infileName)
         outfile = open(tmpFile.name, 'w')
         base64.decode(infile,outfile)
@@ -160,12 +160,13 @@ class ExecutionResult(QObject):
 
                 # Get the encoding of the result, it can be used decoding base64
                 encoding = str(reference.attribute("encoding", "").toLower())
+                schema = str(reference.attribute("schema", "").toLower())                
                 
                 if fileLink != '0':
                   if "playlist" in self.mimeType: # Streaming based process?
                     self._streamingHandler(encoding, fileLink)
                   else: # Conventional processes
-                    self.fetchResult(encoding, fileLink, identifier)
+                    self.fetchResult(encoding, schema,  fileLink, identifier)
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").size() > 0:
                 complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
@@ -175,6 +176,8 @@ class ExecutionResult(QObject):
 
                 # Get the encoding of the result, it can be used decoding base64
                 encoding = str(complexData.attribute("encoding", "").toLower())
+                schema = str(reference.attribute("schema", "").toLower())                
+
 
                 if "playlist" in self.mimeType:
                   playlistUrl = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "ComplexData").at(0).toElement().text()
@@ -200,7 +203,7 @@ class ExecutionResult(QObject):
                 status.at(0).save(textStream, 2)
                 return self.errorHandler(statusXML)
 
-    def fetchResult(self, encoding, fileLink, identifier):
+    def fetchResult(self, encoding, schema,  fileLink, identifier):
         self.noFilesToFetch += 1
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
@@ -209,22 +212,23 @@ class ExecutionResult(QObject):
 
         # Append encoding to 'finished' signal parameters
         self.encoding = encoding
-        self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, self.theReply))
+        self.schema = schema
+        self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, schema,  self.theReply))
 
         #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
-    def getResultFile(self, identifier, mimeType, encoding, reply):
+    def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
         # Check if there is redirection
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
-            self.fetchResult(encoding, reDir, identifier)
+            self.fetchResult(encoding, schema,  reDir, identifier)
             return
-        self._resultFileCallback(identifier, mimeType, encoding, reply)
+        self._resultFileCallback(identifier, mimeType, encoding, schema,  reply)
         self.noFilesToFetch -= 1
 
-    def handleEncoded(self, file, mimeType, encoding):
+    def handleEncoded(self, file, mimeType, encoding,  schema):
         # Decode?
-        if encoding == "base64" or mimeType == 'image/tiff':
+        if schema == "base64":
             return decodeBase64(file, mimeType)
         else:
             return file

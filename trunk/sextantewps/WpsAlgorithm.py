@@ -188,7 +188,7 @@ class WpsAlgorithm(GeoAlgorithm):
         self.setOutputValue(identifier, literalText)
         SextanteLog.addToLog(SextanteLog.LOG_INFO, identifier + ": " + literalText)
 
-    def getResultFile(self, identifier, mimeType, encoding, reply):
+    def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
         # Get a unique temporary file name
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
@@ -202,7 +202,7 @@ class WpsAlgorithm(GeoAlgorithm):
         outFile.write(reply.readAll())
         outFile.close()
 
-        resultFile = self.wps.handleEncoded(tmpFile, mimeType, encoding)
+        resultFile = self.wps.handleEncoded(tmpFile, mimeType, encoding,  schema)
 
         # Finally, load the data
         self.loadData(resultFile, mimeType, identifier)
