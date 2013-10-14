@@ -1,0 +1,21 @@
+# This file contains metadata for your plugin. Beginning
+# with version 1.8 this is the preferred way to supply information about a
+# plugin. The current method of embedding metadata in __init__.py will
+# be supported until version 2.0
+
+# This file should be included when you package your plugin.
+
+[general]
+name=WPS Client
+description=Client for OGC Web Processing Services
+category=Web
+version=1.0.3
+qgisMinimumVersion=1.5
+qgisMaximumVersion=1.9
+class_name=QgsWps
+website=http://www.kappasys.ch
+author=Horst Duester
+email=horst.duester@kappasys.ch
+homepage=http://goo.gl/fsqDn
+tracker=http://hub.qgis.org/projects/qgswps
+repository=https://www.kappasys.ch/svn/wps/trunk
