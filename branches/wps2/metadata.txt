@@ -6,8 +6,8 @@
 # This file should be included when you package your plugin.
 
 [general]
-name=WPS Client
-description=Client for OGC Web Processing Services
+name=WPS Client 2
+description=Client for OGC Web Processing Services for QGIS 2
 category=Web
 version=2.0.0
 qgisMinimumVersion=2.0
