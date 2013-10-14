@@ -17,7 +17,7 @@
   ***************************************************************************
 """
 def name():
-  return "WPS-Client"
+  return "WPS-Client 2"
   
 def description():
   return "Client for Web Processing Services"

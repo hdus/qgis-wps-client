@@ -18,13 +18,13 @@ from sextante.outputs.OutputRaster import OutputRaster
 from sextante.outputs.OutputVector import OutputVector
 from sextante.outputs.OutputString import OutputString
 from sextante.outputs.OutputFactory import OutputFactory
-from wps.wpslib.wpsserver import WpsServer
-from wps.wpslib.processdescription import ProcessDescription
-from wps.wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
-from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
-from wps.wpslib.executionrequest import ExecutionRequest
-from wps.wpslib.executionrequest import createTmpGML
-from wps.wpslib.executionresult import ExecutionResult
+from wps2.wpslib.wpsserver import WpsServer
+from wps2.wpslib.processdescription import ProcessDescription
+from wps2.wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
+from wps2.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
+from wps2.wpslib.executionrequest import ExecutionRequest
+from wps2.wpslib.executionrequest import createTmpGML
+from wps2.wpslib.executionresult import ExecutionResult
 from PyQt4 import QtGui
 from PyQt4.QtCore import *
 from PyQt4.QtGui import qApp,QApplication,QMessageBox

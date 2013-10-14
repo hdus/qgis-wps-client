@@ -22,7 +22,7 @@ from PyQt4.QtCore import *
 from PyQt4 import QtXml
 from PyQt4.QtNetwork import *
 from qgis.core import *
-from wps import version
+from wps2 import version
 from qgswpsgui import QgsWpsGui
 from qgswpsdescribeprocessgui import QgsWpsDescribeProcessGui
 from qgswpstools import QgsWpsTools
@@ -31,7 +31,7 @@ from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
 from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile,isMimeTypePlaylist
 from wpslib.processdescription import getFileExtension,isMimeTypeVector,isMimeTypeRaster,isMimeTypeText,isMimeTypeFile
-from wps.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
+from wps2.wpslib.processdescription import StringInput, TextInput, SelectionInput, VectorInput, MultipleVectorInput, RasterInput, MultipleRasterInput, FileInput, MultipleFileInput, ExtentInput, CrsInput, VectorOutput, RasterOutput, StringOutput
 from wpslib.executionrequest import ExecutionRequest
 from wpslib.executionrequest import createTmpGML
 from wpslib.executionresult import ExecutionResult

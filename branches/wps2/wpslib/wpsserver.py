@@ -116,7 +116,7 @@ class WpsServer(QObject):
         self.emit(SIGNAL("capabilitiesRequestFinished"))
 
     def parseCapabilitiesXML(self):
-        from wps.wpslib.processdescription import ProcessDescription
+        from wps2.wpslib.processdescription import ProcessDescription
         version    = self.doc.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","Process")
         title      = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title")    
         identifier = self.doc.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier")

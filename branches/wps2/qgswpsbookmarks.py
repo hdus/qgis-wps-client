@@ -19,7 +19,7 @@
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from wps import version
+from wps2 import version
 from wpslib.wpsserver import WpsServer
 from wpslib.processdescription import ProcessDescription
 

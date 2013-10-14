@@ -20,7 +20,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from wps import version,  date
+from wps2 import version,  date
 #from wps import date
 
 import webbrowser, os

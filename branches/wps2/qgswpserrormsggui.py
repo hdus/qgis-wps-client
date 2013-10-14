@@ -19,7 +19,7 @@
 
 from PyQt4.QtGui import QDialog
 from PyQt4.QtCore import pyqtSignature
-from wps import version
+from wps2 import version
 
 from Ui_qgswpserrormsggui import Ui_Dialog
 

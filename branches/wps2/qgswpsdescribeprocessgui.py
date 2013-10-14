@@ -19,7 +19,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
-from wps import version
+from wps2 import version
 from ui_qgswpsdescribeprocess import Ui_QgsWpsDescribeProcessGUI
 import os, sys, string
 

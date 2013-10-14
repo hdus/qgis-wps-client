@@ -21,13 +21,13 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
-from wps import version
+from wps2 import version
 from doAbout import DlgAbout
 
 SEXTANTE_SUPPORT = False
 try:
     from sextante.core.Sextante import Sextante
-    from wps.sextantewps.WpsAlgorithmProvider import WpsAlgorithmProvider
+    from wps2.sextantewps.WpsAlgorithmProvider import WpsAlgorithmProvider
     SEXTANTE_SUPPORT = True
 except ImportError:
     pass
@@ -40,7 +40,7 @@ DEBUG = False
 
 # Our main class for the plugin
 class QgsWps:
-  MSG_BOX_TITLE = "WPS Client"
+  MSG_BOX_TITLE = "WPS Client 2"
   
   def __init__(self, iface):
     # Save reference to the QGIS interface

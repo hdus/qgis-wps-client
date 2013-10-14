@@ -24,7 +24,7 @@ from PyQt4 import QtXml
 from PyQt4.QtXmlPatterns import QXmlQuery
 from qgis.core import QgsNetworkAccessManager
 from functools import partial
-from wps.wpslib.processdescription import getFileExtension
+from wps2.wpslib.processdescription import getFileExtension
 import tempfile,  base64
 
 
