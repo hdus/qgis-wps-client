@@ -262,7 +262,7 @@ def allowedValues(aValues):
 
        try:
           for n in range(int(min_val), int(max_val) + 1):
-              myVal = QString()
+              myVal = ""
               myVal.append(str(n))
               valList.append(myVal)
        except:
@@ -319,15 +319,15 @@ class ProcessDescription(QObject):
             settings = QSettings()
             mySettings = "/WPS-Bookmarks/"+myBookmark
             #old redundant server properties:
-            #scheme = settings.value(mySettings+"/scheme").toString()
-            #server = settings.value(mySettings+"/server").toString()
-            #path = settings.value(mySettings+"/path").toString()
-            #port = settings.value(mySettings+"/port").toString()
-            #version = settings.value(mySettings+"/version").toString()
+            #scheme = settings.value(mySettings+"/scheme") 
+            #server = settings.value(mySettings+"/server") 
+            #path = settings.value(mySettings+"/path") 
+            #port = settings.value(mySettings+"/port") 
+            #version = settings.value(mySettings+"/version") 
 
             myBookmarkArray = myBookmark.split("@@")
             connectionName = myBookmarkArray[0]
-            identifier = settings.value(mySettings+"/identifier").toString()
+            identifier = settings.value(mySettings+"/identifier") 
 
             server = WpsServer.getServer(connectionName)
             process = ProcessDescription(server, identifier)
@@ -357,7 +357,7 @@ class ProcessDescription(QObject):
 
     def requestUrl(self):
         url = QUrl()
-        if self.server.baseUrl.contains('?'):
+        if '?' in self.server.baseUrl:
             request = "&Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
         else:
             request = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version

@@ -297,7 +297,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 valList = input.valList
                 self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
             elif inputType == ExtentInput:
-                myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')                
+                myExtent = self.iface.mapCanvas().extent() .replace(':',',')                
                 self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
             elif inputType == CrsInput:
                 crsListe = input.crsList
@@ -733,13 +733,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         for k,v in self.defaultServers.iteritems():
             myURL = urlparse(str(v))
             mySettings = "/WPS/" + k
-#    settings.setValue("WPS/connections/selected", QVariant(name) )
-            settings.setValue(mySettings+"/scheme",  QVariant(myURL.scheme))
-            settings.setValue(mySettings+"/server",  QVariant(myURL.netloc))
-            settings.setValue(mySettings+"/path", QVariant(myURL.path))
-            settings.setValue(mySettings+"/method",QVariant("GET"))
-            settings.setValue(mySettings+"/version",QVariant("1.0.0"))
-            settings.setValue(mySettings+"/url",QVariant(v))
+#    settings.setValue("WPS/connections/selected", name )
+            settings.setValue(mySettings+"/scheme",  myURL.scheme)
+            settings.setValue(mySettings+"/server",  myURL.netloc)
+            settings.setValue(mySettings+"/path", myURL.path)
+            settings.setValue(mySettings+"/method","GET")
+            settings.setValue(mySettings+"/version","1.0.0")
+            settings.setValue(mySettings+"/url",v)
             self.dlg.initQgsWpsGui()
     
     

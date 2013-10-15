@@ -20,7 +20,7 @@ def name():
   return "WPS-Client 2"
   
 def description():
-  return "Client for Web Processing Services"
+  return "Client for Web Processing Services for QGIS 2"
 
 def version():
   return "2.0.0"
