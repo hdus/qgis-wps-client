@@ -124,9 +124,6 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     itemList = []
     for items in taglist:
       item = QTreeWidgetItem()
-#      ident = unicode(items[0],'latin1')
-#      title = unicode(items[1],'latin1')
-#      abstract = unicode(items[2],'latin1')
       ident = items[0]
       title = items[1]
       abstract = items[2]

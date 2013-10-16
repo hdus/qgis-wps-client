@@ -403,7 +403,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             # Single raster and vector inputs ##########################################
             for comboBox in self.complexInputComboBoxList:
               # Do not add undefined inputs
-              if comboBox == None or unicode(comboBox.currentText(), 'latin1') == "<None>":
+              if comboBox == None or comboBox.currentText() == "<None>":
                 continue
                    
               # TODO: Check for more types (e.g. KML, Shapefile, JSON)
@@ -674,7 +674,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
         ext = getFileExtension(self.mimeType)
-        tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
+        tmpFile = myQTempFile.fileName() + ext
         myQTempFile.close()
         
         # Write the data to the temporary file 

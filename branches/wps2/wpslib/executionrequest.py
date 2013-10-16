@@ -137,7 +137,7 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
 
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
-    tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
+    tmpFile = myQTempFile.fileName()+".gml"
     myQTempFile.close()
 
     if vLayer.dataProvider().name() == "postgres":
@@ -317,7 +317,7 @@ class ExecutionRequest(QObject):
 
     def addLiteralDataInput(self, identifier, text):
         self.addExecuteRequestInputStart(identifier)
-        self.request += "<wps:LiteralData>"+unicode(text)+"</wps:LiteralData>\n"
+        self.request += "<wps:LiteralData>"+text+"</wps:LiteralData>\n"
         self.addExecuteRequestInputEnd()
 
     def addBoundingBoxInput(self, identifier, bboxArray):

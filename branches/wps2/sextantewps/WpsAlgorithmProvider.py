@@ -28,7 +28,7 @@ class WpsAlgorithmProvider(AlgorithmProvider):
     def WpsDescriptionFolder():
         folder = SextanteConfig.getSetting(WpsAlgorithmProvider.WPS_DESCRIPTIONS)
         if folder == None:
-            folder = unicode(os.path.join(SextanteUtils.userFolder(), "wps"))
+            folder = os.path.join(SextanteUtils.userFolder(), "wps")
         mkdir(folder)
         return os.path.abspath(folder)
 
