@@ -25,6 +25,7 @@ from qgis.core import QgsNetworkAccessManager
 
 
 class WpsServer(QObject):
+    capabilitiesRequestFinished = pyqtSignal()
 
     def __init__(self, connectionName, server, baseUrl, version):
         QObject.__init__(self)
@@ -113,7 +114,7 @@ class WpsServer(QObject):
         if version != "1.0.0":
             QMessageBox.information(None, QApplication.translate("QgsWps","Only WPS Version 1.0.0 is supported"), xmlString)
             pass
-        self.emit(SIGNAL("capabilitiesRequestFinished"))
+        self.capabilitiesRequestFinished.emit()
 
     def parseCapabilitiesXML(self):
         from wps2.wpslib.processdescription import ProcessDescription

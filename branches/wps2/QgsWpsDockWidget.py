@@ -78,23 +78,33 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(), flags)
-        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-        QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
-        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
-        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
-        QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-        QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
-        QObject.connect(self.dlg, SIGNAL("bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))    
+        
+#        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
+#        QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
+#        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
+#        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
+#        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
+#        QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
+#        QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
+#        QObject.connect(self.dlg, SIGNAL("bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))   
+               
+        self.dlg.getDescription.connect(self.getDescription)    
+        self.dlg.newServer.connect(self.newServer)    
+        self.dlg.editServer.connect(self.editServer)    
+        self.dlg.deleteServer.connect(self.deleteServer)        
+        self.dlg.connectServer.connect(self.cleanGui)    
+#        self.dlg.pushDefaultServer.connect(self.pushDefaultServer) 
+        self.dlg.requestDescribeProcess.connect(self.requestDescribeProcess)
+#        self.dlg.bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))   
 
         self.killed.connect(self.stopStreaming)
         
-    def getDescription(self, name, item):
-        self.requestDescribeProcess(name, item.text(0))
+    def getDescription(self, inList):
+        self.requestDescribeProcess(inList)
 
-    def requestDescribeProcess(self, serverName, processIdentifier):
-        server = WpsServer.getServer(serverName)
-        self.process = ProcessDescription(server, processIdentifier)
+    def requestDescribeProcess(self, inList):
+        server = WpsServer.getServer(inList[0])
+        self.process = ProcessDescription(server, inList[1])
         QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
         self.process.requestDescribeProcess()
         
@@ -728,7 +738,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgNew.show()
         self.dlg.initQgsWpsGui()
 
-    def pushDefaultServer(self):
+    def pushDefaultServer(self,  myList):
         settings = QSettings()
         for k,v in self.defaultServers.iteritems():
             myURL = urlparse(str(v))
