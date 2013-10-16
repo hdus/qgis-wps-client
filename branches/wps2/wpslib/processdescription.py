@@ -84,15 +84,17 @@ def getMimeTypeSchemaEncoding(element):
     mimeType = ""
     schema = ""
     encoding = ""
-    try:
-        mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text().toLower())
-        mimeType = " ".join(mimeType.split())
-        schema = str(element.elementsByTagName("Schema").at(0).toElement().text().toLower())
-        schema = " ".join(schema.split())
-        encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text().toLower())
-        encoding = " ".join(encoding.split())
-    except:
-        pass
+#    try:
+    mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text().lower())
+    mimeType = " ".join(mimeType.split())
+    
+    schema = str(element.elementsByTagName("Schema").at(0).toElement().text().lower())
+    schema = " ".join(schema.split())
+    
+    encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text().lower())
+    encoding = " ".join(encoding.split())
+#    except:
+#        pass
 
     return {"MimeType":mimeType, "Schema":schema, "Encoding":encoding}
 
@@ -247,13 +249,6 @@ class ProcessDescription(QObject):
         for myBookmark in bookmarks:
             settings = QSettings()
             mySettings = "/WPS-Bookmarks/"+myBookmark
-            #old redundant server properties:
-            #scheme = settings.value(mySettings+"/scheme") 
-            #server = settings.value(mySettings+"/server") 
-            #path = settings.value(mySettings+"/path") 
-            #port = settings.value(mySettings+"/port") 
-            #version = settings.value(mySettings+"/version") 
-
             myBookmarkArray = myBookmark.split("@@")
             connectionName = myBookmarkArray[0]
             identifier = settings.value(mySettings+"/identifier") 
@@ -337,7 +332,6 @@ class ProcessDescription(QObject):
         self.processName = " ".join(self.processName.split())        
         
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
-        QMessageBox.information(None, '', self.identifier)
         self.inputs = []
         self.outputs = []
         self._parseProcessInputs()
@@ -371,6 +365,8 @@ class ProcessDescription(QObject):
 
           # Iterate over all complex inputs and add combo boxes, text boxes or list widgets 
           complexData = f_element.elementsByTagName("ComplexData")
+          
+          
           if complexData.size() > 0:
             # Das i-te ComplexData Objekt auswerten
             complexDataTypeElement = complexData.at(0).toElement()
