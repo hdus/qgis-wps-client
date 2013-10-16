@@ -93,7 +93,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.dlg.editServer.connect(self.editServer)    
         self.dlg.deleteServer.connect(self.deleteServer)        
         self.dlg.connectServer.connect(self.cleanGui)    
-#        self.dlg.pushDefaultServer.connect(self.pushDefaultServer) 
+        self.dlg.pushDefaultWPSServer.connect(self.pushDefaultServer) 
         self.dlg.requestDescribeProcess.connect(self.requestDescribeProcess)
 #        self.dlg.bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))   
 
@@ -738,7 +738,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         dlgNew.show()
         self.dlg.initQgsWpsGui()
 
-    def pushDefaultServer(self,  myList):
+    def pushDefaultServer(self):
         settings = QSettings()
         for k,v in self.defaultServers.iteritems():
             myURL = urlparse(str(v))

@@ -37,7 +37,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   editServer = pyqtSignal(str)  
   deleteServer = pyqtSignal(str)          
   connectServer = pyqtSignal(list)   
-  pushDefaultServer = pyqtSignal()   
+  pushDefaultWPSServer = pyqtSignal(str)   
   requestDescribeProcess = pyqtSignal(list)  
         
   def __init__(self, parent, fl):
@@ -119,8 +119,8 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.deleteServer.emit(self.cmbConnections.currentText())    
 
   @pyqtSignature("on_pushDefaultServer_clicked()")       
-  def on_pushDefaultServer_clicked(self):    
-      self.pushDefaultServer.emit()   
+  def on_pushDefaultServer_clicked(self): 
+      self.pushDefaultWPSServer.emit("")   
 
   def initTreeWPSServices(self, taglist):
     self.treeWidget.setColumnCount(self.treeWidget.columnCount())
