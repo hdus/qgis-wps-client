@@ -19,7 +19,6 @@ class ErrorGUI(QDialog, Ui_Dialog):
         """
         QDialog.__init__(self, parent)
         self.setupUi(self)
-        QMessageBox.information(None, '', 'Hallo')
     
     @pyqtSignature("")
     def on_buttonBox_rejected(self):

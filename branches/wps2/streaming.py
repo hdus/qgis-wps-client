@@ -140,8 +140,8 @@ class Streaming(QObject):
     def handlePlaylist(self, reply):  
         """ Parse the chunk URLs and update the loadedChunks counter """       
         # Check if there is redirection 
-        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
-        if not reDir.isEmpty():
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+        if not reDir is None:
             self.fetchPlaylist(reDir.toString()) 
             return
         
@@ -240,8 +240,8 @@ class Streaming(QObject):
     def handleException(self, reply):  
         """ Display the exception """
         # Check if there is redirection 
-        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
-        if not reDir.isEmpty():
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+        if not reDir is None:
             self.__exceptionUrl = reDir.toString()
             self.fetchException()
             return
@@ -261,8 +261,8 @@ class Streaming(QObject):
         encoding = reply.property("encoding").toString()
         
         # Check if there is redirection 
-        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
-        if not reDir.isEmpty():
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+        if not reDir is None:
             self.urlReady.emit(encoding, chunkId, reDir.toString())
             return
 
