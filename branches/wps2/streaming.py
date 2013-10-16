@@ -19,7 +19,7 @@ email                : geotux_tuxman@linuxmail.org
  ***************************************************************************/
 """
 from PyQt4.QtCore import (QTimer, QUrl, QFile, QIODevice, QVariant, pyqtSignal, 
-                          QObject, QProcess, QStringList, QRegExp, QString, 
+                          QObject, QProcess, QRegExp, 
                           QSettings, SIGNAL, QTextStream)
 from PyQt4.QtGui import QColor, QMessageBox
 from PyQt4.QtNetwork import QNetworkRequest, QNetworkAccessManager
@@ -372,7 +372,7 @@ class Streaming(QObject):
                     self.loadVirtualRaster)
                 #self.setProcessEnvironment(self.process) Required in Windows?
                 cmd = "gdalbuildvrt"
-                arguments = QStringList()
+                arguments = []
                 if platform.system() == "Windows" and cmd[-3:] == ".py":
                     command = cmd[:-3] + ".bat"
                 else:
@@ -510,7 +510,7 @@ class Streaming(QObject):
                 process.setEnvironment( env )
 
     def getRasterFiles(self, dir, extension):
-        rasters = QStringList()
+        rasters = []
         for name in glob.glob(dir + '/*' +  extension):
             rasters.append(name)
         return rasters      

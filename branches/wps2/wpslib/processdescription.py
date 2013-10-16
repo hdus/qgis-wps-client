@@ -405,6 +405,7 @@ class ProcessDescription(QObject):
         self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
 
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
+        QMessageBox.information(None, '', self.identifier)
         self.inputs = []
         self.outputs = []
         self._parseProcessInputs()
