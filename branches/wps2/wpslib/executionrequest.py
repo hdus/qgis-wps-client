@@ -21,7 +21,7 @@ from PyQt4.QtCore import *
 from PyQt4 import QtXml
 from PyQt4.QtGui import QApplication,QMessageBox
 from PyQt4.QtSql import *
-from qgis.core import QgsVectorFileWriter
+from qgis.core import *
 import os, sys, string, tempfile, base64
 
 
@@ -175,7 +175,8 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
         myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
         QFile(myFileInfo+'.xsd').remove()
         QFile(myFileInfo+'.gml').remove()
-    return gmlString.simplified()
+        gmlString = " ".join(gmlString.split())
+    return gmlString 
 
 def getDBEncoding(layerProvider):
     dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())

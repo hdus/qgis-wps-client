@@ -136,7 +136,8 @@ class ExecutionResult(QObject):
         if resultNodeList.size() > 0:
             for i in range(resultNodeList.size()):
               f_element = resultNodeList.at(i).toElement()
-              identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+              identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text()
+              identifier = " ".join(identifier.split())              
 
               # Fetch the referenced complex data
               if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
@@ -217,8 +218,9 @@ class ExecutionResult(QObject):
 
     def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
         # Check if there is redirection
-        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
-        if not reDir.isEmpty():
+        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+        
+        if not reDir is None:
             self.fetchResult(encoding, schema,  reDir, identifier)
             return
         self._resultFileCallback(identifier, mimeType, encoding, schema,  reply)
