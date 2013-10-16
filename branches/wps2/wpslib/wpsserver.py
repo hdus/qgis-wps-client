@@ -71,7 +71,6 @@ class WpsServer(QObject):
         #method = settings.value(mySettings+"/method") 
         version = settings.value(mySettings+"/version") 
         url = settings.value(mySettings+"/url") 
-  
         if url == '':
             baseUrl = scheme+"://"+server+path
         else:

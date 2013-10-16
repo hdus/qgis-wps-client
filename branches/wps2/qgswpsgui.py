@@ -33,11 +33,11 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   MSG_BOX_TITLE = "WPS"
   
   getDescription = pyqtSignal(list)  
-  newServer = pyqtSignal(list)  
-  editServer = pyqtSignal(list)  
-  deleteServer = pyqtSignal(list)          
+  newServer = pyqtSignal()  
+  editServer = pyqtSignal(str)  
+  deleteServer = pyqtSignal(str)          
   connectServer = pyqtSignal(list)   
-#  pushDefaultServer = pyqtSignal(list)   
+  pushDefaultServer = pyqtSignal()   
   requestDescribeProcess = pyqtSignal(list)  
         
   def __init__(self, parent, fl):
@@ -91,7 +91,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   def on_btnConnect_clicked(self):
     self.treeWidget.clear()
     selectedWPS = self.cmbConnections.currentText()
-    self.server = WpsServer.getServer(selectedWPS)
+    self.server = WpsServer.getServer(self.cmbConnections.currentText())
     self.server.capabilitiesRequestFinished.connect(self.createCapabilitiesGUI)
     self.server.requestCapabilities()
 
@@ -108,9 +108,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     
   @pyqtSignature("on_btnEdit_clicked()")       
   def on_btnEdit_clicked(self):    
-      myList = []
-      myList.append(self.cmbConnections.currentText())
-      self.editServer.emit(myList)    
+      self.editServer.emit(self.cmbConnections.currentText())    
 
   @pyqtSignature("on_cmbConnections_currentIndexChanged()")           
   def on_cmbConnections_currentIndexChanged(self):
@@ -118,14 +116,11 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   
   @pyqtSignature("on_btnDelete_clicked()")       
   def on_btnDelete_clicked(self):    
-      myList = []
-      myList.append(self.cmbConnections.currentText())
-      self.deleteServer.emit(myList)    
+      self.deleteServer.emit(self.cmbConnections.currentText())    
 
   @pyqtSignature("on_pushDefaultServer_clicked()")       
   def on_pushDefaultServer_clicked(self):    
-      myList = []
-      self.pushDefaultServer.emit(myList)   
+      self.pushDefaultServer.emit()   
 
   def initTreeWPSServices(self, taglist):
     self.treeWidget.setColumnCount(self.treeWidget.columnCount())
