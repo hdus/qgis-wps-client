@@ -27,84 +27,6 @@ from collections import namedtuple
 import os
 
 
-# Process description example:
-#
-#<?xml version="1.0" encoding="utf-8"?>
-#<wps:ProcessDescriptions xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd" service="WPS" version="1.0.0" xml:lang="eng">
-#    <ProcessDescription wps:processVersion="1.0" storeSupported="true" statusSupported="true">
-#        <ows:Identifier>returner</ows:Identifier>
-#        <ows:Title>Return process</ows:Title>
-#        <ows:Abstract>This is demonstration process of PyWPS, returns the same file, it gets on input, as the output.</ows:Abstract>
-#        <DataInputs>
-#            <Input minOccurs="1" maxOccurs="1">
-#                <ows:Identifier>text</ows:Identifier>
-#                <ows:Title>Some width</ows:Title>
-#                <LiteralData>
-#                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#string">string</ows:DataType>
-#                    <ows:AnyValue />
-#                </LiteralData>
-#            </Input>
-#            <Input minOccurs="1" maxOccurs="1">
-#                <ows:Identifier>data</ows:Identifier>
-#                <ows:Title>Input vector data</ows:Title>
-#                <ComplexData>
-#                    <Default>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Default>
-#                    <Supported>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Supported>
-#                </ComplexData>
-#            </Input>
-#        </DataInputs>
-#        <ProcessOutputs>
-#            <Output>
-#                <ows:Identifier>output2</ows:Identifier>
-#                <ows:Title>Output vector data</ows:Title>
-#                <ComplexOutput>
-#                    <Default>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Default>
-#                    <Supported>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Supported>
-#                </ComplexOutput>
-#            </Output>
-#            <Output>
-#                <ows:Identifier>text</ows:Identifier>
-#                <ows:Title>Output literal data</ows:Title>
-#                <LiteralOutput>
-#                    <ows:DataType ows:reference="http://www.w3.org/TR/xmlschema-2/#integer">integer</ows:DataType>
-#                </LiteralOutput>
-#            </Output>
-#            <Output>
-#                <ows:Identifier>output1</ows:Identifier>
-#                <ows:Title>Output vector data</ows:Title>
-#                <ComplexOutput>
-#                    <Default>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Default>
-#                    <Supported>
-#                        <Format>
-#                            <ows:MimeType>text/xml</ows:MimeType>
-#                        </Format>
-#                    </Supported>
-#                </ComplexOutput>
-#            </Output>
-#        </ProcessOutputs>
-#    </ProcessDescription>
-#</wps:ProcessDescriptions>
-
 # All supported import raster formats
 RASTER_MIMETYPES = [{"MIMETYPE":"image/tiff", "GDALID":"GTiff", "EXTENSION":"tif"},
                            {"MIMETYPE":"image/png", "GDALID":"PNG", "EXTENSION":"png"}, \
@@ -137,9 +59,12 @@ def getOwsElement(element, name):
     return element.elementsByTagNameNS("http://www.opengis.net/ows/1.1", name)
 
 def getIdentifierTitleAbstractFromElement(element):
-    identifier = getOwsElement(element, "Identifier").at(0).toElement().text().simplified()
-    title = getOwsElement(element, "Title").at(0).toElement().text().simplified()
-    abstract = getOwsElement(element, "Abstract").at(0).toElement().text().simplified()
+    identifier = getOwsElement(element, "Identifier").at(0).toElement().text()
+    identifier = " ".join(identifier.split())
+    title = getOwsElement(element, "Title").at(0).toElement().text()
+    title = " ".join(title.split())
+    abstract = getOwsElement(element, "Abstract").at(0).toElement().text()
+    abstract = " ".join(abstract.split())
     return identifier, title, abstract
 
 def getDefaultMimeType(inElement):
@@ -160,9 +85,12 @@ def getMimeTypeSchemaEncoding(element):
     schema = ""
     encoding = ""
     try:
-        mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text().simplified().toLower())
-        schema = str(element.elementsByTagName("Schema").at(0).toElement().text().simplified().toLower())
-        encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text().simplified().toLower())
+        mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text().toLower())
+        mimeType = " ".join(mimeType.split())
+        schema = str(element.elementsByTagName("Schema").at(0).toElement().text().toLower())
+        schema = " ".join(schema.split())
+        encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text().toLower())
+        encoding = " ".join(encoding.split())
     except:
         pass
 
@@ -298,6 +226,7 @@ class ProcessDescription(QObject):
     """
     Request and parse a WPS process description
     """
+    describeProcessFinished = pyqtSignal()
 
     def __init__(self, server, identifier):
         QObject.__init__(self)
@@ -386,7 +315,7 @@ class ProcessDescription(QObject):
         qDebug(self.processXML)
         self._parseProcessXML()
         self._requestExecuted = True
-        self.emit(SIGNAL("describeProcessFinished"))
+        self.describeProcessFinished.emit()
 
     def processDescriptionFile(self, basePath):
         return self.server.processDescriptionFolder(basePath) + "/" + self.identifier
@@ -401,9 +330,12 @@ class ProcessDescription(QObject):
         self.doc.setContent(self.processXML, True)
 
         processDescription = self.doc.elementsByTagName("ProcessDescription")
-        self.processIdentifier = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
-        self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
-
+        self.processIdentifier = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text()
+        self.processIdentifier = " ".join(self.processIdentifier.split())        
+        
+        self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text()
+        self.processName = " ".join(self.processName.split())        
+        
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
         QMessageBox.information(None, '', self.identifier)
         self.inputs = []

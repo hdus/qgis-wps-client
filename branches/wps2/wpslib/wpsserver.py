@@ -75,6 +75,7 @@ class WpsServer(QObject):
             baseUrl = scheme+"://"+server+path
         else:
             baseUrl = url
+            
         return WpsServer(connectionName, server, baseUrl, version)
 
     def processDescriptionFolder(self, basePath):

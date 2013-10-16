@@ -32,7 +32,7 @@ import os, sys, string
 class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   MSG_BOX_TITLE = "WPS"
   
-  getDescription = pyqtSignal(list)  
+  getDescription = pyqtSignal(str,  QTreeWidgetItem)  
   newServer = pyqtSignal()  
   editServer = pyqtSignal(str)  
   deleteServer = pyqtSignal(str)          
@@ -80,10 +80,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     if  self.treeWidget.topLevelItemCount() == 0:
       QMessageBox.warning(None, 'WPS Warning','No Service connected!')
     else:
-       myList = []
-       myList.append(self.cmbConnections.currentText())
-       myList.append(self.treeWidget.currentItem())
-       self.getDescription.emit(myList)        
+       self.getDescription.emit(self.cmbConnections.currentText(),  self.treeWidget.currentItem())        
     
   # see http://www.riverbankcomputing.com/Docs/PyQt4/pyqt4ref.html#connecting-signals-and-slots
   # without this magic, the on_btnOk_clicked will be called two times: one clicked() and one clicked(bool checked)
@@ -148,10 +145,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     
   @pyqtSignature("QTreeWidgetItem*, int")
   def on_treeWidget_itemDoubleClicked(self, item, column):
-      myList = []
-      myList.append(self.cmbConnections.currentText())
-      myList.append(self.treeWidget.currentItem())
-      self.getDescription.emit(myList)
+      self.getDescription.emit(self.cmbConnections.currentText(), self.treeWidget.currentItem())
 
   def createCapabilitiesGUI(self):
       try:

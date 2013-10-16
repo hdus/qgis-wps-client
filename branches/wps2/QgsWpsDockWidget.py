@@ -78,15 +78,6 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(), flags)
-        
-#        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-#        QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
-#        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
-#        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-#        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
-#        QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-#        QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
-#        QObject.connect(self.dlg, SIGNAL("bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))   
                
         self.dlg.getDescription.connect(self.getDescription)    
         self.dlg.newServer.connect(self.newServer)    
@@ -99,13 +90,13 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         self.killed.connect(self.stopStreaming)
         
-    def getDescription(self, inList):
-        self.requestDescribeProcess(inList)
+    def getDescription(self, name,  item):
+        self.requestDescribeProcess(name,  item.text(0))
 
-    def requestDescribeProcess(self, inList):
-        server = WpsServer.getServer(inList[0])
-        self.process = ProcessDescription(server, inList[1])
-        QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
+    def requestDescribeProcess(self, serverName, processIdentifier):
+        server = WpsServer.getServer(serverName)
+        self.process = ProcessDescription(server, processIdentifier)
+        self.process.describeProcessFinished.connect(self.createProcessGUI)
         self.process.requestDescribeProcess()
         
     def setUpload(self,  bool):
@@ -161,10 +152,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             text = QApplication.translate("QgsWps", " terminated with errors!")
             
         try:
-          self.lblProcess.setText(QString(self.processIdentifier+text))          
+          self.lblProcess.setText(self.processIdentifier+text)          
         except:
           self.lblProcess = QLabel(groupBox)        
-          self.lblProcess.setText(QString(self.processIdentifier+text))
+          self.lblProcess.setText(self.processIdentifier+text)
           layout.addWidget(self.lblProcess)        
           self.groupBox.setLayout(layout)
 
@@ -357,7 +348,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
       myLabel = QLabel(groupbox)
       myLabel.setObjectName("qLabel"+name)
-      myLabel.setText(QString(title))
+      myLabel.setText(title)
       myLabel.setMinimumWidth(600)
       myLabel.setMinimumHeight(25)
       myLabel.setWordWrap(True)
@@ -495,7 +486,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
             f_element = dataOutputs.at(i).toElement()
-            outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().simplified()
+            outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text()
+            outputIdentifier = " ".join(outputIdentifier.split())
             literalOutputType = f_element.elementsByTagName("LiteralOutput")
     
             # Complex data is always requested as reference
@@ -545,7 +537,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         layout = QHBoxLayout()
     
         btnOk = QPushButton(groupBox)
-        btnOk.setText(QString(QApplication.translate("QgsWps", "Run")))
+        btnOk.setText(QApplication.translate("QgsWps", "Run"))
         btnOk.setMinimumWidth(100)
         btnOk.setMaximumWidth(100)
     
