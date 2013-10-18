@@ -1,11 +1,11 @@
 # -*- coding: latin1 -*-
 """
-***************************************************************************
-   qgswps.py QGIS Web Processing Service Plugin
+ /***************************************************************************
+   QGIS Web Processing Service Plugin
   -------------------------------------------------------------------
  Date                 : 09 November 2009
- Copyright         : (C) 2009 by Dr. Horst Duester
- email                : horst dot duester at kappasys dot ch
+ Copyright            : (C) 2009 by Dr. Horst Duester
+ email                : horst dot duester at sourcepole dot ch
 
   ***************************************************************************
   *                                                                         *
@@ -14,7 +14,7 @@
   *   the Free Software Foundation; either version 2 of the License, or     *
   *   (at your option) any later version.                                   *
   *                                                                         *
-  ***************************************************************************
+  ***************************************************************************/
 """
 def name():
   return "WPS-Client 2"
