@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/home/barpadue/.qgis/python/plugins/wps/qgswpsgui.ui'
+# Form implementation generated from reading ui file '/home/hdus/.qgis2/python/plugins/wps2/qgswpsgui.ui'
 #
-# Created: Thu Mar 15 14:23:34 2012
-#      by: PyQt4 UI code generator 4.8.5
+# Created: Fri Oct 18 21:04:56 2013
+#      by: PyQt4 UI code generator 4.9.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -20,7 +20,6 @@ class Ui_QgsWps(object):
         QgsWps.setWindowModality(QtCore.Qt.NonModal)
         QgsWps.resize(780, 604)
         QgsWps.setAcceptDrops(False)
-        QgsWps.setWindowTitle(QtGui.QApplication.translate("QgsWps", "Note: this plugin not considered stable yet. Use it on your own risk", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout = QtGui.QGridLayout(QgsWps)
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         self.hboxlayout = QtGui.QHBoxLayout()
@@ -28,7 +27,6 @@ class Ui_QgsWps(object):
         self.hboxlayout.setMargin(0)
         self.hboxlayout.setObjectName(_fromUtf8("hboxlayout"))
         self.btnAbout = QtGui.QPushButton(QgsWps)
-        self.btnAbout.setText(QtGui.QApplication.translate("QgsWps", "about", None, QtGui.QApplication.UnicodeUTF8))
         self.btnAbout.setObjectName(_fromUtf8("btnAbout"))
         self.hboxlayout.addWidget(self.btnAbout)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -42,31 +40,24 @@ class Ui_QgsWps(object):
         self.treeWidget = QtGui.QTreeWidget(QgsWps)
         self.treeWidget.setColumnCount(3)
         self.treeWidget.setObjectName(_fromUtf8("treeWidget"))
-        self.treeWidget.headerItem().setText(0, QtGui.QApplication.translate("QgsWps", "Identifier", None, QtGui.QApplication.UnicodeUTF8))
-        self.treeWidget.headerItem().setText(1, QtGui.QApplication.translate("QgsWps", "Title", None, QtGui.QApplication.UnicodeUTF8))
-        self.treeWidget.headerItem().setText(2, QtGui.QApplication.translate("QgsWps", "Abstract", None, QtGui.QApplication.UnicodeUTF8))
         self.gridLayout.addWidget(self.treeWidget, 2, 0, 1, 1)
         self.GroupBox1 = QtGui.QGroupBox(QgsWps)
-        self.GroupBox1.setTitle(QtGui.QApplication.translate("QgsWps", "Server Connections", None, QtGui.QApplication.UnicodeUTF8))
         self.GroupBox1.setObjectName(_fromUtf8("GroupBox1"))
         self.gridlayout = QtGui.QGridLayout(self.GroupBox1)
         self.gridlayout.setMargin(9)
         self.gridlayout.setSpacing(6)
         self.gridlayout.setObjectName(_fromUtf8("gridlayout"))
         self.btnNew = QtGui.QPushButton(self.GroupBox1)
-        self.btnNew.setText(QtGui.QApplication.translate("QgsWps", "&New", None, QtGui.QApplication.UnicodeUTF8))
         self.btnNew.setObjectName(_fromUtf8("btnNew"))
         self.gridlayout.addWidget(self.btnNew, 1, 1, 1, 1)
         self.btnEdit = QtGui.QPushButton(self.GroupBox1)
         self.btnEdit.setEnabled(False)
-        self.btnEdit.setText(QtGui.QApplication.translate("QgsWps", "Edit", None, QtGui.QApplication.UnicodeUTF8))
         self.btnEdit.setObjectName(_fromUtf8("btnEdit"))
         self.gridlayout.addWidget(self.btnEdit, 1, 2, 1, 1)
         spacerItem1 = QtGui.QSpacerItem(171, 30, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridlayout.addItem(spacerItem1, 1, 4, 1, 1)
         self.btnConnect = QtGui.QPushButton(self.GroupBox1)
         self.btnConnect.setEnabled(True)
-        self.btnConnect.setText(QtGui.QApplication.translate("QgsWps", "C&onnect", None, QtGui.QApplication.UnicodeUTF8))
         self.btnConnect.setObjectName(_fromUtf8("btnConnect"))
         self.gridlayout.addWidget(self.btnConnect, 1, 0, 1, 1)
         self.cmbConnections = QtGui.QComboBox(self.GroupBox1)
@@ -74,15 +65,12 @@ class Ui_QgsWps(object):
         self.gridlayout.addWidget(self.cmbConnections, 0, 0, 1, 7)
         self.btnDelete = QtGui.QPushButton(self.GroupBox1)
         self.btnDelete.setEnabled(False)
-        self.btnDelete.setText(QtGui.QApplication.translate("QgsWps", "Delete", None, QtGui.QApplication.UnicodeUTF8))
         self.btnDelete.setObjectName(_fromUtf8("btnDelete"))
         self.gridlayout.addWidget(self.btnDelete, 1, 3, 1, 1)
         self.pushDefaultServer = QtGui.QPushButton(self.GroupBox1)
-        self.pushDefaultServer.setText(QtGui.QApplication.translate("QgsWps", "Add default server", None, QtGui.QApplication.UnicodeUTF8))
         self.pushDefaultServer.setObjectName(_fromUtf8("pushDefaultServer"))
         self.gridlayout.addWidget(self.pushDefaultServer, 1, 6, 1, 1)
         self.btnBookmarks = QtGui.QPushButton(self.GroupBox1)
-        self.btnBookmarks.setText(QtGui.QApplication.translate("QgsWps", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
         self.btnBookmarks.setObjectName(_fromUtf8("btnBookmarks"))
         self.gridlayout.addWidget(self.btnBookmarks, 1, 5, 1, 1)
         self.gridLayout.addWidget(self.GroupBox1, 0, 0, 1, 1)
@@ -91,7 +79,19 @@ class Ui_QgsWps(object):
         QtCore.QMetaObject.connectSlotsByName(QgsWps)
 
     def retranslateUi(self, QgsWps):
+        QgsWps.setWindowTitle(QtGui.QApplication.translate("QgsWps", "Note: this plugin not considered stable yet. Use it on your own risk", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnAbout.setText(QtGui.QApplication.translate("QgsWps", "about", None, QtGui.QApplication.UnicodeUTF8))
         self.treeWidget.setSortingEnabled(True)
+        self.treeWidget.headerItem().setText(0, QtGui.QApplication.translate("QgsWps", "Identifier", None, QtGui.QApplication.UnicodeUTF8))
+        self.treeWidget.headerItem().setText(1, QtGui.QApplication.translate("QgsWps", "Title", None, QtGui.QApplication.UnicodeUTF8))
+        self.treeWidget.headerItem().setText(2, QtGui.QApplication.translate("QgsWps", "Abstract", None, QtGui.QApplication.UnicodeUTF8))
+        self.GroupBox1.setTitle(QtGui.QApplication.translate("QgsWps", "Server Connections", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnNew.setText(QtGui.QApplication.translate("QgsWps", "&New", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnEdit.setText(QtGui.QApplication.translate("QgsWps", "Edit", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnConnect.setText(QtGui.QApplication.translate("QgsWps", "C&onnect", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnDelete.setText(QtGui.QApplication.translate("QgsWps", "Delete", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushDefaultServer.setText(QtGui.QApplication.translate("QgsWps", "Add default server", None, QtGui.QApplication.UnicodeUTF8))
+        self.btnBookmarks.setText(QtGui.QApplication.translate("QgsWps", "Bookmarks", None, QtGui.QApplication.UnicodeUTF8))
 
 
 if __name__ == "__main__":
