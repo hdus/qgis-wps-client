@@ -298,7 +298,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 valList = input.valList
                 self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
             elif inputType == ExtentInput:
-                myExtent = self.iface.mapCanvas().extent() .replace(':',',')                
+                myExtent = self.iface.mapCanvas().extent() .toString().replace(':',',')                
                 self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
             elif inputType == CrsInput:
                 crsListe = input.crsList
