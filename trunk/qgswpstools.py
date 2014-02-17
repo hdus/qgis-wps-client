@@ -445,7 +445,7 @@ class QgsWpsTools(QObject):
       textBox.show()
     except:
       textBox = QTextBrowser(dlgProcessTab)
-      textBox.setText(QString(abstract))
+      textBox.setText(pystring(abstract))
 
     dlgProcessTab.addTab(textBox, "Documentation")
 

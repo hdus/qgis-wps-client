@@ -262,7 +262,7 @@ def allowedValues(aValues):
 
        try:
           for n in range(int(min_val), int(max_val) + 1):
-              myVal = QString()
+              myVal = pystring()
               myVal.append(str(n))
               valList.append(myVal)
        except:
@@ -298,6 +298,7 @@ class ProcessDescription(QObject):
     """
     Request and parse a WPS process description
     """
+    describeProcessFinished = pyqtSignal()
 
     def __init__(self, server, identifier):
         QObject.__init__(self)
@@ -327,7 +328,7 @@ class ProcessDescription(QObject):
 
             myBookmarkArray = myBookmark.split("@@")
             connectionName = myBookmarkArray[0]
-            identifier = settings.value(mySettings+"/identifier").toString()
+            identifier = pystring(settings.value(mySettings+"/identifier"))
 
             server = WpsServer.getServer(connectionName)
             process = ProcessDescription(server, identifier)
@@ -357,7 +358,7 @@ class ProcessDescription(QObject):
 
     def requestUrl(self):
         url = QUrl()
-        if self.server.baseUrl.contains('?'):
+        if '?' in self.server.baseUrl:
             request = "&Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
         else:
             request = "?Request=DescribeProcess&identifier=" + self.identifier + "&Service=WPS&Version=" + self.version
@@ -386,7 +387,7 @@ class ProcessDescription(QObject):
         qDebug(self.processXML)
         self._parseProcessXML()
         self._requestExecuted = True
-        self.emit(SIGNAL("describeProcessFinished"))
+        self.describeProcessFinished.emit()
 
     def processDescriptionFile(self, basePath):
         return self.server.processDescriptionFolder(basePath) + "/" + self.identifier

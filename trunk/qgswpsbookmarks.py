@@ -29,6 +29,9 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
     """
     Class documentation goes here.
     """
+    getBookmarkDescription = pyqtSignal(QTreeWidgetItem)
+    bookmarksChanged = pyqtSignal()
+    
     def __init__(self, fl,  parent=None):
         """
         Constructor
@@ -55,12 +58,11 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
 
     @pyqtSignature("QTreeWidgetItem*, int")
     def on_treeWidget_itemDoubleClicked(self, item, column):
-        self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), item)
+        self.getBookmarkDescription.emit(item)
         self.close()
 
     @pyqtSignature("")
     def on_btnConnect_clicked(self):
-#        self.emit(SIGNAL("getBookmarkDescription(QString, QTreeWidgetItem)"), self.myItem.text(0),  self.myItem)
         self.close()
 
     
@@ -75,7 +77,7 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
        
     @pyqtSignature("")
     def on_btnOK_clicked(self):
-        self.emit(SIGNAL("getBookmarkDescription(QTreeWidgetItem)"), self.myItem)
+        self.getBookmarkDescription.emit(self.myItem)
 
     
     @pyqtSignature("")
@@ -87,5 +89,5 @@ class Bookmarks(QDialog, QObject,  Ui_Bookmarks):
         server = WpsServer.getServer(item.text(0))
         process = ProcessDescription(server, item.text(1))
         process.removeBookmark()
-        self.emit(SIGNAL("bookmarksChanged()"))
+        self.bookmarksChanged.emit()
         self.initTreeWPSServices()          

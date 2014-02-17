@@ -23,6 +23,7 @@ from qgis.core import *
 from QgsWpsDockWidget import QgsWpsDockWidget
 from wps import version
 from doAbout import DlgAbout
+import apicompat
 
 SEXTANTE_SUPPORT = False
 try:
@@ -50,8 +51,7 @@ class QgsWps:
     #Initialise the translation environment    
     userPluginPath = QFileInfo(QgsApplication.qgisUserDbFilePath()).path()+"/python/plugins/wps"  
     systemPluginPath = QgsApplication.prefixPath()+"/share/qgis/python/plugins/wps"
-    myLocaleName = QSettings().value("locale/userLocale").toString()
-    myLocale = myLocaleName[0:2]
+    myLocale = pystring(QSettings().value("locale/userLocale"))[0:2]
     if QFileInfo(userPluginPath).exists():
       self.pluginPath = userPluginPath
       self.localePath = userPluginPath+"/i18n/wps_"+myLocale+".qm"
@@ -73,10 +73,10 @@ class QgsWps:
  
     # Create action that will start plugin configuration
      self.action = QAction(QIcon(":/plugins/wps/images/wps-add.png"), "WPS-Client", self.iface.mainWindow())
-     QObject.connect(self.action, SIGNAL("triggered()"), self.run)
+     self.action.triggered.connect(self.run)
      
      self.actionAbout = QAction("About", self.iface.mainWindow())
-     QObject.connect(self.actionAbout, SIGNAL("triggered()"), self.doAbout)
+     self.actionAbout.triggered.connect(self.doAbout)
          
     # Add toolbar button and menu item
      self.iface.addToolBarIcon(self.action)

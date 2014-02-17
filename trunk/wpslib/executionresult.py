@@ -79,6 +79,8 @@ class ExecutionResult(QObject):
     """
     Send request XML and process result
     """
+    
+    fetchingResult = pyqtSignal(int)
 
     def __init__(self, literalResultCallback, resultFileCallback, errorResultCallback, streamingHandler):
         QObject.__init__(self)
@@ -196,7 +198,7 @@ class ExecutionResult(QObject):
             if status.size() == 0:
                 return self.errorHandler(resultXML)
             else:
-                statusXML = QString()
+                statusXML = pystring()
                 textStream = QTextStream(statusXML)
                 status.at(0).save(textStream, 2)
                 return self.errorHandler(statusXML)
@@ -206,7 +208,7 @@ class ExecutionResult(QObject):
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.myHttp.get(QNetworkRequest(url))
-        self.emit(SIGNAL("fetchingResult(int)"), self.noFilesToFetch)
+        self.fetchingResult.emit(self.noFilesToFetch)
 
         # Append encoding to 'finished' signal parameters
         self.encoding = encoding

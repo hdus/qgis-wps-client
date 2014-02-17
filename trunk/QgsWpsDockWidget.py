@@ -51,6 +51,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     """
     
     killed = pyqtSignal()
+    bookmarksChanged = pyqtSignal()
+
     
     def __init__(self, iface):
         """
@@ -78,14 +80,14 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         flags = Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint  # QgisGui.ModalDialogFlags
         self.dlg = QgsWpsGui(self.iface.mainWindow(), flags)
-        QObject.connect(self.dlg, SIGNAL("getDescription(QString, QTreeWidgetItem)"), self.getDescription)    
-        QObject.connect(self.dlg, SIGNAL("newServer()"), self.newServer)    
-        QObject.connect(self.dlg, SIGNAL("editServer(QString)"), self.editServer)    
-        QObject.connect(self.dlg, SIGNAL("deleteServer(QString)"), self.deleteServer)        
-        QObject.connect(self.dlg, SIGNAL("connectServer(QString)"), self.cleanGui)    
-        QObject.connect(self.dlg, SIGNAL("pushDefaultServer()"), self.pushDefaultServer) 
-        QObject.connect(self.dlg, SIGNAL("requestDescribeProcess(QString, QString)"), self.requestDescribeProcess)
-        QObject.connect(self.dlg, SIGNAL("bookmarksChanged()"), self, SIGNAL("bookmarksChanged()"))    
+        self.dlg.getDescription.connect(self.getDescription)    
+        self.dlg.newServer.connect(self.newServer)    
+        self.dlg.editServer.connect(self.editServer)    
+        self.dlg.deleteServer.connect(self.deleteServer)        
+        self.dlg.connectServer.connect(self.cleanGui)    
+        self.dlg.pushDefaultServer.clicked.connect(self.pushDefaultServer) 
+        self.dlg.requestDescribeProcess.connect(self.requestDescribeProcess)
+#        self.dlg.bookmarksChanged.connect()"), self, SIGNAL("bookmarksChanged()"))    
 
         self.killed.connect(self.stopStreaming)
         
@@ -95,7 +97,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def requestDescribeProcess(self, serverName, processIdentifier):
         server = WpsServer.getServer(serverName)
         self.process = ProcessDescription(server, processIdentifier)
-        QObject.connect(self.process, SIGNAL("describeProcessFinished"), self.createProcessGUI)
+        self.process.describeProcessFinished.connect(self.createProcessGUI)
         self.process.requestDescribeProcess()
         
     def setUpload(self,  bool):
@@ -151,10 +153,10 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             text = QApplication.translate("QgsWps", " terminated with errors!")
             
         try:
-          self.lblProcess.setText(QString(self.processIdentifier+text))          
+          self.lblProcess.setText(pystring(self.processIdentifier+text))          
         except:
           self.lblProcess = QLabel(groupBox)        
-          self.lblProcess.setText(QString(self.processIdentifier+text))
+          self.lblProcess.setText(pystring(self.processIdentifier+text))
           layout.addWidget(self.lblProcess)        
           self.groupBox.setLayout(layout)
 
@@ -297,7 +299,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
                 valList = input.valList
                 self.literalInputComboBoxList.append(self.tools.addLiteralComboBox(title, inputIdentifier, valList, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout))
             elif inputType == ExtentInput:
-                myExtent = self.iface.mapCanvas().extent().toString().replace(':',',')                
+                myExtent = pystring(self.iface.mapCanvas().extent()).replace(':',',')                
                 self.bboxInputLineEditList.append(self.tools.addLiteralLineEdit(title+"(minx,miny,maxx,maxy)", inputIdentifier, minOccurs,  self.dlgProcessScrollAreaWidget,  self.dlgProcessScrollAreaWidgetLayout, myExtent))
             elif inputType == CrsInput:
                 crsListe = input.crsList
@@ -347,7 +349,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
       myLabel = QLabel(groupbox)
       myLabel.setObjectName("qLabel"+name)
-      myLabel.setText(QString(title))
+      myLabel.setText(pystring(title))
       myLabel.setMinimumWidth(600)
       myLabel.setMinimumHeight(25)
       myLabel.setWordWrap(True)
@@ -523,8 +525,8 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile, self.errorResult, self.streamingHandler)
         self.wps.executeProcess(self.process.processUrl, postString)
         if len(self.process.inputs) > 0:
-          QObject.connect(self.wps.thePostReply, SIGNAL("uploadProgress(qint64,qint64)"), lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status))
-        QObject.connect(self.wps, SIGNAL("fetchingResult(int)"), self.fetchingResult)
+          self.wps.thePostReply.uploadProgress.connect(lambda done,  all,  status="upload": self.showProgressBar(done,  all,  status))
+        self.wps.fetchingResult.connect(self.fetchingResult)
 
   ##############################################################################
 
@@ -535,7 +537,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         layout = QHBoxLayout()
     
         btnOk = QPushButton(groupBox)
-        btnOk.setText(QString(QApplication.translate("QgsWps", "Run")))
+        btnOk.setText(pystring(QApplication.translate("QgsWps", "Run")))
         btnOk.setMinimumWidth(100)
         btnOk.setMaximumWidth(100)
     
@@ -557,15 +559,15 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         groupBox.setLayout(layout)
         dlgProcessTabFrameLayout.addWidget(groupBox)
         
-        QObject.connect(btnOk,SIGNAL("clicked()"), self.defineProcess)
-        QObject.connect(btnCancel,SIGNAL("clicked()"), self.dlgProcess.close)
-        QObject.connect(btnBookmark,SIGNAL("clicked()"), self.saveBookmark)
+        btnOk.clicked.connect(self.defineProcess)
+        btnCancel.clicked.connect(self.dlgProcess.close)
+        btnBookmark.clicked.connect(self.saveBookmark)
         
     def saveBookmark(self):
         server = WpsServer.getServer(self.dlgProcess.currentServiceName())
         process = ProcessDescription(server, self.processUrl.queryItemValue('identifier'))
         process.saveBookmark()
-        self.emit(SIGNAL("bookmarksChanged()"))
+        self.bookmarksChanged.emit()
         QMessageBox.information(self.iface.mainWindow(), 
             QCoreApplication.translate("QgsWps","Bookmark"), 
             QCoreApplication.translate("QgsWps","The creation bookmark was successful."))
