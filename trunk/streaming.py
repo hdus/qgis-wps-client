@@ -222,8 +222,8 @@ class Streaming(QObject):
         """ Send the GET request """           
         url = QUrl(fileLink)
         theReply2 = self.QNAM4Chunks.get(QNetworkRequest(url))
-        theReply2.setProperty("chunkId", QVariant(chunkId))
-        theReply2.setProperty("encoding", QVariant(encoding))
+        theReply2.setProperty("chunkId", pystring(chunkId))
+        theReply2.setProperty("encoding", pystring(encoding))
                   
     
     def handleErrors(self, error): # TODO connect it
@@ -518,11 +518,11 @@ class Streaming(QObject):
     def getGdalBinPath(self):
         """ Retrieves GDAL binaries location """
         settings = QSettings()
-        return settings.value( "/GdalTools/gdalPath", QVariant( "" ) ).toString()
+        return settings.value( "/GdalTools/gdalPath", pystring( "" ) ).toString()
 
    
     def getGdalPymodPath(self):
         """ Retrieves GDAL python modules location """
         settings = QSettings()
-        return settings.value( "/GdalTools/gdalPymodPath", QVariant( "" ) ).toString()
+        return settings.value( "/GdalTools/gdalPymodPath", pystring( "" ) ).toString()
    

@@ -736,12 +736,12 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             myURL = urlparse(str(v))
             mySettings = "/WPS/" + k
 #    settings.setValue("WPS/connections/selected", QVariant(name) )
-            settings.setValue(mySettings+"/scheme",  QVariant(myURL.scheme))
-            settings.setValue(mySettings+"/server",  QVariant(myURL.netloc))
-            settings.setValue(mySettings+"/path", QVariant(myURL.path))
-            settings.setValue(mySettings+"/method",QVariant("GET"))
-            settings.setValue(mySettings+"/version",QVariant("1.0.0"))
-            settings.setValue(mySettings+"/url",QVariant(v))
+            settings.setValue(mySettings+"/scheme",  pystring(myURL.scheme))
+            settings.setValue(mySettings+"/server",  pystring(myURL.netloc))
+            settings.setValue(mySettings+"/path", pystring(myURL.path))
+            settings.setValue(mySettings+"/method",pystring("GET"))
+            settings.setValue(mySettings+"/version",pystring("1.0.0"))
+            settings.setValue(mySettings+"/url",pystring(v))
             self.dlg.initQgsWpsGui()
     
     
