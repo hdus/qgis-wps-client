@@ -156,11 +156,11 @@ class ExecutionResult(QObject):
                   return False
 
                 # Get the mime type of the result
-                self.mimeType = str(reference.attribute("mimeType", "0").toLower())
+                self.mimeType = str(reference.attribute("mimeType", "0").lower())
 
                 # Get the encoding of the result, it can be used decoding base64
-                encoding = str(reference.attribute("encoding", "").toLower())
-                schema = str(reference.attribute("schema", "").toLower())                
+                encoding = str(reference.attribute("encoding", "").lower())
+                schema = str(reference.attribute("schema", "").lower())                
                 
                 if fileLink != '0':
                   if "playlist" in self.mimeType: # Streaming based process?
@@ -172,11 +172,11 @@ class ExecutionResult(QObject):
                 complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
 
                 # Get the mime type of the result
-                self.mimeType = str(complexData.attribute("mimeType", "0").toLower())
+                self.mimeType = str(complexData.attribute("mimeType", "0").lower())
 
                 # Get the encoding of the result, it can be used decoding base64
-                encoding = str(complexData.attribute("encoding", "").toLower())
-                schema = str(reference.attribute("schema", "").toLower())                
+                encoding = str(complexData.attribute("encoding", "").lower())
+                schema = str(reference.attribute("schema", "").lower())                
 
 
                 if "playlist" in self.mimeType:

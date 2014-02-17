@@ -137,9 +137,9 @@ def getOwsElement(element, name):
     return element.elementsByTagNameNS("http://www.opengis.net/ows/1.1", name)
 
 def getIdentifierTitleAbstractFromElement(element):
-    identifier = getOwsElement(element, "Identifier").at(0).toElement().text().simplified()
-    title = getOwsElement(element, "Title").at(0).toElement().text().simplified()
-    abstract = getOwsElement(element, "Abstract").at(0).toElement().text().simplified()
+    identifier = str(getOwsElement(element, "Identifier").at(0).toElement().text()).strip()
+    title = str(getOwsElement(element, "Title").at(0).toElement().text()).strip()
+    abstract = str(getOwsElement(element, "Abstract").at(0).toElement().text()).strip()
     return identifier, title, abstract
 
 def getDefaultMimeType(inElement):
@@ -159,12 +159,12 @@ def getMimeTypeSchemaEncoding(element):
     mimeType = ""
     schema = ""
     encoding = ""
-    try:
-        mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text().simplified().toLower())
-        schema = str(element.elementsByTagName("Schema").at(0).toElement().text().simplified().toLower())
-        encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text().simplified().toLower())
-    except:
-        pass
+#    try:
+    mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text()).strip().lower()
+    schema = str(element.elementsByTagName("Schema").at(0).toElement().text()).strip().lower()
+    encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text()).strip().lower()
+#    except:
+#        pass
 
     return {"MimeType":mimeType, "Schema":schema, "Encoding":encoding}
 
@@ -402,8 +402,8 @@ class ProcessDescription(QObject):
         self.doc.setContent(self.processXML, True)
 
         processDescription = self.doc.elementsByTagName("ProcessDescription")
-        self.processIdentifier = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
-        self.processName = processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text().simplified()  
+        self.processIdentifier = str(processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text()).strip()
+        self.processName = str(processDescription.at(0).toElement().elementsByTagNameNS("http://www.opengis.net/ows/1.1","Title").at(0).toElement().text()).strip()  
 
         self.identifier, self.title, self.abstract = getIdentifierTitleAbstractFromElement(self.doc)
         self.inputs = []

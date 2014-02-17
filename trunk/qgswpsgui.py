@@ -37,7 +37,7 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
   deleteServer = pyqtSignal(str)          
   connectServer = pyqtSignal(list)   
   pushDefaultWPSServer = pyqtSignal(str)   
-  requestDescribeProcess = pyqtSignal(list)  
+  requestDescribeProcess = pyqtSignal(str,  str)  
   
   
   def __init__(self, parent, fl):
