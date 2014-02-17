@@ -108,7 +108,7 @@ class ExecutionResult(QObject):
         processUrl.removeQueryItem('Version')
         processUrl.removeQueryItem('Service')
 
-        qDebug("Post URL=" + str(processUrl))
+        qDebug("Post URL=" + pystring(processUrl))
     
         thePostHttp = QgsNetworkAccessManager.instance()
         request = QNetworkRequest(processUrl)
@@ -138,7 +138,7 @@ class ExecutionResult(QObject):
         if resultNodeList.size() > 0:
             for i in range(resultNodeList.size()):
               f_element = resultNodeList.at(i).toElement()
-              identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().strip()
+              identifier = pystring(f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text()).strip()
 
               # Fetch the referenced complex data
               if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
@@ -152,15 +152,15 @@ class ExecutionResult(QObject):
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
                 if fileLink == '0':
                   QMessageBox.warning(None, '', 
-                      str(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + str(fileLink))
+                      pystring(QApplication.translate("QgsWps", "WPS Error: Unable to download the result of reference: ")) + pystring(fileLink))
                   return False
 
                 # Get the mime type of the result
-                self.mimeType = str(reference.attribute("mimeType", "0").lower())
+                self.mimeType = pystring(reference.attribute("mimeType", "0")).lower()
 
                 # Get the encoding of the result, it can be used decoding base64
-                encoding = str(reference.attribute("encoding", "").lower())
-                schema = str(reference.attribute("schema", "").lower())                
+                encoding = pystring(reference.attribute("encoding", "")).lower()
+                schema = pystring(reference.attribute("schema", "")).lower()                
                 
                 if fileLink != '0':
                   if "playlist" in self.mimeType: # Streaming based process?
@@ -172,11 +172,11 @@ class ExecutionResult(QObject):
                 complexData = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0","ComplexData").at(0).toElement()
 
                 # Get the mime type of the result
-                self.mimeType = str(complexData.attribute("mimeType", "0").lower())
+                self.mimeType = pystring(complexData.attribute("mimeType", "0")).lower()
 
                 # Get the encoding of the result, it can be used decoding base64
-                encoding = str(complexData.attribute("encoding", "").lower())
-                schema = str(reference.attribute("schema", "").lower())                
+                encoding = pystring(complexData.attribute("encoding", "")).lower()
+                schema = pystring(reference.attribute("schema", "")).lower()                
 
 
                 if "playlist" in self.mimeType:
@@ -185,14 +185,14 @@ class ExecutionResult(QObject):
 
                 else: # Other ComplexData are not supported by this WPS client
                   QMessageBox.warning(None, '', 
-                    str(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + self.mimeType + "' is not supported by this client")))
+                    pystring(QApplication.translate("QgsWps", "WPS Error: The mimeType '" + self.mimeType + "' is not supported by this client")))
 
               elif f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").size() > 0:
                 literalText = f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "LiteralData").at(0).toElement().text()
                 self._getLiteralResult(identifier, literalText)
               else:
                 QMessageBox.warning(None, '', 
-                  str(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
+                  pystring(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             status = self.doc.elementsByTagName("Status")
             if status.size() == 0:

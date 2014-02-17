@@ -40,6 +40,7 @@ from urlparse import urlparse
 from streaming import Streaming
 
 import resources_rc,  string
+import apicompat
 
 DEBUG = False
 
@@ -404,13 +405,18 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             # Single raster and vector inputs ##########################################
             for comboBox in self.complexInputComboBoxList:
               # Do not add undefined inputs
+                            
               if comboBox == None or comboBox.currentText() == "<None>":
                 continue
                    
               # TODO: Check for more types (e.g. KML, Shapefile, JSON)
-              self.mimeType = self.inputDataTypeList[comboBox.objectName()]["MimeType"]
-              schema = self.inputDataTypeList[comboBox.objectName()]["Schema"]
-              encoding = self.inputDataTypeList[comboBox.objectName()]["Encoding"]
+#              QMessageBox.information(None, '',  str(self.inputDataTypeList[comboBox.objectName()]["MimeType"]))
+#              QMessageBox.information(None, '',  pystring(comboBox.objectName()))
+              
+              
+              self.mimeType = self.inputDataTypeList[pystring(comboBox.objectName())]["MimeType"]
+              schema = self.inputDataTypeList[pystring(comboBox.objectName())]["Schema"]
+              encoding = self.inputDataTypeList[pystring(comboBox.objectName())]["Encoding"]
               self.myLayer = self.tools.getVLayer(comboBox.currentText())
                  
 #              try:
@@ -487,7 +493,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
             f_element = dataOutputs.at(i).toElement()
-            outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().strip()
+            outputIdentifier = pystring(f_element.elementsByTagName("ows:Identifier").at(0).toElement().text()).strip()
             literalOutputType = f_element.elementsByTagName("LiteralOutput")
     
             # Complex data is always requested as reference
@@ -501,9 +507,9 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
               continue
             outputIdentifier = comboBox.objectName()
             
-            self.mimeType = self.outputDataTypeList[outputIdentifier]["MimeType"]
-            schema = self.outputDataTypeList[outputIdentifier]["Schema"]
-            encoding = self.outputDataTypeList[outputIdentifier]["Encoding"]
+            self.mimeType = self.outputDataTypeList[pystring(outputIdentifier)]["MimeType"]
+            schema = self.outputDataTypeList[pystring(outputIdentifier)]["Schema"]
+            encoding = self.outputDataTypeList[pystring(outputIdentifier)]["Encoding"]
             
             request.addReferenceOutput(outputIdentifier, self.mimeType, schema, encoding)
 

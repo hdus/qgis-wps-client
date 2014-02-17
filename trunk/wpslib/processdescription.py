@@ -25,6 +25,7 @@ from qgis.core import QgsNetworkAccessManager
 from wpsserver import WpsServer
 from collections import namedtuple
 import os
+import wps.apicompat
 
 
 # Process description example:
@@ -569,7 +570,7 @@ class ProcessDescription(QObject):
 
     def isDataTypeSupportedByServer(self, baseMimeType, name):
       # Return if the given data type is supported by the WPS server
-      for dataType in self._inputsMetaInfo[name]:
+      for dataType in self._inputsMetaInfo[pystring(name)]:
         if baseMimeType in dataType['MimeType']:
           return True
       return False

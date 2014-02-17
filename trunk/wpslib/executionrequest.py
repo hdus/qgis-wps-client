@@ -153,8 +153,8 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
     if supportedGML == "GML3":
       dso = pystringlist("FORMAT=GML3")
     else: # "GML" or "GML2"
-      dso = pystringlist()
-    lco = pystringlist()
+      dso = pystringlist('')
+    lco = pystringlist('')
     error = QgsVectorFileWriter.writeAsVectorFormat(vLayer, tmpFile, encoding, vLayer.dataProvider().crs(), "GML",  processSelected,  "",  dso,  lco)
     if error != QgsVectorFileWriter.NoError:
         QMessageBox.information(None, 'Error',  'Process stopped with errors')
@@ -175,7 +175,7 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
         myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
         QFile(myFileInfo+'.xsd').remove()
         QFile(myFileInfo+'.gml').remove()
-    return gmlString.strip()
+    return pystring(gmlString).strip()
 
 def getDBEncoding(layerProvider):
     dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())
