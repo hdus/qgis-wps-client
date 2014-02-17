@@ -45,8 +45,8 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         aboutString = pystring( "The goal of QgsWPS is to provide client to connect to any WPS-Server. " )
     
         contribString = pystring( "<p><center><b>The following people contributed to QgsWPS:</b></center></p>" )
-        contribString += pystring(u"<p>Horst Düster (Maintainer)<br>" )
-        contribString += pystring( "Pirmin Kalberer (Sextante Integration)<br>" )
+        contribString += pystring(u"<p>Horst Düster (Maintainer) Sourcepole AG / Zürich<br>" )
+        contribString += pystring( "Pirmin Kalberer (Sextante Integration) Sourcepole AG / Zürich<br>" )
         contribString += pystring( u"Germán Carrillo<br>" )        
         contribString += pystring( u"Sören Gebbert<br>" )
         contribString += pystring( "Eugeniy Nikulin<br>" )
