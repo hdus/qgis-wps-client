@@ -23,7 +23,7 @@ def description():
   return "Client for Web Processing Services"
 
 def version():
-  return "2.0.0"
+  return "2.0.1"
 
 def qgisMinimumVersion():
   return "1.5"  

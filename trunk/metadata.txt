@@ -9,7 +9,7 @@
 name=WPS Client
 description=Client for OGC Web Processing Services
 category=Web
-version=2.0.0
+version=2.0.1
 qgisMinimumVersion=1.5
 qgisMaximumVersion=2.99
 class_name=QgsWps
