@@ -175,7 +175,7 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
         myFileInfo = myFilePath+'/'+QFileInfo(myFile).completeBaseName()
         QFile(myFileInfo+'.xsd').remove()
         QFile(myFileInfo+'.gml').remove()
-    return gmlString.simplified()
+    return gmlString.strip()
 
 def getDBEncoding(layerProvider):
     dbConnection = QgsDataSourceURI(layerProvider.dataSourceUri())

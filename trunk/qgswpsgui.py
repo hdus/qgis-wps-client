@@ -1,4 +1,4 @@
-# -*- coding: latin1 -*-
+# -*- coding: utf8 -*-
 """
  /***************************************************************************
    QGIS Web Processing Service Plugin
@@ -121,9 +121,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     itemList = []
     for items in taglist:
       item = QTreeWidgetItem()
-      ident = unicode(items[0],'latin1')
-      title = unicode(items[1],'latin1')
-      abstract = unicode(items[2],'latin1')
+      ident = pystring(items[0])
+      title = pystring(items[1])
+      abstract = pystring(items[2])
       item.setText(0,ident.strip())
       item.setText(1,title.strip())  
       item.setText(2,abstract.strip())  
@@ -141,9 +141,9 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
       self.getDescription.emit(self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
 
   def createCapabilitiesGUI(self):
-      try:
+#      try:
           self.treeWidget.clear()
           itemListAll = self.server.parseCapabilitiesXML()
           self.initTreeWPSServices(itemListAll)
-      except:
-          pass
+#      except:
+#          pass

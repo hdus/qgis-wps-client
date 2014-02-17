@@ -487,7 +487,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
           # Attach ALL literal outputs #############################################
           for i in range(dataOutputs.size()):
             f_element = dataOutputs.at(i).toElement()
-            outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().simplified()
+            outputIdentifier = f_element.elementsByTagName("ows:Identifier").at(0).toElement().text().strip()
             literalOutputType = f_element.elementsByTagName("LiteralOutput")
     
             # Complex data is always requested as reference

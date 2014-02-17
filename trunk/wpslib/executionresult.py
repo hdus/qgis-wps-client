@@ -138,7 +138,7 @@ class ExecutionResult(QObject):
         if resultNodeList.size() > 0:
             for i in range(resultNodeList.size()):
               f_element = resultNodeList.at(i).toElement()
-              identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().simplified()
+              identifier = f_element.elementsByTagNameNS("http://www.opengis.net/ows/1.1","Identifier").at(0).toElement().text().strip()
 
               # Fetch the referenced complex data
               if f_element.elementsByTagNameNS("http://www.opengis.net/wps/1.0.0", "Reference").size() > 0:
