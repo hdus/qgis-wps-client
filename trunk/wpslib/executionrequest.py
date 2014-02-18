@@ -23,6 +23,7 @@ from PyQt4.QtGui import QApplication,QMessageBox
 from PyQt4.QtSql import *
 from qgis.core import QgsVectorFileWriter
 import os, sys, string, tempfile, base64
+import wps.apicompat
 
 
 # Execute example:
@@ -137,7 +138,7 @@ def createTmpGML(vLayer, processSelection="False", supportedGML="GML2"):
 
     myQTempFile = QTemporaryFile()
     myQTempFile.open()
-    tmpFile = unicode(myQTempFile.fileName()+".gml",'latin1')
+    tmpFile = myQTempFile.fileName()+".gml"
     myQTempFile.close()
 
     if vLayer.dataProvider().name() == "postgres":

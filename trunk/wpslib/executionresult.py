@@ -26,6 +26,7 @@ from qgis.core import QgsNetworkAccessManager
 from functools import partial
 from wps.wpslib.processdescription import getFileExtension
 import tempfile,  base64
+import wps.apicompat
 
 
 # Execute result example:
@@ -146,7 +147,7 @@ class ExecutionResult(QObject):
 
                 # Get the reference
                 fileLink = reference.attribute("href", "0")
-
+                
                 # Try with namespace if not successful
                 if fileLink == '0':
                   fileLink = reference.attributeNS("http://www.w3.org/1999/xlink", "href", "0")
@@ -205,6 +206,7 @@ class ExecutionResult(QObject):
 
     def fetchResult(self, encoding, schema,  fileLink, identifier):
         self.noFilesToFetch += 1
+
         url = QUrl(fileLink)
         self.myHttp = QgsNetworkAccessManager.instance()
         self.theReply = self.myHttp.get(QNetworkRequest(url))
@@ -214,11 +216,11 @@ class ExecutionResult(QObject):
         self.encoding = encoding
         self.schema = schema
         self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, schema,  self.theReply))
-
-        #QObject.connect(self.theReply, SIGNAL("downloadProgress(qint64, qint64)"), lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        self.theReply.downloadProgress.connect(lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
     def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
         # Check if there is redirection
+        QMessageBox.information(None, '',  str(reply))
         reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
         if not reDir.isEmpty():
             self.fetchResult(encoding, schema,  reDir, identifier)
