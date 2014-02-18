@@ -457,7 +457,7 @@ class ProcessDescription(QObject):
 
               if complexDataFormat == None :
                 QMessageBox.warning(None, QApplication.translate("QgsWps", "Error"),
-                  QApplication.translate("QgsWps", "The process '%1' does not seem to support GML for the parameter '%2', which is required by the QGIS WPS client.").arg(self.processIdentifier).arg(inputIdentifier))
+                      QApplication.translate("QgsWps", "The process '{0}' does not seem to support GML for the parameter '{1}', which is required by the QGIS WPS client.").format(self.processIdentifier,  inputIdentifier))
                 return 0
 
               # Vector inputs

@@ -667,7 +667,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         if not bLoaded:
             QMessageBox.information(self.iface.mainWindow(), 
                 QApplication.translate("QgsWps","Result not loaded to the map"), 
-                QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '%1' type and can be accessed at '%2'. \n\nYou could ask the service provider to consider changing the default data type of the result.").arg(self.mimeType ).arg(resultFile))
+                QApplication.translate("QgsWps","It seems QGIS cannot load the result of the process. The result has a '{0}' type and can be accessed at '{1}'. \n\nYou could ask the service provider to consider changing the default data type of the result.").format(self.mimeType,  resultFile))
 
     def getLiteralResult(self, identifier, literalText):
         self.tools.popUpMessageBox(QCoreApplication.translate("QgsWps",'Result'),literalText)
