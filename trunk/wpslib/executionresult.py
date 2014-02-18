@@ -1,4 +1,4 @@
-# -*- coding: latin1 -*-  
+# -*- coding: utf-8 -*-
 """
  /***************************************************************************
    QGIS Web Processing Service Plugin
@@ -216,13 +216,16 @@ class ExecutionResult(QObject):
         self.encoding = encoding
         self.schema = schema
         self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, schema,  self.theReply))
-        self.theReply.downloadProgress.connect(lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+#        self.theReply.downloadProgress.connect(lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
     def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
-        # Check if there is redirection
-        QMessageBox.information(None, '',  str(reply))
-        reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
-        if not reDir.isEmpty():
+        # Check if there is redirection        
+        try:
+            reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
+        except:
+            reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
+            
+        if reDir is not None :
             self.fetchResult(encoding, schema,  reDir, identifier)
             return
         self._resultFileCallback(identifier, mimeType, encoding, schema,  reply)

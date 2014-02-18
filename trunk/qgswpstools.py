@@ -1,4 +1,4 @@
-# -*- coding: latin1 -*-  
+# -*- coding: utf-8 -*-
 """
  /***************************************************************************
    QGIS Web Processing Service Plugin
@@ -70,7 +70,7 @@ class QgsWpsTools(QObject):
       nLayers=mc.layerCount()
 
       for l in range(nLayers):
-        # Nur die Layer des gew�nschten Datentypes ausw�hlen 0=Vectorlayer 1=Rasterlayer
+        # Nur die Layer des gewï¿½nschten Datentypes auswï¿½hlen 0=Vectorlayer 1=Rasterlayer
         if mc.layer(l).type() == dataType:
           myLayerList.append(mc.layer(l).name())
 
