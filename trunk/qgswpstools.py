@@ -47,10 +47,10 @@ class QgsWpsTools(QObject):
     layerNameList.sort()
 
     for layerName in layerNameList:
-      if layerName == name+unicode(str(i),'latin1'):    
+      if layerName == name+pystring(i):    
         i += 1
 
-    newName = name+unicode(str(i),'latin1')
+    newName = name+pystring(i)
     return newName
 
   
@@ -139,7 +139,7 @@ class QgsWpsTools(QObject):
 
     for l in range(nLayers):
        layer = mc.layer(l)
-       layerSource = unicode(layer.publicSource(),'latin1').lower()
+       layerSource = pystring(layer.publicSource()).lower()
        layerSourceList.append(layerSource)
 
     return layerSourceList

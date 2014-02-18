@@ -193,7 +193,7 @@ class WpsAlgorithm(GeoAlgorithm):
         myQTempFile = QTemporaryFile()
         myQTempFile.open()
         ext = getFileExtension(mimeType)
-        tmpFile = unicode(myQTempFile.fileName() + ext,'latin1')
+        tmpFile = myQTempFile.fileName() + ext
         myQTempFile.close()
 
         # Write the data to the temporary file

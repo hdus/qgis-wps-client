@@ -222,12 +222,16 @@ class ExecutionResult(QObject):
         # Check if there is redirection        
         try:
             reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute).toUrl()
+            if not reDir.isEmpty():
+                    self.fetchResult(encoding, schema,  reDir, identifier)
+                    return
+                
         except:
             reDir = reply.attribute(QNetworkRequest.RedirectionTargetAttribute)
-            
-        if reDir is not None :
-            self.fetchResult(encoding, schema,  reDir, identifier)
-            return
+            if reDir is not None:
+                self.fetchResult(encoding, schema,  reDir, identifier)
+                return
+                
         self._resultFileCallback(identifier, mimeType, encoding, schema,  reply)
         self.noFilesToFetch -= 1
 

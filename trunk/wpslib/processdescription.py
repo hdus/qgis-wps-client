@@ -274,7 +274,7 @@ def allowedValues(aValues):
      if v_element.size() > 0:
        for n in range(v_element.size()):
          mv_element = v_element.at(n).toElement()
-         valList.append(unicode(mv_element.text(), 'latin1').strip())
+         valList.append(pystring(mv_element.text()).strip())
 
      return valList
 

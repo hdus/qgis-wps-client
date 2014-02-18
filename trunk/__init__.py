@@ -1,4 +1,4 @@
-# -*- coding: latin1 -*-
+# -*- coding: utf-8 -*-
 """
 ***************************************************************************
    qgswps.py QGIS Web Processing Service Plugin
@@ -23,7 +23,7 @@ def description():
   return "Client for Web Processing Services"
 
 def version():
-  return "2.0.1"
+  return "2.0.2"
 
 def qgisMinimumVersion():
   return "1.5"  
@@ -32,7 +32,7 @@ def qgisMaximumVersion():
   return "2.99"    
 
 def date():
-    return '2014-02-17'
+    return '2014-02-18'
     
 def email():
     return 'horst.duester@sourcepole.ch'
