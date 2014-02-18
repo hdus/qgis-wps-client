@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/plugins/wps">
+    <file>exception.xsl</file>
+    <file>images/wps-add.png</file>
+    <file>images/button_cancel.png</file>
+  </qresource>
+</RCC>
