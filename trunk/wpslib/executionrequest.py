@@ -21,7 +21,7 @@ from PyQt4.QtCore import *
 from PyQt4 import QtXml
 from PyQt4.QtGui import QApplication,QMessageBox
 from PyQt4.QtSql import *
-from qgis.core import QgsVectorFileWriter
+from qgis.core import QgsVectorFileWriter,  QgsDataSourceURI
 import os, sys, string, tempfile, base64
 import wps.apicompat
 
