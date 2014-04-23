@@ -16,13 +16,6 @@ class_name=QgsWps
 website=http://www.kappasys.ch
 author=Horst Duester
 email=horst.duester@kappasys.ch
-
-changelog= 
- Rev 0.4.2
-   - fix unpredicable behaviour when settings are not correct
-
-tags=
-
 homepage=http://goo.gl/fsqDn
 tracker=http://hub.qgis.org/projects/qgswps
 repository=https://www.kappasys.ch/svn/wps/trunk
