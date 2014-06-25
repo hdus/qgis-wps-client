@@ -38,14 +38,15 @@ class QgsNewHttpConnectionBaseGui(QDialog,  QObject, Ui_QgsNewHttpConnectionBase
   @pyqtSignature("on_buttonBox_accepted()")       
   def on_buttonBox_accepted(self):
     settings = QSettings()
-    myURL = urlparse(str(self.txtUrl.text()))
-    mySettings = "/WPS/"+self.txtName.text()
+    urlString = ' '.join(self.txtUrl.text().split())
+    myURL = urlparse(urlString)
+    mySettings = "/WPS/"+urlString
 #    settings.setValue("WPS/connections/selected", QVariant(name) )
     settings.setValue(mySettings+"/scheme",  pystring(myURL.scheme))
     settings.setValue(mySettings+"/server",  pystring(myURL.netloc))
     settings.setValue(mySettings+"/path", pystring(myURL.path))
     settings.setValue(mySettings+"/method",pystring("GET"))
     settings.setValue(mySettings+"/version",pystring("1.0.0"))
-    settings.setValue(mySettings+"/url",pystring(self.txtUrl.text()))
+    settings.setValue(mySettings+"/url",pystring(urlString))
     
     self.parent.initQgsWpsGui()    
