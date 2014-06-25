@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project QGIS WPS-Plugn -->
-<!-- Saved: 2014-03-12, 13:21:59 -->
+<!-- Saved: 2014-04-23, 12:13:16 -->
 <!-- Copyright (C) 2014 ,  -->
 <Project version="4.6">
   <Language>en</Language>
@@ -44,9 +44,6 @@
     <Source>sextantewps/WpsServerAction.py</Source>
     <Source>sextantewps/WpsAlgorithm.py</Source>
     <Source>streaming.py</Source>
-    <Source>about/__init__.py</Source>
-    <Source>about/Ui_ui_about.py</Source>
-    <Source>about/doAbout.py</Source>
   </Sources>
   <Forms>
     <Form>qgsnewhttpconnectionbase.ui</Form>

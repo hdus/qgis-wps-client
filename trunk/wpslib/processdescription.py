@@ -138,9 +138,9 @@ def getOwsElement(element, name):
     return element.elementsByTagNameNS("http://www.opengis.net/ows/1.1", name)
 
 def getIdentifierTitleAbstractFromElement(element):
-    identifier = str(getOwsElement(element, "Identifier").at(0).toElement().text()).strip()
-    title = str(getOwsElement(element, "Title").at(0).toElement().text()).strip()
-    abstract = str(getOwsElement(element, "Abstract").at(0).toElement().text()).strip()
+    identifier = pystring(getOwsElement(element, "Identifier").at(0).toElement().text()).strip()
+    title = pystring(getOwsElement(element, "Title").at(0).toElement().text()).strip()
+    abstract = pystring(getOwsElement(element, "Abstract").at(0).toElement().text()).strip()
     return identifier, title, abstract
 
 def getDefaultMimeType(inElement):
@@ -161,9 +161,9 @@ def getMimeTypeSchemaEncoding(element):
     schema = ""
     encoding = ""
 #    try:
-    mimeType = str(element.elementsByTagName("MimeType").at(0).toElement().text()).strip().lower()
-    schema = str(element.elementsByTagName("Schema").at(0).toElement().text()).strip().lower()
-    encoding = str(element.elementsByTagName("Encoding").at(0).toElement().text()).strip().lower()
+    mimeType = pystring(element.elementsByTagName("MimeType").at(0).toElement().text()).strip().lower()
+    schema = pystring(element.elementsByTagName("Schema").at(0).toElement().text()).strip().lower()
+    encoding = pystring(element.elementsByTagName("Encoding").at(0).toElement().text()).strip().lower()
 #    except:
 #        pass
 
