@@ -77,7 +77,10 @@ class QgsWpsGui(QDialog, QObject, Ui_QgsWps):
     if  self.treeWidget.topLevelItemCount() == 0:
       QMessageBox.warning(None, 'WPS Warning','No Service connected!')
     else:
-      self.getDescription.emit(self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
+      try:
+        self.getDescription.emit(self.cmbConnections.currentText(),  self.treeWidget.currentItem() )
+      except:
+        QMessageBox.information(None, self.tr('Error'),  self.tr('Please select a process!'))
     
   # see http://www.riverbankcomputing.com/Docs/PyQt4/pyqt4ref.html#connecting-signals-and-slots
   # without this magic, the on_btnOk_clicked will be called two times: one clicked() and one clicked(bool checked)
