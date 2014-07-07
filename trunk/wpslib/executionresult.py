@@ -83,10 +83,11 @@ class ExecutionResult(QObject):
     
     fetchingResult = pyqtSignal(int)
 
-    def __init__(self, literalResultCallback, resultFileCallback, errorResultCallback, streamingHandler):
+    def __init__(self, literalResultCallback, resultFileCallback, successResultCallback, errorResultCallback, streamingHandler):
         QObject.__init__(self)
         self._getLiteralResult = literalResultCallback
         self._resultFileCallback = resultFileCallback
+        self._successResultCallback = successResultCallback
         self._errorResultCallback = errorResultCallback
         self._streamingHandler = streamingHandler
         self._processExecuted = False
@@ -196,13 +197,14 @@ class ExecutionResult(QObject):
                   pystring(QApplication.translate("QgsWps", "WPS Error: Missing reference or literal data in response")))
         else:
             status = self.doc.elementsByTagName("Status")
-            if status.size() == 0:
+            try:
+                child = status.at(0).firstChildElement()
+                if child.localName() == "ProcessSucceeded":
+                    self._successResultCallback()
+                else:
+                    self.errorHandler(child.text())
+            except:
                 return self.errorHandler(resultXML)
-            else:
-                statusXML = pystring()
-                textStream = QTextStream(statusXML)
-                status.at(0).save(textStream, 2)
-                return self.errorHandler(statusXML)
 
     def fetchResult(self, encoding, schema,  fileLink, identifier):
         self.noFilesToFetch += 1
