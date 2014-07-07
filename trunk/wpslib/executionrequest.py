@@ -24,6 +24,7 @@ from PyQt4.QtSql import *
 from qgis.core import QgsVectorFileWriter,  QgsDataSourceURI
 import os, sys, string, tempfile, base64
 import wps.apicompat
+import cgi
 
 
 # Execute example:
@@ -200,6 +201,9 @@ def getDBEncoding(layerProvider):
     return encoding
 
 
+def htmlescape(text):
+    return cgi.escape(text, True)
+
 
 class ExecutionRequest(QObject):
     """
@@ -212,8 +216,8 @@ class ExecutionRequest(QObject):
         self.request = ""
 
     def addExecuteRequestHeader(self):
-        identifier = self.process.processIdentifier
-        version = self.process.getServiceVersion()
+        identifier = htmlescape(self.process.processIdentifier)
+        version = htmlescape(self.process.getServiceVersion())
         self.request = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         self.request += "<wps:Execute service=\"WPS\" version=\""+ version + "\"" + \
                        " xmlns:wps=\"http://www.opengis.net/wps/1.0.0\"" + \
@@ -234,6 +238,7 @@ class ExecutionRequest(QObject):
         self.request += "</wps:DataInputs>\n"
 
     def addExecuteRequestInputStart(self, identifier, includeData=True):
+        identifier = htmlescape(identifier)
         self.request += "<wps:Input>\n"
         self.request += "<ows:Identifier>"+identifier+"</ows:Identifier>\n"
         self.request += "<ows:Title>"+identifier+"</ows:Title>\n"
@@ -246,23 +251,30 @@ class ExecutionRequest(QObject):
     def addReferenceInput(self, identifier, mimeType, schema, encoding, ref):
         # text/plain inputs ########################################################
         # Handle 'as reference' playlist
+        mimeType = htmlescape(mimeType)
+        schema = "schema=\"%s\"" % htmlescape(schema) if schema else ""
+        encoding = "encoding=\"%s\"" % htmlescape(encoding) if encoding else ""
+        ref = htmlescape(ref)
         self.addExecuteRequestInputStart(identifier, False)
-        self.request += "<wps:Reference mimeType=\"" + mimeType + "\" " + (("schema=\"" + schema + "\"") if schema != "" else "") + (("encoding=\"" + encoding + "\"") if encoding != "" else "") + " xlink:href=\"" + ref + "\" />"
+        self.request += "<wps:Reference mimeType=\"%s\" %s %s xlink:href=\"%s\" />\n" % (mimeType, schema, encoding, ref)
         self.addExecuteRequestInputEnd(False)
 
     def addPlainTextInput(self, identifier, text):
         # text/plain inputs ########################################################
         # It's not a playlist
         self.addExecuteRequestInputStart(identifier)
-        self.request += "<wps:ComplexData>" + text + "</wps:ComplexData>\n"
+        self.request += "<wps:ComplexData>" + htmlescape(text) + "</wps:ComplexData>\n"
         self.addExecuteRequestInputEnd()
 
     def addGeometryInput(self, identifier, mimeType, schema, encoding, gmldata, useSelected):
         # Single raster and vector inputs ##########################################
+        mimeType = htmlescape(mimeType)
+        schema = htmlescape(schema)
+        encoding = 'encoding="%s"' % htmlescape(encoding) if encoding else ''
         #if self.tools.isMimeTypeVector(mimeType) != None and encoding != "base64":
         self.addExecuteRequestInputStart(identifier)
         
-        self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
+        self.request += "<wps:ComplexData mimeType=\"%s\" schema=\"%s\" %s>" % (mimeType, schema, encoding)
         self.request += gmldata.replace("> <","><")
           
         self.request = self.request.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
@@ -273,6 +285,7 @@ class ExecutionRequest(QObject):
 
     def addGeometryBase64Input(self, identifier, mimeType, data):
         # Single raster and vector inputs ##########################################
+        mimeType = htmlescape(mimeType)
         #elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
         self.addExecuteRequestInputStart(identifier)
 
@@ -283,6 +296,7 @@ class ExecutionRequest(QObject):
         self.addExecuteRequestInputEnd()
 
     def addFileBase64Input(self, identifier, mimeType, filename):
+        mimeType = htmlescape(mimeType)
         self.addExecuteRequestInputStart(identifier)
 
         self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
@@ -296,11 +310,14 @@ class ExecutionRequest(QObject):
 
     def addMultipleGeometryInput(self, identifier, mimeType, schema, encoding, gmldata, useSelected):
         # Multiple raster and vector inputs ########################################
+        mimeType = htmlescape(mimeType)
+        schema = htmlescape(schema)
+        encoding = 'encoding="%s"' % htmlescape(encoding) if encoding else ''
         #if self.tools.isMimeTypeVector(mimeType) != None and mimeType == "text/xml":
         self.addExecuteRequestInputStart(identifier)
 
-        self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" schema=\"" + schema + (("\" encoding=\"" + encoding + "\"") if encoding != "" else "\"") + ">"
-        self.request += gmldata.replace("> <","><")
+        self.request += "<wps:ComplexData mimeType=\"%s\" schema=\"%s\" %s>" % (mimeType, schema, encoding)
+        self.request += gmldata.replace("> <", "><")
 
         self.request += "</wps:ComplexData>\n"
         self.addExecuteRequestInputEnd()
@@ -308,6 +325,7 @@ class ExecutionRequest(QObject):
     def addMultipleGeometryBase64Input(self, identifier, mimeType, data):
         # Multiple raster and vector inputs ########################################
         #elif self.tools.isMimeTypeVector(mimeType) != None or self.tools.isMimeTypeRaster(mimeType) != None:
+        mimeType = htmlescape(mimeType)
         self.addExecuteRequestInputStart(identifier)
 
         self.request += "<wps:ComplexData mimeType=\"" + mimeType + "\" encoding=\"base64\">\n"
@@ -318,7 +336,7 @@ class ExecutionRequest(QObject):
 
     def addLiteralDataInput(self, identifier, text):
         self.addExecuteRequestInputStart(identifier)
-        self.request += "<wps:LiteralData>"+unicode(text)+"</wps:LiteralData>\n"
+        self.request += "<wps:LiteralData>"+htmlescape(unicode(text))+"</wps:LiteralData>\n"
         self.addExecuteRequestInputEnd()
 
     def addBoundingBoxInput(self, identifier, bboxArray):
@@ -345,10 +363,10 @@ class ExecutionRequest(QObject):
         self.request += "</wps:Output>\n"
 
     def addReferenceOutput(self, identifier, mimeType, schema, encoding):
-        self.request += "<wps:Output asReference=\"true" + \
-        "\" mimeType=\"" + mimeType + "\"" + \
-        ((" schema=\"" + schema + "\"") if schema != "" else "") + \
-        ((" encoding=\"" + encoding + "\"") if encoding != "" else "") + ">"
+        mimeType = htmlescape(mimeType)
+        schema = "schema=\"%s\"" % htmlescape(schema) if schema else ""
+        encoding = "encoding=\"%s\"" % htmlescape(encoding) if encoding else ""
+        self.request += "<wps:Output asReference=\"true\" mimeType=\"%s\" %s %s >" % (mimeType, schema, encoding)
         
         # Playlists can be sent as reference or as complex data 
         #   For the latter, comment out next lines
@@ -356,5 +374,5 @@ class ExecutionRequest(QObject):
         #  ("false" if "playlist" in mimeType.lower() else "true") + \
         #  "\" mimeType=\"" + mimeType + \
         #  (("\" schema=\"" + schema) if schema != "" else "") + "\">"
-        self.request += "<ows:Identifier>" + identifier + "</ows:Identifier>\n"
+        self.request += "<ows:Identifier>" + htmlescape(identifier) + "</ows:Identifier>\n"
         self.request += "</wps:Output>\n"
