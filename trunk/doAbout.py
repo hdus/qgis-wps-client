@@ -47,6 +47,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString = pystring( "<p><center><b>The following people contributed to QgsWPS:</b></center></p>" )
         contribString += pystring(u"<p>Horst Düster (Maintainer) Sourcepole AG / Zürich<br>" )
         contribString += pystring(u"Pirmin Kalberer (Sextante Integration) Sourcepole AG / Zürich<br>" )
+        contribString += pystring(u"Sandro Mani Sourcepole AG / Zürich<br>" )
         contribString += pystring( u"Germán Carrillo<br>" )        
         contribString += pystring( u"Sören Gebbert<br>" )
         contribString += pystring( "Eugeniy Nikulin<br>" )
