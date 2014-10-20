@@ -20,6 +20,7 @@ email=horst.duester@kappasys.ch
 changelog=
  Rev 2.0.11
    - Fix rstrip being called on qstring
+   - Fix progressbar 
  Rev 2.0.10
    - Fix #11180 - GEOSERVER XML issue
  Rev 2.0.9

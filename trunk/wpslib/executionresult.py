@@ -83,7 +83,7 @@ class ExecutionResult(QObject):
     
     fetchingResult = pyqtSignal(int)
 
-    def __init__(self, literalResultCallback, resultFileCallback, successResultCallback, errorResultCallback, streamingHandler):
+    def __init__(self, literalResultCallback, resultFileCallback, successResultCallback, errorResultCallback, streamingHandler, progressBar=None):
         QObject.__init__(self)
         self._getLiteralResult = literalResultCallback
         self._resultFileCallback = resultFileCallback
@@ -91,6 +91,7 @@ class ExecutionResult(QObject):
         self._errorResultCallback = errorResultCallback
         self._streamingHandler = streamingHandler
         self._processExecuted = False
+        self.progressBar = progressBar
         self.noFilesToFetch = 0
 
     def executeProcess(self, processUrl, requestXml):
@@ -117,6 +118,7 @@ class ExecutionResult(QObject):
         request.setHeader( QNetworkRequest.ContentTypeHeader, "text/xml" )
         self.thePostReply = thePostHttp.post(request, postData)
         self.thePostReply.finished.connect(partial(self.resultHandler, self.thePostReply) )
+        
 
     def finished(self):
         return self._processExecuted and (self.noFilesToFetch == 0)
@@ -126,6 +128,7 @@ class ExecutionResult(QObject):
            map layers to the registry or open an information window to show literal
            outputs."""
         resultXML = reply.readAll().data()
+        reply.deleteLater()
         qDebug(resultXML)
         self.parseResult(resultXML)
         self._processExecuted = True
@@ -218,7 +221,7 @@ class ExecutionResult(QObject):
         self.encoding = encoding
         self.schema = schema
         self.theReply.finished.connect(partial(self.getResultFile, identifier, self.mimeType, encoding, schema,  self.theReply))
-#        self.theReply.downloadProgress.connect(lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
+        self.theReply.downloadProgress.connect(lambda done,  all,  status="download": self.showProgressBar(done,  all,  status)) 
 
     def getResultFile(self, identifier, mimeType, encoding, schema,  reply):
         # Check if there is redirection        
@@ -236,6 +239,7 @@ class ExecutionResult(QObject):
                 
         self._resultFileCallback(identifier, mimeType, encoding, schema,  reply)
         self.noFilesToFetch -= 1
+        reply.deleteLater()
 
     def handleEncoded(self, file, mimeType, encoding,  schema):
         # Decode?
@@ -244,6 +248,22 @@ class ExecutionResult(QObject):
         else:
             return file
 
+    def showProgressBar(self,  done,  total , status):
+        
+        complete = status == "aborted" or status == "finished" or status == "error"
+
+        self.progressBar.setRange(done, total)
+        if status == "upload" and done == total:
+            status = "processing"
+            done = total = 0
+
+        if complete:
+            self.progressBar.setRange(0, 100)
+            self.progressBar.setValue(100)
+        else:
+            self.progressBar.setRange(0, total)
+            self.progressBar.setValue(done)       
+        
     def errorHandler(self, resultXML):
          if resultXML:
            qDebug(resultXML)

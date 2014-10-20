@@ -97,6 +97,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     def setStatus(self, status, done=0, total=0):
         complete = status == "aborted" or status == "finished" or status == "error"
 
+        self.progressBar.setRange(done, total)
         if status == "upload" and done == total:
             status = "processing"
             done = total = 0
@@ -107,7 +108,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
             self.progressBar.setRange(0, 100)
             self.progressBar.setValue(100)
         else:
-            self.progressBar.setRange(done, total)
+            self.progressBar.setRange(0, total)
             self.progressBar.setValue(done)
 
         if status == 'upload':
@@ -475,7 +476,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         QApplication.restoreOverrideCursor()
         self.setStatus("processing")
-        self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile, self.successResult, self.errorResult, self.streamingHandler)
+        self.wps = ExecutionResult(self.getLiteralResult, self.getResultFile, self.successResult, self.errorResult, self.streamingHandler,  self.progressBar)
         self.wps.executeProcess(self.process.processUrl, postString)
         if len(self.process.inputs) > 0:
           self.wps.thePostReply.uploadProgress.connect(lambda done, total: self.setStatus("upload", done, total))
@@ -632,6 +633,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
         outFile = QFile(tmpFile)
         outFile.open(QIODevice.WriteOnly)
         outFile.write(reply.readAll())
+        reply.deleteLater()
         outFile.close()
 
         resultFile = self.wps.handleEncoded(tmpFile, mimeType, encoding,  schema)
@@ -700,6 +702,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
     @pyqtSignature("")
     def on_btnKill_clicked(self):
         self.wps.thePostReply.abort()
+        self.wps.thePostReply.deleteLater()
         self.setStatus('aborted')
         self.killed.emit()
 

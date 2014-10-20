@@ -105,6 +105,7 @@ class WpsServer(QObject):
             pass
 
         xmlString = self._theReply.readAll().data()
+        self._theReply.deleteLater()
         self.doc = QtXml.QDomDocument()
         self.doc.setContent(xmlString,  True)
 

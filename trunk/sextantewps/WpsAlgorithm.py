@@ -200,6 +200,7 @@ class WpsAlgorithm(GeoAlgorithm):
         outFile = QFile(tmpFile)
         outFile.open(QIODevice.WriteOnly)
         outFile.write(reply.readAll())
+        reply.deleteLater()
         outFile.close()
 
         resultFile = self.wps.handleEncoded(tmpFile, mimeType, encoding,  schema)

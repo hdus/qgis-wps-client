@@ -385,6 +385,7 @@ class ProcessDescription(QObject):
         # Receive the XML process description
         self.processUrl = self._theReply.url()
         self.processXML = self._theReply.readAll().data()
+        self._theReply.deleteLater()
         qDebug(self.processXML)
         self._parseProcessXML()
         self._requestExecuted = True
