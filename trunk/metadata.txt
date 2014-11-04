@@ -18,6 +18,8 @@ author=Horst Duester
 email=horst.duester@kappasys.ch
 
 changelog=
+ Rev 2.0.12
+   - settings bug fixed
  Rev 2.0.11
    - Fix rstrip being called on qstring
    - Fix progressbar 
