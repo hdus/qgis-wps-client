@@ -13,9 +13,9 @@ version=2.0.12
 qgisMinimumVersion=1.5
 qgisMaximumVersion=2.99
 class_name=QgsWps
-website=http://www.kappasys.ch
-author=Horst Duester
-email=horst.duester@kappasys.ch
+website=http://www.sourcepole.ch
+author=Horst Duester / Sourcepole AG
+email=horst.duester@sourcepole.ch
 
 changelog=
  Rev 2.0.12
