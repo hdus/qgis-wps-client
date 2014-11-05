@@ -274,13 +274,24 @@ class ExecutionRequest(QObject):
         #if self.tools.isMimeTypeVector(mimeType) != None and encoding != "base64":
         self.addExecuteRequestInputStart(identifier)
         
-        self.request += "<wps:ComplexData mimeType=\"%s\" schema=\"%s\" %s>" % (mimeType, schema, encoding)
+        self.request += "<wps:ComplexData mimeType=\"%s\" schema=\"%s\"%s>" % (mimeType, schema, encoding)
+        self.request += "<![CDATA["
         self.request += gmldata.replace("> <","><")
-          
-        self.request = self.request.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
+
+        self.request = self.request.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"",
             "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
-        
+
+        self.request += "]]>"
         self.request += "</wps:ComplexData>\n"
+        
+#        self.request += "<wps:ComplexData mimeType=\"%s\" schema=\"%s\" %s>" % (mimeType, schema, encoding)
+#        self.request += gmldata.replace("> <","><")
+#          
+#        self.request = self.request.replace("xsi:schemaLocation=\"http://ogr.maptools.org/ qt_temp.xsd\"", 
+#            "xsi:schemaLocation=\"" + schema.rsplit('/',1)[0] + "/ " + schema + "\"")
+#        
+#        self.request += "</wps:ComplexData>\n"
+
         self.addExecuteRequestInputEnd()  
 
     def addGeometryBase64Input(self, identifier, mimeType, data):

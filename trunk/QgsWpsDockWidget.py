@@ -435,7 +435,7 @@ class QgsWpsDockWidget(QDockWidget, Ui_QgsWpsDockWidget):
 
         # Attach only defined outputs
         dataOutputs = doc.elementsByTagName("Output")
-        if dataOutputs.size() > 0 and len(self.complexOutputComboBoxList) > 0:
+        if dataOutputs.size() > 0 or len(self.complexOutputComboBoxList) > 0:
           request.addResponseFormStart()
 
           # Attach ALL literal outputs #############################################

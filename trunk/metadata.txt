@@ -9,7 +9,7 @@
 name=WPS Client
 description=Client for OGC Web Processing Services
 category=Web
-version=2.0.12
+version=2.0.13
 qgisMinimumVersion=1.5
 qgisMaximumVersion=2.99
 class_name=QgsWps
@@ -18,6 +18,8 @@ author=Horst Duester - Sourcepole AG
 email=horst.duester@sourcepole.ch
 
 changelog=
+ Rev 2.0.13
+   - Fix issue #11180
  Rev 2.0.12
    - new connection bug fixed
  Rev 2.0.11
