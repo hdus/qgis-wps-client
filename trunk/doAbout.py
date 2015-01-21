@@ -21,9 +21,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from wps import version,  date
-#from wps import date
 
-import webbrowser, os
 
 from Ui_QgsWpsAbout import Ui_dlgAbout
 
@@ -53,6 +51,7 @@ class DlgAbout( QDialog, Ui_dlgAbout ):
         contribString += pystring( "Eugeniy Nikulin<br>" )
         contribString += pystring( "Marco Hugentobler<br>" )
         contribString += pystring( "Luca Delucchi<br>" )
+        contribString += pystring( "Enrico De Guidi<br>" )
         contribString += pystring( "Alexander Bruy (About GUI) <br>" )
         contribString += pystring("Robert Szczepanek (Icon) <br><br>")
         contribString += pystring( "<b>and special thanks to the QGIS team</b></p>" )
