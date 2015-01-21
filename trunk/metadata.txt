@@ -18,7 +18,7 @@ author=Horst Duester - Sourcepole AG
 email=horst.duester@sourcepole.ch
 
 changelog=
-Rev. 2.0.14
+ Rev. 2.0.14
    - Contributor Enrico De Guidi added
  Rev 2.0.13
    - Fix issue #11180
