@@ -9,8 +9,8 @@
 name=WPS Client
 description=Client for OGC Web Processing Services
 category=Web
-version=3.0.0
-qgisMinimumVersion=3.6
+version=3.0.1
+qgisMinimumVersion=3.18
 qgisMaximumVersion=3.99
 class_name=QgsWps
 website=http://www.sourcepole.com
@@ -21,6 +21,8 @@ about=Sourcepole AG - Linux & Open Source Solutions, Weberstrasse 5, 8004 Zurich
 experimental=True
 
 changelog=
+ Rev 3.0.1
+   - Updated for PyQt5+ compatibility for QGIS versions 3.18 and later
  Rev 3.0.0
    - Making plugin experimental and work for QGIS3 / Python 3
  Rev 2.1.6
